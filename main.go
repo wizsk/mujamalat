@@ -1,0 +1,193 @@
+package main
+
+import (
+	"database/sql"
+	"embed"
+	"log"
+	"net/http"
+	"runtime"
+	"strings"
+
+	_ "github.com/glebarez/go-sqlite"
+	"github.com/wizsk/al/ar_en"
+)
+
+const (
+	debug              = !true
+	versionNo          = "1.0"
+	dbFileName         = "mujamalat.db"
+	mainTemplateName   = "main.html"
+	genricTemplateName = "genric-dict"
+	portRangeStart     = 8080
+	portrangeEnd       = 8099
+)
+
+var (
+	//go:embed pub/* tmpl/*
+	staticData embed.FS
+
+	//go:embed db/mujamalat.zip
+	zipfileData []byte
+)
+
+var (
+	dicts = []Dict{
+		{"معجم الغني", "mujamul_ghoni"},
+		{"معجم اللغة العربية المعاصرة", "mujamul_muashiroh"},
+		{"معجم الوسيط", "mujamul_wasith"},
+		{"معجم المحيط", "mujamul_muhith"},
+		{"مختار الصحاح", "mujamul_shihah"},
+		{"لسان العرب", "lisanularab"},
+		{"لينليكسكون", "lanelexcon"},
+		{"هانز وير", "hanswehr"},
+		{"قاموس مباشر", "ar_en"},
+		// {"", "quran"},
+		// {"", "ghoribulquran"},
+	}
+
+	dictsMap map[string]string = func(ds []Dict) map[string]string {
+		m := make(map[string]string)
+		for _, d := range ds {
+			m[d.En] = d.Ar
+		}
+		return m
+	}(dicts)
+)
+
+func main() {
+	if debug {
+		log.Println("---- RUNNING IN DEBUG MODE! ----")
+	}
+
+	log.Println("Initalizing database")
+	db := ke(sql.Open("sqlite", unzipAndWriteDb()))
+	defer db.Close()
+
+	arEnDict := ar_en.MakeData()
+	log.Println("Initalizaion done")
+
+	var tmpl templateWraper
+	if debug {
+		tmpl = &tmplW{}
+	} else {
+		if debug {
+			tmpl = &tmplW{}
+		} else {
+			t, err := openTmpl()
+			if err != nil {
+				log.Fatal(err)
+			}
+			tmpl = t
+		}
+
+	}
+
+	http.HandleFunc("/mujamul_ghoni", func(w http.ResponseWriter, r *http.Request) {
+		word := r.FormValue("w")
+		mujamul_ghoni(db, word, w, tmpl)
+	})
+
+	http.HandleFunc("/mujamul_muashiroh", func(w http.ResponseWriter, r *http.Request) {
+		word := r.FormValue("w")
+		mujamul_muashiroh(db, word, w, tmpl)
+	})
+
+	http.HandleFunc("/mujamul_wasith", func(w http.ResponseWriter, r *http.Request) {
+		word := r.FormValue("w")
+		mujamul_wasith(db, word, w, tmpl)
+	})
+
+	http.HandleFunc("/mujamul_muhith", func(w http.ResponseWriter, r *http.Request) {
+		word := r.FormValue("w")
+		mujamul_muhith(db, word, w, tmpl)
+	})
+
+	http.HandleFunc("/mujamul_shihah", func(w http.ResponseWriter, r *http.Request) {
+		word := r.FormValue("w")
+		mujamul_shihah(db, word, w, tmpl)
+	})
+
+	http.HandleFunc("/lisanularab", func(w http.ResponseWriter, r *http.Request) {
+		word := r.FormValue("w")
+		lisanularab(db, word, w, tmpl)
+	})
+
+	http.HandleFunc("/hanswehr", func(w http.ResponseWriter, r *http.Request) {
+		word := r.FormValue("w")
+		hanswehr(db, word, w, tmpl)
+	})
+
+	http.HandleFunc("/lanelexcon", func(w http.ResponseWriter, r *http.Request) {
+		word := r.FormValue("w")
+		lanelexcon(db, word, w, tmpl)
+	})
+
+	http.HandleFunc("/ar_en", func(w http.ResponseWriter, r *http.Request) {
+		word := r.FormValue("w")
+		arEn(&arEnDict, word, w, tmpl)
+	})
+
+	// root
+	http.HandleFunc("/", func(w http.ResponseWriter, r *http.Request) {
+		http.Redirect(w, r, "/mujamul_ghoni", http.StatusMovedPermanently)
+	})
+
+	http.HandleFunc("/content", func(w http.ResponseWriter, r *http.Request) {
+		d := r.FormValue("dict")
+		word := strings.TrimSpace(r.FormValue("w"))
+		if word == "" {
+			le(tmpl.ExecuteTemplate(w, genricTemplateName, nil))
+		}
+
+		switch d {
+		case "mujamul_ghoni":
+			en := mujamul_ghoniEntry(db, word)
+			le(tmpl.ExecuteTemplate(w, genricTemplateName, &en))
+
+		case "mujamul_muashiroh":
+			en := mujamul_muashirohEntry(db, word)
+			le(tmpl.ExecuteTemplate(w, genricTemplateName, &en))
+
+		case "mujamul_wasith":
+			en := mujamul_wasithEnty(db, word)
+			le(tmpl.ExecuteTemplate(w, genricTemplateName, &en))
+
+		case "mujamul_muhith":
+			en := mujamul_muhithEntry(db, word)
+			le(tmpl.ExecuteTemplate(w, genricTemplateName, &en))
+
+		case "mujamul_shihah":
+			en := mujamul_shihahEntry(db, word)
+			le(tmpl.ExecuteTemplate(w, genricTemplateName, &en))
+
+		case "lisanularab":
+			en := lisanularabEntry(db, word)
+			le(tmpl.ExecuteTemplate(w, genricTemplateName, &en))
+
+		case "hanswehr":
+			en := hanswehrEntry(db, word)
+			le(tmpl.ExecuteTemplate(w, genricTemplateName, &en))
+
+		case "lanelexcon":
+			en := lanelexconEntry(db, word)
+			le(tmpl.ExecuteTemplate(w, genricTemplateName, &en))
+
+		case "ar_en":
+			en := arEnEntry(&arEnDict, word)
+			le(tmpl.ExecuteTemplate(w, "ar_en", &en))
+
+		default:
+			http.Error(w, "Stupid request", http.StatusNotFound)
+		}
+	})
+
+	// my dicrecotry name and the path are the same lol
+	http.Handle("/pub/", http.FileServerFS(staticData))
+
+	p := findFreePort(portRangeStart, portrangeEnd)
+	log.Printf("serving at: http://localhost:%s\n", p)
+	if runtime.GOOS != "windows" {
+		log.Printf("serving at: http://%s:%s\n", localIp(), p)
+	}
+	log.Fatal(http.ListenAndServe(":"+p, nil))
+}

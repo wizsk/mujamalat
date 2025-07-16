@@ -1,0 +1,69 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <link rel="shortcut icon" href="/pub/fav.png" type="image/x-icon">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    {{template "main_style.html"}}
+
+    {{if eq "ar_en" .Curr}}
+        {{template "ar_en-style"}}
+    {{end}}
+
+    {{if or (eq "lanelexcon" .Curr) (eq "hanswehr" .Curr)}}
+        {{template "eng-style"}}
+    {{end}}
+
+    <title>{{index .DictsMap .Curr}}: {{.Query}}</title>
+</head>
+
+<body>
+    {{template "nav.html" .}}
+
+    <div id="content">
+    {{if .Mujamul_ghoni}}
+        {{template "genric-dict" .Mujamul_ghoni}}
+
+    {{else if .Mujamul_muashiroh}}
+        {{template "genric-dict" .Mujamul_muashiroh}}
+
+    {{else if .Mujamul_wasith}}
+        {{template "genric-dict" .Mujamul_wasith}}
+
+    {{else if .Mujamul_muhith}}
+        {{template "genric-dict" .Mujamul_muhith}}
+
+    {{else if .Mujamul_shihah}}
+        {{template "genric-dict" .Mujamul_shihah}}
+
+    {{else if .Lisanularab}}
+        {{template "genric-dict" .Lisanularab}}
+
+    {{else if .Lanelexcon}}
+        {{template "genric-dict" .Lanelexcon}}
+
+    {{else if .Hanswehr}}
+        {{template "genric-dict" .Hanswehr}}
+
+    {{else if .ArEn}}
+        {{template "ar_en" .ArEn}}
+
+    {{else}}
+        {{template "no-res"}}
+    {{end}}
+    </div>
+
+
+    <div id="overlay">
+        <button class="btn" id="up">^</button>
+        <button class="btn" id="plus">١+</button>
+        <button class="btn" id="minus">١-</button>
+        <button class="btn hidden" id="resetFont">م-</button>
+    </div>
+    <script>
+    // {{template "main.js" .}}
+    </script>
+</body>
+
+</html>

@@ -1,0 +1,218 @@
+<style>
+	@font-face {
+		font-family: "font";
+		src: url("/pub/Kitab-Regular.ttf") format("truetype");
+		font-weight: normal;
+		font-style: normal;
+	}
+
+	* {
+		direction: rtl;
+		font-family: 'font';
+
+		--btn-pad-y: 6px;
+		--btn-pad-x: 12px;
+		--border-radious: 4px;
+		/* light color ig */
+		--color: rgb(34, 34, 34);
+		--color-highlight: #02647a;
+		--bg: rgb(255, 250, 243);
+		--accent: #337ab7;
+		--accent-dark: #286090;
+		--alert: #a94442;
+		--ar-en-tbl-bg: #3379b73d;
+
+	}
+
+
+	body {
+		--font-size: 1.2em;
+		--max-width: 35em;
+		padding: 1rem;
+		margin: 1rem auto;
+		max-width: var(--max-width);
+		font-size: var(--font-size);
+		background-color: var(--bg);
+	}
+
+	form {
+		margin: 0 auto;
+		max-width: 400px;
+		display: flex;
+		align-items: center;
+		gap: .5rem;
+	}
+
+	#w {
+		all: unset;
+		direction: rtl;
+		background-color: #fff;
+		background-image: none;
+		border: 1px solid #ccc;
+		border-radius: var(--border-radious);
+		color: #555;
+		width: 75%;
+		/* line-height: 1.42857143; */
+		padding: var(--btn-pad-y) var(--btn-pad-x);
+		transition: border-color .15s ease-in-out, box-shadow .15s ease-in-out;
+	}
+
+	#w:focus {
+		border-color: #66afe9;
+		box-shadow: 0 0 8px #66afe999;
+		outline: 0;
+	}
+
+	#w-submit {
+		font-size: inherit;
+		font-family: inherit;
+		padding: var(--btn-pad-y) var(--btn-pad-x);
+		background-color: var(--accent);
+		border-radius: var(--border-radious);
+		border: none;
+		color: var(--bg);
+		cursor: pointer;
+		transition: all .15s ease-in-out, box-shadow .15s ease-in-out;
+	}
+
+	#w-submit:hover {
+		background-color: var(--accent-dark);
+	}
+
+
+	#sw_dict {
+		display: flex;
+		align-items: start;
+		margin: 1rem 0;
+		gap: 0.5rem;
+		overflow-x: scroll;
+	}
+
+	.sw-dict-item {
+		display: inline-block;
+		padding: var(--btn-pad-y) var(--btn-pad-x);
+		text-decoration: none;
+		color: var(--color);
+		border: solid 1px var(--accent);
+		white-space: nowrap;
+		border-radius: var(--border-radious);
+		transition: all .15s ease-in-out, box-shadow .15s ease-in-out;
+	}
+
+	/* for scroll pading */
+	/* .sw-dict-item:last-of-type {
+		margin-left: 4rem;
+	} */
+
+	#sw-dict-item-selected,
+	.sw-dict-item:hover {
+		color: var(--bg);
+		background-color: var(--accent);
+		box-shadow: 0 0 8px #66afe999;
+	}
+
+	#content {
+		margin-top: 2rem;
+		margin-bottom: 12rem;
+	}
+
+	/* this is for both word, or roots */
+	.word {
+		color: var(--accent);
+	}
+
+	hr {
+		border: 0;
+		border-top: 1px solid rgba(from var(--accent) r g b / 70%);
+	}
+
+	.btn {
+		font-size: inherit;
+		font-family: inherit;
+		padding: var(--btn-pad-y) var(--btn-pad-x);
+		border-radius: var(--border-radious);
+		background-color: var(--accent-dark);
+		color: var(--bg);
+		border: none;
+		cursor: pointer;
+	}
+
+	#overlay {
+		position: fixed;
+		right: 0;
+		bottom: 0;
+		margin: 1rem 2rem;
+
+	}
+
+	@media (min-width: 768px) {
+		body {
+			--font-size: 2em;
+			font-size: var(--font-size);
+		}
+	}
+	
+	.hidden {
+		display: none;
+	}
+</style>
+
+{{define "eng-style"}}
+<style>
+	@font-face {
+		font-family: "eng-font";
+		src: url("/pub/Amiri-Regular.ttf") format("truetype");
+		font-weight: normal;
+		font-style: normal;
+	}
+
+	#content,
+	#content div {
+		font-family: "eng-font";
+		direction: ltr !important;
+		/* text-align: left !important; */
+	}
+
+	.word {
+		display: none;
+	}
+</style>
+{{end}}
+
+{{define "ar_en-style"}}
+<style>
+    table {
+        margin: 0 auto;
+		direction: ltr;
+		text-align: left;
+    }
+
+    .w-4 {
+        /* width: 4rem; */
+        padding-left: 0.5rem;
+        /* background-color: rgba(255, 0, 0, 0.493); */
+    }
+
+    .w-def {
+        /* width: 12.5rem; */
+        padding-left: 0.5rem;
+        /* background-color: rgba(0, 0, 255, 0.336); */
+    }
+
+    .padd {
+        padding-top: .5rem;
+        padding-bottom: .5rem;
+    }
+
+	/* data left  */
+    .dl {
+		direction: ltr;
+		text-align: left;
+	}
+
+    table thead,
+    tr:nth-child(even) {
+		background-color: rgba(from var(--accent) r g b / 10%);
+    }
+</style>
+{{end}}

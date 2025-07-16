@@ -1,0 +1,12 @@
+<form action="/{{.Curr}}" method="get">
+    <input type="text" name="w" id="w" placeholder="اكتب هنا" value="{{.Query}}">
+    <button type="submit" id="w-submit">ابحث</button>
+</form>
+
+<!-- switch dictionary -->
+<div id="sw_dict">
+    {{range .Dicts}}
+    <a class="sw-dict-item" id="{{if eq .En $.Curr}}sw-dict-item-selected{{end}}" data-dict-name="{{.En}}"
+        href="/{{.En}}?w={{$.Query}}">{{.Ar}}</a>
+    {{end}}
+</div>

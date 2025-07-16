@@ -1,0 +1,39 @@
+{{define "genric-dict"}}
+{{range $i, $v := .}}
+{{if ne $i 0}}
+<hr>
+{{end}}
+<div>
+    <div><span class="word">{{$v.Word}}:</span> {{$v.Meaning}}</div>
+</div>
+{{else}}
+{{template "no-res"}}
+{{end}}
+{{end}}
+
+{{define "ar_en"}}
+{{if .}}
+<table>
+    <thead>
+        <td class="dl w-4">كلمة</td>
+        <td class="dl w-def">تعريف</td>
+        <td class="dl w-4">جذر</td>
+    </thead>
+    {{range .}}
+    <tr class="padd">
+        <td class="dl w-4">{{.Word}}</td>
+        <td class="dl w-def">{{.Def}}</td>
+        <td class="dl w-4">{{.Root}}</td>
+    </tr>
+    {{end}}
+</table>
+{{else}}
+    {{template "no-res"}}
+{{end}}
+{{end}}
+
+{{define "no-res"}}
+<div style="text-align: center; margin-top: 4rem; color: var(--alert);">
+    ابحث عن كلمة أو جذر آخر
+</div>
+{{end}}

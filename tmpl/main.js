@@ -35,17 +35,7 @@ w.oninput = () => {
         const word = w.value.trim();
         if (word === "") return;
 
-        for (let i = 0; i < dicts.length; i++) {
-            const n = dicts[i].getAttribute('data-dict-name');
-            dicts[i].href = `/${n}?w=${word}`;
-        }
-
-        console.log(`/content?dict=${selectedDict}&w=${w.value.trim()}`);
-
-        urlParams.set('w', word);
-        const newUrl = `${window.location.pathname}?${urlParams.toString()}`;
-        document.title = word;
-
+        console.log(`req: /content?dict=${selectedDict}&w=${w.value.trim()}`);
         fetch(`/content?dict=${selectedDict}&w=${word}`).then(async (r) => {
             if (r.ok) {
                 const h = await r.text();
@@ -64,7 +54,16 @@ w.oninput = () => {
         })
 
 
-    }, 100);
+        for (let i = 0; i < dicts.length; i++) {
+            const n = dicts[i].getAttribute('data-dict-name');
+            dicts[i].href = `/${n}?w=${word}`;
+        }
+
+        urlParams.set('w', word);
+        const newUrl = `${window.location.pathname}?${urlParams.toString()}`;
+        document.title = word;
+
+    }, 300);
 }
 
 window.addEventListener("popstate", (e) => {

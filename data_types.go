@@ -1,6 +1,6 @@
 package main
 
-import "github.com/wizsk/al/ar_en"
+import "github.com/wizsk/mujamalat/ar_en"
 
 type TmplData struct {
 	Query             string

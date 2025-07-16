@@ -1,4 +1,4 @@
-module github.com/wizsk/al
+module github.com/wizsk/mujamalat
 
 go 1.23.4
 

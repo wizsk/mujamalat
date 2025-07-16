@@ -6,7 +6,7 @@ import (
 	"io"
 	"strings"
 
-	"github.com/wizsk/al/ar_en"
+	"github.com/wizsk/mujamalat/ar_en"
 )
 
 type Entry_eng struct {

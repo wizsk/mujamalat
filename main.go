@@ -9,7 +9,7 @@ import (
 	"strings"
 
 	_ "github.com/glebarez/go-sqlite"
-	"github.com/wizsk/al/ar_en"
+	"github.com/wizsk/mujamalat/ar_en"
 )
 
 const (

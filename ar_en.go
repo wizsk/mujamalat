@@ -231,7 +231,7 @@ func _parseDict(f string) dictEntries {
 }
 
 func MakeArEnDict() Dictionary {
-	const dataRoot = "data"
+	const dataRoot = "./db/ar_en_data"
 	dicts := []string{"dictprefixes", "dictstems", "dictsuffixes"}
 	tables := []string{"tableab", "tableac", "tablebc"}
 

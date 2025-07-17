@@ -19,7 +19,7 @@ var (
 	//go:embed db/mujamalat.zip
 	zipfileData []byte
 
-	//go:embed tmpl/* data/dict* data/tabl*
+	//go:embed tmpl/* db/ar_en_data/dict* db/ar_en_data/tabl*
 	staticData embed.FS
 
 	//go:embed pub/*

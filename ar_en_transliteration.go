@@ -1,4 +1,4 @@
-package ar_en
+package main
 
 var harakaats = []rune{'a', 'u', 'i', 'F', 'N', 'K', '~', 'o'}
 

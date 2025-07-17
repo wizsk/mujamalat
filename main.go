@@ -2,32 +2,21 @@ package main
 
 import (
 	"database/sql"
-	"embed"
 	"log"
 	"net/http"
 	"runtime"
 	"strings"
 
 	_ "github.com/glebarez/go-sqlite"
-	"github.com/wizsk/mujamalat/ar_en"
 )
 
 const (
-	debug              = !true
-	versionNo          = "1.0"
+	version            = "v1.0.0"
 	dbFileName         = "mujamalat.db"
 	mainTemplateName   = "main.html"
 	genricTemplateName = "genric-dict"
 	portRangeStart     = 8080
 	portrangeEnd       = 8099
-)
-
-var (
-	//go:embed pub/* tmpl/*
-	staticData embed.FS
-
-	//go:embed db/mujamalat.zip
-	zipfileData []byte
 )
 
 var (
@@ -63,24 +52,10 @@ func main() {
 	db := ke(sql.Open("sqlite", unzipAndWriteDb()))
 	defer db.Close()
 
-	arEnDict := ar_en.MakeData()
+	arEnDict := MakeArEnDict()
 	log.Println("Initalizaion done")
 
-	var tmpl templateWraper
-	if debug {
-		tmpl = &tmplW{}
-	} else {
-		if debug {
-			tmpl = &tmplW{}
-		} else {
-			t, err := openTmpl()
-			if err != nil {
-				log.Fatal(err)
-			}
-			tmpl = t
-		}
-
-	}
+	tmpl := ke(openTmpl(debug))
 
 	http.HandleFunc("/mujamul_ghoni", func(w http.ResponseWriter, r *http.Request) {
 		word := r.FormValue("w")
@@ -182,7 +157,7 @@ func main() {
 	})
 
 	// my dicrecotry name and the path are the same lol
-	http.Handle("/pub/", http.FileServerFS(staticData))
+	http.Handle("/pub/", servePubData())
 
 	p := findFreePort(portRangeStart, portrangeEnd)
 	log.Printf("serving at: http://localhost:%s\n", p)

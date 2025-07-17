@@ -1,47 +1,16 @@
 package main
 
 import (
-	"archive/zip"
-	"bytes"
 	_ "embed"
 	"html/template"
 	"io"
 	"log"
 	"net"
 	"os"
-	"path/filepath"
 	"runtime"
 	"strconv"
 	"strings"
 )
-
-func unzipAndWriteDb() string {
-	if debug {
-		return filepath.Join("db", dbFileName)
-	}
-
-	dbFilePath := filepath.Join(os.TempDir(), dbFileName)
-	if stat, err := os.Stat(dbFilePath); err == nil && stat.Size() == 134770688 {
-		log.Println("DB was alreay written. skipping wrting again...")
-		return dbFilePath
-	}
-
-	z := bytes.NewReader(zipfileData)
-
-	r := ke(zip.NewReader(z, z.Size()))
-	if len(r.File) != 1 {
-		log.Fatalln("Expected 1 file insize the zip")
-	}
-
-	data := ke(r.File[0].Open())
-	defer data.Close()
-
-	dbDestFile := ke(os.Create(dbFilePath))
-	ke(io.Copy(dbDestFile, data))
-	dbDestFile.Close()
-
-	return dbFilePath
-}
 
 // log when error != nil and return true
 func le(err error, comments ...string) bool {
@@ -132,8 +101,4 @@ func (tp *tmplW) ExecuteTemplate(w io.Writer, name string, data any) error {
 		return err
 	}
 	return t.ExecuteTemplate(w, name, data)
-}
-
-func openTmpl() (templateWraper, error) {
-	return template.ParseFS(staticData, "tmpl/*")
 }

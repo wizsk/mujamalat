@@ -5,8 +5,6 @@ import (
 	"html/template"
 	"io"
 	"strings"
-
-	"github.com/wizsk/mujamalat/ar_en"
 )
 
 type Entry_eng struct {
@@ -17,11 +15,11 @@ type Entry_eng struct {
 	Meaning template.HTML `json:"meaning"`
 }
 
-func arEnEntry(d *ar_en.Dictionary, query string) []ar_en.Entry {
+func arEnEntry(d *Dictionary, query string) []Entry_arEn {
 	return d.FindWords(query)
 }
 
-func arEn(d *ar_en.Dictionary, word string, w io.Writer, tmpl templateWraper) {
+func arEn(d *Dictionary, word string, w io.Writer, tmpl templateWraper) {
 	word = strings.TrimSpace(word)
 	t := TmplData{Query: word, Curr: "ar_en", Dicts: dicts, DictsMap: dictsMap}
 	if word == "" {

@@ -1,7 +1,5 @@
 package main
 
-import "github.com/wizsk/mujamalat/ar_en"
-
 type TmplData struct {
 	Query             string
 	Curr              string
@@ -15,7 +13,7 @@ type TmplData struct {
 	Lanelexcon        []Entry_eng
 	Lisanularab       []Entry_lisanularab
 	Hanswehr          []Entry_eng
-	ArEn              []ar_en.Entry
+	ArEn              []Entry_arEn
 }
 
 // dict names

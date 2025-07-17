@@ -7,12 +7,14 @@ import (
 	"archive/zip"
 	"bytes"
 	"embed"
+	"fmt"
 	"html/template"
 	"io"
 	"log"
 	"net/http"
 	"os"
 	"path/filepath"
+	"strconv"
 )
 
 var (
@@ -25,6 +27,40 @@ var (
 	//go:embed pub/*
 	pubData embed.FS
 )
+
+var (
+	port    string
+)
+
+func parseFlags(args []string) {
+	l := len(args)
+	for i := 1; i < l; i++ {
+		vi := i + 1 // next value index
+		switch args[i] {
+		case "-p", "--p", "--port":
+			if vi >= l {
+				printUsages()
+			} else if _, err := strconv.Atoi(args[vi]); err != nil {
+				printUsages()
+			}
+			port = args[vi]
+			i++
+		default:
+			printUsages()
+		}
+	}
+}
+
+func printUsages() {
+	fmt.Println(`Usage: ` + progName + ` [OPTIONS]...
+
+Options:
+  -p, --port <number>
+        The port where the uses. (default range: ` + fmt.Sprintf("%d-%d", portRangeStart, portrangeEnd) + `)
+
+`)
+	os.Exit(1)
+}
 
 func unzipAndWriteDb() string {
 	if debug {

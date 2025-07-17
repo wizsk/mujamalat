@@ -4,6 +4,7 @@ import (
 	"database/sql"
 	"log"
 	"net/http"
+	"os"
 	"runtime"
 	"strings"
 
@@ -11,6 +12,7 @@ import (
 )
 
 const (
+	progName           = "mujamalat"
 	version            = "v1.0.0"
 	dbFileName         = "mujamalat.db"
 	mainTemplateName   = "main.html"
@@ -47,6 +49,7 @@ func main() {
 	if debug {
 		log.Println("---- RUNNING IN DEBUG MODE! ----")
 	}
+	parseFlags(os.Args)
 
 	log.Println("Initalizing database")
 	db := ke(sql.Open("sqlite", unzipAndWriteDb()))
@@ -159,10 +162,13 @@ func main() {
 	// my dicrecotry name and the path are the same lol
 	http.Handle("/pub/", servePubData())
 
-	p := findFreePort(portRangeStart, portrangeEnd)
-	log.Printf("serving at: http://localhost:%s\n", p)
-	if runtime.GOOS != "windows" {
-		log.Printf("serving at: http://%s:%s\n", localIp(), p)
+	if port == "" {
+		port = findFreePort(portRangeStart, portrangeEnd)
 	}
-	log.Fatal(http.ListenAndServe(":"+p, nil))
+
+	log.Printf("serving at: http://localhost:%s\n", port)
+	if runtime.GOOS != "windows" {
+		log.Printf("serving at: http://%s:%s\n", localIp(), port)
+	}
+	log.Fatal(http.ListenAndServe(":"+port, nil))
 }

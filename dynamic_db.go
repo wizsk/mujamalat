@@ -6,18 +6,64 @@ package main
 import (
 	"archive/zip"
 	_ "embed"
+	"fmt"
 	"html/template"
 	"io"
 	"log"
 	"net/http"
 	"os"
 	"path/filepath"
+	"strconv"
 )
 
 const dbFileZipName = "mujamalat.zip"
 
+var (
+	rootDir string = "."
+	port    string
+)
+
+func parseFlags(args []string) {
+	l := len(args)
+	for i := 1; i < l; i++ {
+		vi := i + 1 // next value index
+		switch args[i] {
+		case "-r", "--r", "--root-dir":
+			if vi >= l {
+				printUsages()
+			}
+			rootDir = args[vi]
+			i++
+		case "-p", "--p", "--port":
+			if vi >= l {
+				printUsages()
+			} else if _, err := strconv.Atoi(args[vi]); err != nil {
+				printUsages()
+			}
+			port = args[vi]
+			i++
+		default:
+			printUsages()
+		}
+	}
+}
+
+func printUsages() {
+	fmt.Println(`Usage: ` + progName + ` [OPTIONS]...
+
+Options:
+  -r, --root-dir <directory>
+        Root directory where the server will look for db and static data. (default: ` + rootDir + `)
+
+  -p, --port <number>
+        The port where the uses. (default range: ` + fmt.Sprintf("%d-%d", portRangeStart, portrangeEnd) + `)
+
+`)
+	os.Exit(1)
+}
+
 func unzipAndWriteDb() string {
-	dbDir := "./db"
+	dbDir := filepath.Join(rootDir, "./db")
 	log.Printf("Loading db dynamically from %q\n", dbDir)
 	dbFilePath := filepath.Join(dbDir, dbFileName)
 
@@ -48,12 +94,12 @@ func servePubData() http.Handler {
 }
 
 func open(name string) (io.ReadCloser, error) {
-	return os.Open(name)
+	return os.Open(filepath.Join(rootDir, name))
 }
 
 func openTmpl(debug bool) (templateWraper, error) {
 	if debug {
 		return &tmplW{}, nil
 	}
-	return template.ParseGlob("tmpl/*")
+	return template.ParseGlob(filepath.Join(rootDir, "tmpl/*"))
 }

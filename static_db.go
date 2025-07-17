@@ -1,5 +1,5 @@
-//go:build static
-// +build static
+//go:build static && !debug
+// +build static,!debug
 
 package main
 
@@ -7,10 +7,10 @@ import (
 	"archive/zip"
 	"bytes"
 	"embed"
-	"net/http"
 	"html/template"
 	"io"
 	"log"
+	"net/http"
 	"os"
 	"path/filepath"
 )
@@ -64,8 +64,5 @@ func open(name string) (io.ReadCloser, error) {
 }
 
 func openTmpl(debug bool) (templateWraper, error) {
-	if debug {
-		return &tmplW{}, nil
-	}
 	return template.ParseFS(staticData, "tmpl/*")
 }

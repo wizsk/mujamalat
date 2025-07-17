@@ -11,7 +11,6 @@ import (
 )
 
 const (
-	debug              = !true
 	version            = "v1.0.0"
 	dbFileName         = "mujamalat.db"
 	mainTemplateName   = "main.html"

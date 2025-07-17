@@ -1,8 +1,7 @@
-package ar_en
+package main
 
 import (
 	"bufio"
-	"embed"
 	"fmt"
 	"os"
 	"path/filepath"
@@ -10,10 +9,7 @@ import (
 	"strings"
 )
 
-//go:embed data/dict* data/tabl*
-var dictFiles embed.FS
-
-type dictEntries map[string][]Entry
+type dictEntries map[string][]Entry_arEn
 type tableEntries map[string][]string
 
 type Dictionary struct {
@@ -26,7 +22,7 @@ type Dictionary struct {
 	tableAC tableEntries
 }
 
-type Entry struct {
+type Entry_arEn struct {
 	Root  string
 	Word  string
 	Morph string
@@ -35,8 +31,8 @@ type Entry struct {
 	Pos   string
 }
 
-func (d *Dictionary) FindWords(words string) []Entry {
-	var res []Entry
+func (d *Dictionary) FindWords(words string) []Entry_arEn {
+	var res []Entry_arEn
 	for _, w := range strings.Split(words, " ") {
 		if w != "" {
 			res = append(res, d.FindWord(w)...)
@@ -45,11 +41,11 @@ func (d *Dictionary) FindWords(words string) []Entry {
 	return res
 }
 
-func (d *Dictionary) FindWord(word string) []Entry {
+func (d *Dictionary) FindWord(word string) []Entry_arEn {
 	if word == "" {
 		return nil
 	}
-	res := []Entry{}
+	res := []Entry_arEn{}
 	w := []rune(transliterateRmHarakats(word))
 
 	for i := 0; i < len(w); i++ {
@@ -65,12 +61,12 @@ func rSlice(r []rune, start, end int) string {
 	return string(r[start:end])
 }
 
-func (d *Dictionary) dict(pref, stem, suff string) []Entry {
+func (d *Dictionary) dict(pref, stem, suff string) []Entry_arEn {
 	prf := d.dictPref[pref]
 	stm := d.dictStems[stem]
 	suf := d.dictSuff[suff]
 
-	res := []Entry{}
+	res := []Entry_arEn{}
 
 	for _, p := range prf {
 		for _, s := range stm {
@@ -79,7 +75,7 @@ func (d *Dictionary) dict(pref, stem, suff string) []Entry {
 					continue
 				}
 
-				c := Entry{
+				c := Entry_arEn{
 					Root: deTransliterate(s.Root),
 					Word: deTransliterate(p.Word + s.Word + su.Word),
 					Def:  formatDef(p, s, su),
@@ -100,7 +96,7 @@ func (d *Dictionary) obeysGrammer(pref, stem, suff string) bool {
 
 }
 
-func formatDef(pre, stem, suf Entry) string {
+func formatDef(pre, stem, suf Entry_arEn) string {
 	res := ""
 	if pre.Def != "" {
 		seg := strings.Split(pre.Def, "<pos>")
@@ -130,7 +126,7 @@ func formatDef(pre, stem, suf Entry) string {
 }
 
 func parseTabl(f string) tableEntries {
-	data := p(dictFiles.Open(f))
+	data := ke(open(f))
 	defer data.Close()
 	en := map[string][]string{}
 	lines := bufio.NewScanner(data)
@@ -156,9 +152,9 @@ func parseTabl(f string) tableEntries {
 
 func parseDict(f string) dictEntries {
 	// data := p(os.ReadFile(f))
-	data := p(dictFiles.Open(f))
+	data := ke(open(f))
 	defer data.Close()
-	en := map[string][]Entry{}
+	en := map[string][]Entry_arEn{}
 
 	root := ""
 	family := ""
@@ -179,7 +175,7 @@ func parseDict(f string) dictEntries {
 			family = strings.Split(l, " ")[2]
 		} else if l[0] != ';' {
 			parts := strings.SplitN(l, "\t", 4)
-			e := Entry{
+			e := Entry_arEn{
 				Root: root, Word: parts[1],
 				Morph: parts[2], Def: parts[3],
 				Fam: family,
@@ -198,9 +194,9 @@ func parseDict(f string) dictEntries {
 
 func _parseDict(f string) dictEntries {
 	// data := p(os.ReadFile(f))
-	data := p(dictFiles.Open(f))
+	data := ke(open(f))
 	defer data.Close()
-	en := map[string][]Entry{}
+	en := map[string][]Entry_arEn{}
 
 	root := ""
 	family := ""
@@ -221,7 +217,7 @@ func _parseDict(f string) dictEntries {
 			family = strings.Split(l, " ")[2]
 		} else if l[0] != ';' {
 			parts := strings.SplitN(l, "\t", 4)
-			e := Entry{
+			e := Entry_arEn{
 				Root: root, Word: parts[1],
 				Morph: parts[2], Def: parts[3],
 				Fam: family,
@@ -234,7 +230,7 @@ func _parseDict(f string) dictEntries {
 	return en
 }
 
-func MakeData() Dictionary {
+func MakeArEnDict() Dictionary {
 	const dataRoot = "data"
 	dicts := []string{"dictprefixes", "dictstems", "dictsuffixes"}
 	tables := []string{"tableab", "tableac", "tablebc"}
@@ -250,11 +246,4 @@ func MakeData() Dictionary {
 	dict.tableBC = parseTabl(filepath.Join(dataRoot, tables[2]))
 
 	return dict
-}
-
-func p[T any](r T, err error) T {
-	if err != nil {
-		panic(err)
-	}
-	return r
 }

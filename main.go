@@ -22,7 +22,9 @@ const (
 )
 
 var (
-	dicts = []Dict{
+	gitCommit     string
+	compiledDate string
+	dicts       = []Dict{
 		{"معجم الغني", "mujamul_ghoni"},
 		{"معجم اللغة العربية المعاصرة", "mujamul_muashiroh"},
 		{"معجم الوسيط", "mujamul_wasith"},

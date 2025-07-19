@@ -42,6 +42,9 @@ func parseFlags(args []string) {
 			}
 			port = args[vi]
 			i++
+		case "-v", "--v", "--version":
+			printVersion()
+			os.Exit(0)
 		default:
 			printUsages()
 		}
@@ -57,6 +60,8 @@ Options:
 
   -p, --port <number>
         The port where the uses. (default range: try PORT env or ` + fmt.Sprintf("%d-%d", portRangeStart, portrangeEnd) + `)
+  -v, --version
+        print version number
 
 `)
 	os.Exit(1)

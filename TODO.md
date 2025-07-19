@@ -1,2 +1,3 @@
 - [ ] Add remove harakat func
 - [ ] version controlling with build timestamp and git commit hash
+- [ ] finish README.md

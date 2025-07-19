@@ -2,6 +2,7 @@ package main
 
 import (
 	_ "embed"
+	"fmt"
 	"html/template"
 	"io"
 	"log"
@@ -10,6 +11,7 @@ import (
 	"runtime"
 	"strconv"
 	"strings"
+	"time"
 )
 
 // log when error != nil and return true
@@ -104,4 +106,17 @@ func (tp *tmplW) ExecuteTemplate(w io.Writer, name string, data any) error {
 		return err
 	}
 	return t.ExecuteTemplate(w, name, data)
+}
+
+func printVersion() {
+	fmt.Printf("%s: %s\n", progName, version)
+	if compiledDate != "" {
+		if u, err := strconv.ParseInt(compiledDate, 10, 64); err == nil {
+			u := time.Unix(u, 0)
+			fmt.Printf("compilled at: %s\n", u.Format(time.RFC1123))
+		}
+	}
+	if gitCommit != "" {
+		fmt.Printf("git commit: %s\n", gitCommit)
+	}
 }

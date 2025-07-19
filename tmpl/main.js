@@ -6,6 +6,7 @@ let searhInvId;
 const contentHolder = document.getElementById("content");
 const dicts = document.getElementsByClassName('sw-dict-item');
 const urlParams = new URLSearchParams(window.location.search);
+var preQuery = "";
 
 
 document.addEventListener("DOMContentLoaded", () => {
@@ -33,7 +34,8 @@ w.oninput = () => {
     clearInterval(searhInvId);
     searhInvId = setTimeout(() => {
         const word = w.value.trim();
-        if (word === "") return;
+        if (word === "" || word === preQuery) return;
+        preQuery = word;
 
         console.log(`req: /content?dict=${selectedDict}&w=${w.value.trim()}`);
         fetch(`/content?dict=${selectedDict}&w=${word}`).then(async (r) => {
@@ -63,7 +65,7 @@ w.oninput = () => {
         const newUrl = `${window.location.pathname}?${urlParams.toString()}`;
         document.title = word;
 
-    }, 300);
+    }, 500);
 }
 
 window.addEventListener("popstate", (e) => {

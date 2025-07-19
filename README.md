@@ -24,15 +24,14 @@ sudo mv mujamalat /usr/local/bin/ # or mv mujamalat ~/.local/bin/
 
 ### Macos
 
-```sh
-cd /tmp
-wget "https://github.com/wizsk/mujamalat/releases/latest/download/mujamalat_macos_$(uname -m).tar.gz"
-tar xf "mujamalat_macos_$(uname -m).tar.gz"
-sudo mv mujadalat /usr/local/bin
-```
-
-or you can install it in your `~/.bin`
-
+<!-- ```sh -->
+<!-- cd /tmp -->
+<!-- wget "https://github.com/wizsk/mujamalat/releases/latest/download/mujamalat_macos_$(uname -m).tar.gz" -->
+<!-- tar xf "mujamalat_macos_$(uname -m).tar.gz" -->
+<!-- sudo mv mujadalat /usr/local/bin -->
+<!-- ``` -->
+<!---->
+<!-- or you can install it in your `~/.bin` -->
 ```sh
 cd /tmp
 wget "https://github.com/wizsk/mujamalat/releases/latest/download/mujamalat_macos_$(uname -m).tar.gz"

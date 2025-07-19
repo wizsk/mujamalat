@@ -51,14 +51,33 @@ func main() {
 	}
 	parseFlags(os.Args)
 
-	log.Println("Initalizing database")
-	db := ke(sql.Open("sqlite", unzipAndWriteDb()))
+	log.Println("Initalizing...")
+	done := make(chan struct{}, 1)
+
+	var db *sql.DB
+	var arEnDict *Dictionary
+	var tmpl templateWraper
+
+	go func() {
+		db = ke(sql.Open("sqlite", unzipAndWriteDb()))
+		done <- struct{}{}
+	}()
 	defer db.Close()
 
-	arEnDict := MakeArEnDict()
-	log.Println("Initalizaion done")
+	go func() {
+		arEnDict = MakeArEnDict()
+		done <- struct{}{}
+	}()
 
-	tmpl := ke(openTmpl(debug))
+	go func() {
+		tmpl = ke(openTmpl(debug))
+		done <- struct{}{}
+	}()
+
+	<-done
+	<-done
+	<-done
+	log.Println("Initalizaion done")
 
 	http.HandleFunc("/mujamul_ghoni", func(w http.ResponseWriter, r *http.Request) {
 		word := r.FormValue("w")
@@ -102,7 +121,7 @@ func main() {
 
 	http.HandleFunc("/ar_en", func(w http.ResponseWriter, r *http.Request) {
 		word := r.FormValue("w")
-		arEn(&arEnDict, word, w, tmpl)
+		arEn(arEnDict, word, w, tmpl)
 	})
 
 	// root
@@ -151,7 +170,7 @@ func main() {
 			le(tmpl.ExecuteTemplate(w, genricTemplateName, &en))
 
 		case "ar_en":
-			en := arEnEntry(&arEnDict, word)
+			en := arEnEntry(arEnDict, word)
 			le(tmpl.ExecuteTemplate(w, "ar_en", &en))
 
 		default:

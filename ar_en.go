@@ -230,7 +230,7 @@ func _parseDict(f string) dictEntries {
 	return en
 }
 
-func MakeArEnDict() Dictionary {
+func MakeArEnDict() *Dictionary {
 	const dataRoot = "./db/ar_en_data"
 	dicts := []string{"dictprefixes", "dictstems", "dictsuffixes"}
 	tables := []string{"tableab", "tableac", "tablebc"}
@@ -245,5 +245,5 @@ func MakeArEnDict() Dictionary {
 	dict.tableAC = parseTabl(filepath.Join(dataRoot, tables[1]))
 	dict.tableBC = parseTabl(filepath.Join(dataRoot, tables[2]))
 
-	return dict
+	return &dict
 }

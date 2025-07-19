@@ -56,7 +56,7 @@ Options:
         Root directory where the server will look for db and static data. (default: ` + rootDir + `)
 
   -p, --port <number>
-        The port where the uses. (default range: ` + fmt.Sprintf("%d-%d", portRangeStart, portrangeEnd) + `)
+        The port where the uses. (default range: try PORT env or ` + fmt.Sprintf("%d-%d", portRangeStart, portrangeEnd) + `)
 
 `)
 	os.Exit(1)

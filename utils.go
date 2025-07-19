@@ -27,15 +27,18 @@ func le(err error, comments ...string) bool {
 
 // it looks for form start to including end
 func findFreePort(start, end int) string {
+	if p := os.Getenv("PORT"); p != "" {
+		if c, err := net.Listen("tcp", "0.0.0.0:"+p); err == nil &&
+			c.Close() == nil {
+			return p
+		}
+	}
+
 	for i := start; i <= end; i++ {
 		p := strconv.Itoa(i)
-		c, err := net.Listen("tcp", "0.0.0.0:"+p)
-		if err == nil {
-			err := c.Close()
-			if err == nil {
-				return p
-
-			}
+		if c, err := net.Listen("tcp", "0.0.0.0:"+p); err == nil &&
+			c.Close() == nil {
+			return p
 		}
 	}
 

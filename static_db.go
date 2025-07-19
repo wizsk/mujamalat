@@ -56,7 +56,7 @@ func printUsages() {
 
 Options:
   -p, --port <number>
-        The port where the uses. (default range: ` + fmt.Sprintf("%d-%d", portRangeStart, portrangeEnd) + `)
+        The port where the uses. (default range: try PORT env or ` + fmt.Sprintf("%d-%d", portRangeStart, portrangeEnd) + `)
 
 `)
 	os.Exit(1)
@@ -66,9 +66,15 @@ func unzipAndWriteDb() string {
 	if debug {
 		return filepath.Join("db", dbFileName)
 	}
-	dbFilePath := filepath.Join(os.TempDir(), dbFileName)
+	rDir := ""
+	if d, err := os.UserCacheDir(); err == nil {
+		rDir = d
+	}else {
+		d = os.TempDir()
+	}
+	dbFilePath := filepath.Join(rDir, dbFileName)
 	if stat, err := os.Stat(dbFilePath); err == nil && stat.Size() == 134770688 {
-		log.Println("DB was alreay written. skipping wrting again...")
+		log.Printf("DB found at: %s\n", dbFilePath)
 		return dbFilePath
 	}
 

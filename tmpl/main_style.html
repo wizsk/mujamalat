@@ -146,6 +146,27 @@
 
 	}
 
+	/* schortcut or instructions */
+	.s-list {
+		list-style-type: disc;
+		padding-left: 20px;
+		direction: ltr !important;
+		text-align: left;
+	}
+
+	.s-list-item {
+		margin-bottom: 10px;
+		direction: ltr !important;
+	}
+
+	.shortcut {
+		font-family: monospace;
+		background-color: var(--accent-dark);
+		padding: 2px 6px;
+		border-radius: 4px;
+		color: var(--bg);
+	}
+
 	@media (min-width: 768px) {
 		body {
 			--font-size: 2em;
@@ -155,6 +176,10 @@
 
 	.hidden {
 		display: none;
+	}
+
+	.eng {
+		direction: ltr !important;
 	}
 </style>
 
@@ -181,38 +206,38 @@
 
 {{define "ar_en-style"}}
 <style>
-    table {
-        margin: 0 auto;
-		direction: ltr;
-		text-align: left;
-    }
-
-    .w-4 {
-        /* width: 4rem; */
-        padding-left: 0.5rem;
-        /* background-color: rgba(255, 0, 0, 0.493); */
-    }
-
-    .w-def {
-        /* width: 12.5rem; */
-        padding-left: 0.5rem;
-        /* background-color: rgba(0, 0, 255, 0.336); */
-    }
-
-    .padd {
-        padding-top: .5rem;
-        padding-bottom: .5rem;
-    }
-
-	/* data left  */
-    .dl {
+	table {
+		margin: 0 auto;
 		direction: ltr;
 		text-align: left;
 	}
 
-    table thead,
-    tr:nth-child(even) {
+	.w-4 {
+		/* width: 4rem; */
+		padding-left: 0.5rem;
+		/* background-color: rgba(255, 0, 0, 0.493); */
+	}
+
+	.w-def {
+		/* width: 12.5rem; */
+		padding-left: 0.5rem;
+		/* background-color: rgba(0, 0, 255, 0.336); */
+	}
+
+	.padd {
+		padding-top: .5rem;
+		padding-bottom: .5rem;
+	}
+
+	/* data left  */
+	.dl {
+		direction: ltr;
+		text-align: left;
+	}
+
+	table thead,
+	tr:nth-child(even) {
 		background-color: rgba(from var(--accent) r g b / 10%);
-    }
+	}
 </style>
 {{end}}

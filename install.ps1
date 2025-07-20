@@ -79,7 +79,7 @@ $desktopPath = [System.IO.Path]::Combine($env:USERPROFILE, "Desktop")
 $shortcutPath = [System.IO.Path]::Combine($desktopPath, "$progName.lnk")
 $wshShell = New-Object -ComObject WScript.Shell
 $shortcut = $wshShell.CreateShortcut($shortcutPath)
-$hwExeFullPath = Join-Path -Path $progPath -ChildPath "hw.exe"
+$hwExeFullPath = Join-Path -Path $progPath -ChildPath "mujamalat.exe"
 $shortcut.TargetPath = $hwExeFullPath
 $shortcut.Arguments = $arguments
 $shortcut.IconLocation = $icoPath
@@ -101,7 +101,7 @@ $shortcutPath = [System.IO.Path]::Combine($progPath, "$progName.lnk")
 $wshShell = New-Object -ComObject WScript.Shell
 $shortcut = $wshShell.CreateShortcut($shortcutPath)
 # Set the target executable and arguments
-$hwExeFullPath = Join-Path -Path $progPath -ChildPath "hw.exe"
+$hwExeFullPath = Join-Path -Path $progPath -ChildPath "mujamalt.exe"
 $shortcut.TargetPath = $hwExeFullPath
 $shortcut.Arguments = $arguments
 $shortcut.IconLocation = $icoPath
@@ -109,5 +109,5 @@ $shortcut.IconLocation = $icoPath
 $shortcut.Save()
 
 Write-Host ""
-Write-Host "Installation compleaded! Now run 'mujamalat'"
+Write-Host "Installation completed! Now run 'mujamalat'"
 

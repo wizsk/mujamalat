@@ -4,7 +4,17 @@
 
 # Mujamalat
 
-Arabic Lexicons.
+It includes,
+
+- 6 Arabic lexicons: 
+    - معجم الغني، معجم اللغة العربية المعاصرة، معجم الوسيط، معجم المحيط، مختار الصحاح، لسان العرب
+- 2 English lexicon:
+    - Lane Lexicon, Hanswehr
+- 1 direct Arabic to English dictionary
+
+You can try it out here. [https://mujamalat.onrender.com](https://mujamalat.onrender.com)
+
+It's running on the hobby plan so, it may take some time to laod, and it may say it's booting up.
 
 
 ## Install
@@ -38,7 +48,7 @@ cd /tmp
 wget "https://github.com/wizsk/mujamalat/releases/latest/download/mujamalat_macos_arm64.tar.gz"
 tar xf "mujamalat_macos_arm64.tar.gz"
 ```
-Then run these to move binnary to bin and add to the bin directory.
+Then run these to move binnary to bin and add to the bin PATH.
 
 ```sh
 mkdir -p ~/.bin

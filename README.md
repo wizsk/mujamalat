@@ -6,7 +6,7 @@
 
 It includes,
 
-- 6 Arabic lexicons: 
+- 6 Arabic lexicons:
     - معجم الغني، معجم اللغة العربية المعاصرة، معجم الوسيط، معجم المحيط، مختار الصحاح، لسان العرب
 - 2 English lexicon:
     - Lane Lexicon, Hanswehr
@@ -14,14 +14,20 @@ It includes,
 
 You can try it out here. [https://mujamalat.onrender.com](https://mujamalat.onrender.com)
 
-It's running on the hobby plan so, it may take some time to laod, and it may say it's booting up.
+It's running on the hobby plan so, it may take some time to laod, and it may say it's booting up. So, if you liked it
+install it.
+
+## Usages
+
+It's made as a single binary cli app. You have to run it from the terminal/shell.
+So, if you're familiar with the cli then you can use it easily.
 
 
 ## Install
 
 Download the laset version from [https://github.com/wizsk/mujamalat/releases/latest](https://github.com/wizsk/mujamalat/releases/latest) for your os.
 
-### linux
+### Linux
 
 ```bash
 # linux
@@ -34,7 +40,7 @@ sudo mv mujamalat /usr/local/bin/ # or mv mujamalat ~/.local/bin/
 
 ### Macos
 
-**For x86_64 intel**
+**For x86_64 Intel**
 
 ```sh
 cd /tmp

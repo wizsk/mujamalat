@@ -184,6 +184,10 @@ func main() {
 	// my dicrecotry name and the path are the same lol
 	http.Handle("/pub/", servePubData())
 
+	http.HandleFunc("/version", func(w http.ResponseWriter, r *http.Request) {
+		printVersionWritter(w)
+	})
+
 	if port == "" {
 		port = findFreePort(portRangeStart, portrangeEnd)
 	}

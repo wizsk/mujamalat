@@ -109,15 +109,19 @@ func (tp *tmplW) ExecuteTemplate(w io.Writer, name string, data any) error {
 }
 
 func printVersion() {
-	fmt.Printf("%s: %s\n", progName, version)
-	fmt.Printf("data: %s\n", dbType)
+	printVersionWritter(os.Stdout)
+}
+
+func printVersionWritter(w io.Writer) {
+	fmt.Fprintf(w, "%s: %s\n", progName, version)
+	fmt.Fprintf(w, "data: %s\n", dbType)
 	if buildTime != "" {
 		if u, err := strconv.ParseInt(buildTime, 10, 64); err == nil {
 			u := time.Unix(u, 0)
-			fmt.Printf("compilled at: %s\n", u.Format(time.RFC1123))
+			fmt.Fprintf(w, "compilled at: %s\n", u.Format(time.RFC1123))
 		}
 	}
 	if gitCommit != "" {
-		fmt.Printf("git commit: %s\n", gitCommit)
+		fmt.Fprintf(w, "git commit: %s\n", gitCommit)
 	}
 }

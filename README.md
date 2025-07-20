@@ -65,10 +65,7 @@ source ~/.bash_profile  # or `source ~/.zshrc` for zsh users
 
 ### Windows
 
-Open an `Administrator PowerShell` prompt and paste the following command
-
-Go to Windows Search, type `PowerShell`, then right-click on the PowerShell app
-in the search results or click the small arrow (>) next to it, and select Run as Administrator.
+Open an `Administrator PowerShell` prompt and paste the following command and press enter.
 
 If your unsure what to do watch the video: [https://youtu.be/A1WIKaqariU](https://youtu.be/A1WIKaqariU)
 

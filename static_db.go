@@ -17,6 +17,10 @@ import (
 	"strconv"
 )
 
+const (
+	dbType = "embeded"
+)
+
 var (
 	//go:embed db/mujamalat.zip
 	zipfileData []byte
@@ -29,7 +33,7 @@ var (
 )
 
 var (
-	port    string
+	port string
 )
 
 func parseFlags(args []string) {
@@ -75,7 +79,7 @@ func unzipAndWriteDb() string {
 	rDir := ""
 	if d, err := os.UserCacheDir(); err == nil {
 		rDir = d
-	}else {
+	} else {
 		d = os.TempDir()
 	}
 	dbFilePath := filepath.Join(rDir, dbFileName)

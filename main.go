@@ -5,6 +5,7 @@ import (
 	"log"
 	"net/http"
 	"os"
+	"regexp"
 	"runtime"
 	"strings"
 
@@ -22,9 +23,9 @@ const (
 )
 
 var (
-	gitCommit     string
-	compiledDate string
-	dicts       = []Dict{
+	buildTime string
+	gitCommit    string
+	dicts        = []Dict{
 		{"معجم الغني", "mujamul_ghoni"},
 		{"معجم اللغة العربية المعاصرة", "mujamul_muashiroh"},
 		{"معجم الوسيط", "mujamul_wasith"},
@@ -45,6 +46,7 @@ var (
 		}
 		return m
 	}(dicts)
+	harakatRgx = regexp.MustCompile(`[ً-ُِّْٔٔۖۚۛ۝ٖۡۘۙۚۤۦۧ]`)
 )
 
 func main() {
@@ -82,47 +84,47 @@ func main() {
 	log.Println("Initalizaion done")
 
 	http.HandleFunc("/mujamul_ghoni", func(w http.ResponseWriter, r *http.Request) {
-		word := r.FormValue("w")
+		word := harakatRgx.ReplaceAllString(r.FormValue("w"), "")
 		mujamul_ghoni(db, word, w, tmpl)
 	})
 
 	http.HandleFunc("/mujamul_muashiroh", func(w http.ResponseWriter, r *http.Request) {
-		word := r.FormValue("w")
+		word := harakatRgx.ReplaceAllString(r.FormValue("w"), "")
 		mujamul_muashiroh(db, word, w, tmpl)
 	})
 
 	http.HandleFunc("/mujamul_wasith", func(w http.ResponseWriter, r *http.Request) {
-		word := r.FormValue("w")
+		word := harakatRgx.ReplaceAllString(r.FormValue("w"), "")
 		mujamul_wasith(db, word, w, tmpl)
 	})
 
 	http.HandleFunc("/mujamul_muhith", func(w http.ResponseWriter, r *http.Request) {
-		word := r.FormValue("w")
+		word := harakatRgx.ReplaceAllString(r.FormValue("w"), "")
 		mujamul_muhith(db, word, w, tmpl)
 	})
 
 	http.HandleFunc("/mujamul_shihah", func(w http.ResponseWriter, r *http.Request) {
-		word := r.FormValue("w")
+		word := harakatRgx.ReplaceAllString(r.FormValue("w"), "")
 		mujamul_shihah(db, word, w, tmpl)
 	})
 
 	http.HandleFunc("/lisanularab", func(w http.ResponseWriter, r *http.Request) {
-		word := r.FormValue("w")
+		word := harakatRgx.ReplaceAllString(r.FormValue("w"), "")
 		lisanularab(db, word, w, tmpl)
 	})
 
 	http.HandleFunc("/hanswehr", func(w http.ResponseWriter, r *http.Request) {
-		word := r.FormValue("w")
+		word := harakatRgx.ReplaceAllString(r.FormValue("w"), "")
 		hanswehr(db, word, w, tmpl)
 	})
 
 	http.HandleFunc("/lanelexcon", func(w http.ResponseWriter, r *http.Request) {
-		word := r.FormValue("w")
+		word := harakatRgx.ReplaceAllString(r.FormValue("w"), "")
 		lanelexcon(db, word, w, tmpl)
 	})
 
 	http.HandleFunc("/ar_en", func(w http.ResponseWriter, r *http.Request) {
-		word := r.FormValue("w")
+		word := harakatRgx.ReplaceAllString(r.FormValue("w"), "")
 		arEn(arEnDict, word, w, tmpl)
 	})
 
@@ -133,7 +135,7 @@ func main() {
 
 	http.HandleFunc("/content", func(w http.ResponseWriter, r *http.Request) {
 		d := r.FormValue("dict")
-		word := strings.TrimSpace(r.FormValue("w"))
+		word := strings.TrimSpace(harakatRgx.ReplaceAllString(r.FormValue("w"), ""))
 		if word == "" {
 			le(tmpl.ExecuteTemplate(w, genricTemplateName, nil))
 		}

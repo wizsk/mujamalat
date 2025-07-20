@@ -16,7 +16,10 @@ import (
 	"strconv"
 )
 
-const dbFileZipName = "mujamalat.zip"
+const (
+	dbFileZipName = "mujamalat.zip"
+	dbType        = "external"
+)
 
 var (
 	rootDir string = "."

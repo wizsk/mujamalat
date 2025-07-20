@@ -110,8 +110,9 @@ func (tp *tmplW) ExecuteTemplate(w io.Writer, name string, data any) error {
 
 func printVersion() {
 	fmt.Printf("%s: %s\n", progName, version)
-	if compiledDate != "" {
-		if u, err := strconv.ParseInt(compiledDate, 10, 64); err == nil {
+	fmt.Printf("data: %s\n", dbType)
+	if buildTime != "" {
+		if u, err := strconv.ParseInt(buildTime, 10, 64); err == nil {
 			u := time.Unix(u, 0)
 			fmt.Printf("compilled at: %s\n", u.Format(time.RFC1123))
 		}

@@ -4,7 +4,6 @@ import (
 	"bufio"
 	"fmt"
 	"os"
-	"path/filepath"
 	"slices"
 	"strings"
 )
@@ -230,20 +229,22 @@ func _parseDict(f string) dictEntries {
 	return en
 }
 
-func MakeArEnDict() *Dictionary {
-	const dataRoot = "./db/ar_en_data"
-	dicts := []string{"dictprefixes", "dictstems", "dictsuffixes"}
-	tables := []string{"tableab", "tableac", "tablebc"}
-
-	dict := Dictionary{}
-
-	dict.dictPref = parseDict(filepath.Join(dataRoot, dicts[0]))
-	dict.dictStems = parseDict(filepath.Join(dataRoot, dicts[1]))
-	dict.dictSuff = parseDict(filepath.Join(dataRoot, dicts[2]))
-
-	dict.tableAB = parseTabl(filepath.Join(dataRoot, tables[0]))
-	dict.tableAC = parseTabl(filepath.Join(dataRoot, tables[1]))
-	dict.tableBC = parseTabl(filepath.Join(dataRoot, tables[2]))
-
-	return &dict
-}
+// no longer needed :)
+// go embed only likes unix file path not windows haha based :)
+// func MakeArEnDict() *Dictionary {
+// 	dataRoot := "./db/ar_en_data"
+// 	dicts := []string{"dictprefixes", "dictstems", "dictsuffixes"}
+// 	tables := []string{"tableab", "tableac", "tablebc"}
+//
+// 	dict := Dictionary{}
+//
+// 	dict.dictPref = parseDict(filepath.Join(dataRoot, dicts[0]))
+// 	dict.dictStems = parseDict(filepath.Join(dataRoot, dicts[1]))
+// 	dict.dictSuff = parseDict(filepath.Join(dataRoot, dicts[2]))
+//
+// 	dict.tableAB = parseTabl(filepath.Join(dataRoot, tables[0]))
+// 	dict.tableAC = parseTabl(filepath.Join(dataRoot, tables[1]))
+// 	dict.tableBC = parseTabl(filepath.Join(dataRoot, tables[2]))
+//
+// 	return &dict
+// }

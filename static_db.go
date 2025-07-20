@@ -118,3 +118,21 @@ func open(name string) (io.ReadCloser, error) {
 func openTmpl(debug bool) (templateWraper, error) {
 	return template.ParseFS(staticData, "tmpl/*")
 }
+
+func MakeArEnDict() *Dictionary {
+	dataRoot := "db/ar_en_data"
+	dicts := []string{"dictprefixes", "dictstems", "dictsuffixes"}
+	tables := []string{"tableab", "tableac", "tablebc"}
+
+	dict := Dictionary{}
+
+	dict.dictPref = parseDict(dataRoot + "/" + dicts[0])
+	dict.dictStems = parseDict(dataRoot + "/" + dicts[1])
+	dict.dictSuff = parseDict(dataRoot + "/" + dicts[2])
+
+	dict.tableAB = parseTabl(dataRoot + "/" + tables[0])
+	dict.tableAC = parseTabl(dataRoot + "/" + tables[1])
+	dict.tableBC = parseTabl(dataRoot + "/" + tables[2])
+
+	return &dict
+}

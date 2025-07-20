@@ -16,26 +16,31 @@ Download the laset version from [https://github.com/wizsk/mujamalat/releases/lat
 ```bash
 # linux
 cd /tmp
-wget "https://github.com/wizsk/mujamalat/releases/latest/download/mujamalat_linux_$(uname -m).tar.gz"
-tar xf "mujamalat_linux_$(uname -m).tar.gz"
+wget "https://github.com/wizsk/mujamalat/releases/latest/download/mujamalat_linux_x86_64.tar.gz"
+tar xf "mujamalat_linux_x86_64.tar.gz"
 sudo mv mujamalat /usr/local/bin/ # or mv mujamalat ~/.local/bin/
 ```
 
 
 ### Macos
 
-<!-- ```sh -->
-<!-- cd /tmp -->
-<!-- wget "https://github.com/wizsk/mujamalat/releases/latest/download/mujamalat_macos_$(uname -m).tar.gz" -->
-<!-- tar xf "mujamalat_macos_$(uname -m).tar.gz" -->
-<!-- sudo mv mujadalat /usr/local/bin -->
-<!-- ``` -->
-<!---->
-<!-- or you can install it in your `~/.bin` -->
+**For x86_64 intel**
+
 ```sh
 cd /tmp
-wget "https://github.com/wizsk/mujamalat/releases/latest/download/mujamalat_macos_$(uname -m).tar.gz"
-tar xf "mujamalat_macos_$(uname -m).tar.gz"
+wget "https://github.com/wizsk/mujamalat/releases/latest/download/mujamalat_macos_x86_64.tar.gz"
+tar xf "mujamalat_macos_x86_64.tar.gz"
+```
+**For ARM**
+
+```sh
+cd /tmp
+wget "https://github.com/wizsk/mujamalat/releases/latest/download/mujamalat_macos_arm64.tar.gz"
+tar xf "mujamalat_macos_arm64.tar.gz"
+```
+Then run these to move binnary to bin and add to the bin directory.
+
+```sh
 mkdir -p ~/.bin
 mv mujamalat ~/.bin
 echo 'export PATH="$PATH:$HOME/.bin"' >> ~/.bash_profile  # or ~/.zshrc for zsh users
@@ -49,8 +54,8 @@ Open an `Administrator PowerShell` prompt and paste the following command
 Go to Windows Search, type `PowerShell`, then right-click on the PowerShell app
 in the search results or click the small arrow (>) next to it, and select Run as Administrator.
 
+**This will only work for x86_64.**
 
 ```ps1
 irm "https://raw.githubusercontent.com/wizsk/mujamalat/refs/heads/main/install.ps1" | iex
 ```
-

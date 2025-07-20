@@ -6,7 +6,6 @@ import (
 	"net/http"
 	"os"
 	"regexp"
-	"runtime"
 	"strings"
 
 	_ "github.com/glebarez/go-sqlite"
@@ -24,8 +23,8 @@ const (
 
 var (
 	buildTime string
-	gitCommit    string
-	dicts        = []Dict{
+	gitCommit string
+	dicts     = []Dict{
 		{"معجم الغني", "mujamul_ghoni"},
 		{"معجم اللغة العربية المعاصرة", "mujamul_muashiroh"},
 		{"معجم الوسيط", "mujamul_wasith"},
@@ -189,9 +188,9 @@ func main() {
 		port = findFreePort(portRangeStart, portrangeEnd)
 	}
 
-	log.Printf("serving at: http://localhost:%s\n", port)
-	if runtime.GOOS != "windows" {
-		log.Printf("serving at: http://%s:%s\n", localIp(), port)
+	log.Printf("--- serving at: http://localhost:%s ---\n", port)
+	if l := localIp(); l != "localhost" {
+		log.Printf("--- serving at: http://%s:%s ---\n", l, port)
 	}
 	log.Fatal(http.ListenAndServe(":"+port, nil))
 }

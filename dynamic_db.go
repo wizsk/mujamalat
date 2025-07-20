@@ -18,7 +18,7 @@ import (
 
 const (
 	dbFileZipName = "mujamalat.zip"
-	dbType        = "external"
+	dbType        = "external (dynamic)"
 )
 
 var (

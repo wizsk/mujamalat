@@ -17,6 +17,10 @@ You can try it out here. [https://mujamalat.onrender.com](https://mujamalat.onre
 It's running on the hobby plan so, it may take some time to laod, and it may say it's booting up. So, if you liked it
 install it.
 
+## Showcase
+
+[mujamalat-showcase.webm](https://github.com/user-attachments/assets/1441fdbb-4c3d-4c3e-ad1f-1c283671fce8)
+
 ## Usages
 
 It's made as a single binary cli app. You have to run it from the terminal/shell.

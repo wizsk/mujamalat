@@ -13,7 +13,7 @@ import (
 
 const (
 	progName           = "mujamalat"
-	version            = "v1.1.0"
+	version            = "v1.0.0"
 	dbFileName         = "mujamalat.db"
 	mainTemplateName   = "main.html"
 	genricTemplateName = "genric-dict"

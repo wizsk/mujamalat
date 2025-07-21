@@ -2,6 +2,7 @@ package main
 
 import (
 	"database/sql"
+	"fmt"
 	"html/template"
 	"io"
 	"strings"
@@ -69,12 +70,33 @@ func hanswehrEntry(db *sql.DB, query string) []Entry_eng {
 	r := lev(db.Query(`SELECT word, meanings, is_root FROM hanswehr
 	WHERE parent_id IN (SELECT parent_id FROM hanswehr WHERE word = ?)
 	ORDER BY ID`, query))
-	// "FullTextSearch": "SELECT id, word, MAX(highlight) highlight, definition, is_root, quran_occurrence, favorite_flag from (SELECT dict.word, dict.id, CASE dict.id WHEN dict2.id then 1 else 0 end as highlight, REPLACE(dict.definition,'$word','<mark>$word</mark>') AS definition,  dict.is_root , dict.quran_occurrence, dict.favorite_flag FROM DICTIONARY dict inner join (SELECT ID, PARENT_ID, is_root FROM DICTIONARY WHERE definition match '$word' LIMIT 50) dict2 ON dict.parent_id = dict2.parent_id) group by word, definition, is_root, quran_occurrence order by id ";
+
 	for r.Next() {
 		e := Entry_eng{}
 		if le(r.Scan(&e.Word, &e.Meaning, &e.IsRoot)) {
 			continue
 		}
+		en = append(en, e)
+	}
+	r.Close()
+
+	if len(en) > 0 {
+		return en
+	}
+
+	r = lev(db.Query(`SELECT word, meanings, is_root FROM hanswehr
+	WHERE meanings LIKE ? LIMIT 80`, "%"+query+"%"))
+
+	for r.Next() {
+		e := Entry_eng{}
+		m := ""
+		if le(r.Scan(&e.Word, &m, &e.IsRoot)) {
+			continue
+		}
+
+		e.Meaning = template.HTML(strings.ReplaceAll(m, query,
+			fmt.Sprintf(`<span class="highlight">%s</span>`, query),
+		))
 		en = append(en, e)
 	}
 	r.Close()

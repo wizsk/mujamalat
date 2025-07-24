@@ -116,7 +116,8 @@ func open(name string) (io.ReadCloser, error) {
 }
 
 func openTmpl(debug bool) (templateWraper, error) {
-	return template.ParseFS(staticData, "tmpl/*")
+	return template.New("n").Funcs(tmplFuncs).
+		ParseFS(staticData, "tmpl/*")
 }
 
 func MakeArEnDict() *Dictionary {

@@ -8,12 +8,17 @@ import (
 	"log"
 	"net"
 	"os"
-	"path/filepath"
 	"runtime"
 	"strconv"
 	"strings"
 	"time"
 )
+
+var tmplFuncs = template.FuncMap{
+	"add": func(a, b int) int { return a + b },
+	// "dec":   func(a, b int) int { return a - b },
+	"arnum": intToArnum,
+}
 
 // log when error != nil and return true
 func le(err error, comments ...string) bool {
@@ -95,16 +100,6 @@ func p(err error) {
 	}
 }
 
-func newTemplate() (templateWraper, error) {
-	return template.New("t").Funcs(
-		template.FuncMap{
-			"add":   func(a, b int) int { return a + b },
-			"dec":   func(a, b int) int { return a - b },
-			"arnum": intToArnum,
-		},
-	).ParseGlob(filepath.Join(rootDir, "tmpl/*"))
-}
-
 func intToArnum(n int) string {
 	numStr := strconv.Itoa(n)
 	res := ""
@@ -126,7 +121,7 @@ type templateWraper interface {
 type tmplW struct{}
 
 func (tp *tmplW) ExecuteTemplate(w io.Writer, name string, data any) error {
-	t, err := newTemplate()
+	t, err := template.New("n").Funcs(tmplFuncs).ParseGlob("tmpl/*")
 	if err != nil {
 		return err
 	}

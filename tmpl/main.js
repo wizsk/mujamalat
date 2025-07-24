@@ -98,7 +98,10 @@ document.addEventListener('keydown', (e) => {
     if (isChangeDictShwoing) {
         if (document.activeElement !== changeDictInpt)
             changeDictInpt.focus();
+
         if (e.code !== "Enter") return;
+        if (changeDictInpt.value === "")
+            toggleChangeDict();
 
         if (!selectDict(changeDictInpt.value, true)) {
             changeDictInpt.value = "";

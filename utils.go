@@ -8,6 +8,7 @@ import (
 	"log"
 	"net"
 	"os"
+	"path/filepath"
 	"runtime"
 	"strconv"
 	"strings"
@@ -94,6 +95,30 @@ func p(err error) {
 	}
 }
 
+func newTemplate() (templateWraper, error) {
+	return template.New("t").Funcs(
+		template.FuncMap{
+			"add":   func(a, b int) int { return a + b },
+			"dec":   func(a, b int) int { return a - b },
+			"arnum": intToArnum,
+		},
+	).ParseGlob(filepath.Join(rootDir, "tmpl/*"))
+}
+
+func intToArnum(n int) string {
+	numStr := strconv.Itoa(n)
+	res := ""
+	for _, digit := range numStr {
+		if digit >= '0' && digit <= '9' {
+			arabicDigit := rune(digit - '0' + 0x0660)
+			res += string(arabicDigit)
+		} else {
+			res += string(digit)
+		}
+	}
+	return res
+}
+
 type templateWraper interface {
 	ExecuteTemplate(wr io.Writer, name string, data any) error
 }
@@ -101,7 +126,7 @@ type templateWraper interface {
 type tmplW struct{}
 
 func (tp *tmplW) ExecuteTemplate(w io.Writer, name string, data any) error {
-	t, err := template.ParseGlob("tmpl/*")
+	t, err := newTemplate()
 	if err != nil {
 		return err
 	}

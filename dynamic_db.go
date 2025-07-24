@@ -7,7 +7,6 @@ import (
 	"archive/zip"
 	_ "embed"
 	"fmt"
-	"html/template"
 	"io"
 	"log"
 	"net/http"
@@ -109,7 +108,7 @@ func openTmpl(debug bool) (templateWraper, error) {
 	if debug {
 		return &tmplW{}, nil
 	}
-	return template.ParseGlob(filepath.Join(rootDir, "tmpl/*"))
+	return newTemplate()
 }
 
 func MakeArEnDict() *Dictionary {

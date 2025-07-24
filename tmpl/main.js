@@ -6,7 +6,10 @@ let searhInvId;
 const contentHolder = document.getElementById("content");
 const dicts = document.getElementsByClassName('sw-dict-item');
 const urlParams = new URLSearchParams(window.location.search);
+const changeDict = document.getElementById("change-dict");
+const changeDictInpt = document.getElementById("change-dict-inpt");
 var preQuery = "";
+var isChangeDictShwoing = false;
 
 
 document.addEventListener("DOMContentLoaded", () => {
@@ -77,14 +80,30 @@ window.addEventListener("popstate", (e) => {
 });
 
 document.addEventListener('keydown', (e) => {
-    // no composite key
     if (e.ctrlKey) {
+        if (e.code === "KeyP") {
+            e.preventDefault();
+            toggleChangeDict();
+        }
         return;
     }
 
+
     if (e.code === "Escape") {
-        if (document.activeElement === w)
-            w.blur();
+        if (document.activeElement === w) w.blur();
+        else if (isChangeDictShwoing) toggleChangeDict();
+        return;
+    }
+
+    if (isChangeDictShwoing) {
+        if (document.activeElement !== changeDictInpt)
+            changeDictInpt.focus();
+        if (e.code !== "Enter") return;
+
+        if (!selectDict(changeDictInpt.value, true)) {
+            changeDictInpt.value = "";
+            changeDictInpt.focus();
+        }
         return;
     }
 
@@ -122,12 +141,15 @@ document.addEventListener('keydown', (e) => {
             scroolToTop();
             break;
 
-
         case "KeyT":
             e.preventDefault();
             changeColor();
             break;
 
+        case "KeyP":
+            e.preventDefault();
+            toggleChangeDict();
+            break;
     }
 
 })
@@ -177,3 +199,43 @@ minus.onclick = fontSizeDec;
 up.onclick = scroolToTop;
 
 resetFont.onclick = resetFontSize;
+
+function toggleChangeDict() {
+    if (changeDict.classList.contains("hidden")) {
+        w.blur();
+        document.body.classList.add('no-scroll');
+        changeDict.classList.remove("hidden");
+        changeDictInpt.value = "";
+        changeDictInpt.focus();
+        isChangeDictShwoing = true;
+    } else {
+        changeDictInpt.blur();
+        changeDict.classList.add("hidden");
+        document.body.classList.remove('no-scroll');
+        isChangeDictShwoing = false;
+    }
+}
+
+// if success then returns true
+function selectDict(s, minus1) {
+    let v = -1;
+
+    if (typeof s === "string") {
+        s = s.replace(/[\u0660-\u0669]/g, d => d.charCodeAt(0) - 0x0660);
+        v = parseInt(s);
+    } else if (typeof s === "number") {
+        v = s;
+    }
+
+    if (minus1) v -= 1;
+
+    if (v > -1 && v < dicts.length) {
+        const n = dicts[v].getAttribute('data-dict-name');
+        if (selectedDict !== n)
+            dicts[v].click();
+        toggleChangeDict();
+        return true;
+    }
+
+    return false;
+}

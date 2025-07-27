@@ -28,7 +28,8 @@
 
         <ul class="s-list">
             <li class="s-list-item"><span class="shortcut">Ctrl+p</span>: Open dictionary selector</li>
-            <li class="s-list-item"><span class="shortcut">p</span>: Open dictionary selector when input is not focused</li>
+            <li class="s-list-item"><span class="shortcut">p</span>: Open dictionary selector when input is not focused
+            </li>
             <li class="s-list-item"><span class="shortcut">+ / -</span>: Increase/Decrease font size</li>
             <li class="s-list-item"><span class="shortcut">0</span>: Reset font size to default</li>
             <li class="s-list-item"><span class="shortcut">u</span>: Scroll to the top of the page</li>
@@ -76,6 +77,7 @@
 
     <div id="overlay">
         <button class="btn" id="up">^</button>
+        <button class="btn change-dict-btn">ل</button>
         <button class="btn" id="plus">١+</button>
         <button class="btn" id="minus">١-</button>
         <button class="btn hidden" id="resetFont">م-</button>
@@ -83,13 +85,17 @@
 
     <div id="change-dict" class="flex hidden">
         <div id="change-dict-items">
+            <button class="change-dict-btn-style change-dict-btn">×</button>
             <input type="text" name="change-dict-inpt" id="change-dict-inpt" placeholder="١ - {{len .Dicts | arnum}}"
                 oninput="this.value = this.value.replace(/[^\u0660-\u0669\u0030-\u0039\-]/g, '');">
-            {{range $i, $v := .Dicts}}
-            <button type="button" class="change-dict-item" onclick="selectDict('{{$i}}')">
-                {{$i | add 1 | arnum}}: {{$v.Ar}}
-            </button>
-            {{end}}
+
+            <div id="change-dict-items-list">
+                {{range $i, $v := .Dicts}}
+                <button type="button" class="change-dict-item" onclick="selectDict('{{$i}}')">
+                    {{$i | add 1 | arnum}}: {{$v.Ar}}
+                </button>
+                {{end}}
+            </div>
         </div>
     </div>
     <script>

@@ -96,12 +96,13 @@ document.addEventListener('keydown', (e) => {
     }
 
     if (isChangeDictShwoing) {
-        if (document.activeElement !== changeDictInpt)
-            changeDictInpt.focus();
+        if (document.activeElement !== changeDictInpt) changeDictInpt.focus();
 
-        if (e.code !== "Enter") return;
-        if (changeDictInpt.value === "")
+        if (e.key !== "Enter" || (e.code && e.code !== "Enter")) return;
+
+        if (changeDictInpt.value.trim() === "") {
             toggleChangeDict();
+        }
 
         if (!selectDict(changeDictInpt.value, true)) {
             changeDictInpt.value = "";
@@ -206,7 +207,7 @@ resetFont.onclick = resetFontSize;
 function toggleChangeDict() {
     if (changeDict.classList.contains("hidden")) {
         w.blur();
-        document.body.classList.add('no-scroll');
+        // document.body.classList.add('no-scroll');
         changeDict.classList.remove("hidden");
         changeDictInpt.value = "";
         changeDictInpt.focus();
@@ -214,7 +215,7 @@ function toggleChangeDict() {
     } else {
         changeDictInpt.blur();
         changeDict.classList.add("hidden");
-        document.body.classList.remove('no-scroll');
+        // document.body.classList.remove('no-scroll');
         isChangeDictShwoing = false;
     }
 }
@@ -242,3 +243,7 @@ function selectDict(s, minus1) {
 
     return false;
 }
+
+document.querySelectorAll(".change-dict-btn").forEach(e => {
+    e.addEventListener('click', toggleChangeDict);
+});

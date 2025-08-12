@@ -149,24 +149,28 @@ func printVersionWritter(w io.Writer) {
 }
 
 func (s *servData) getQueries(w http.ResponseWriter, r *http.Request, curr string) (string, *TmplData) {
+	in := harakatRgx.ReplaceAllString(
+		strings.TrimSpace(r.FormValue("w")), "")
+
+	t := TmplData{Curr: curr, Dicts: dicts, DictsMap: dictsMap}
+	if in == "" {
+		le(s.tmpl.ExecuteTemplate(w, mainTemplateName, &t))
+		return "", nil
+	}
+
 	queries := []string{}
 	for _, v := range strings.Split(
-		harakatRgx.ReplaceAllString(r.FormValue("w"), ""),
+		in,
 		" ") {
 		if v != "" && !slices.Contains(queries, v) {
 			queries = append(queries, v)
 		}
 	}
 
-	t := TmplData{
-		Query: strings.Join(queries, " "), Queries: queries,
-		Curr: curr, Dicts: dicts, DictsMap: dictsMap}
-	if len(queries) == 0 {
-		le(s.tmpl.ExecuteTemplate(w, mainTemplateName, &t))
-		return "", nil
-	}
-
+	t.Query = strings.Join(queries, " ")
+	t.Queries = queries
 	t.Idx = len(queries) - 1
+
 	query := queries[t.Idx]
 	idx, err := strconv.Atoi(r.FormValue("idx"))
 	if err == nil && idx > -1 && idx < len(queries) {

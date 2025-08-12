@@ -37,7 +37,7 @@
 
 	form {
 		margin: 0 auto;
-		max-width: 400px;
+		max-width: 600px;
 		display: flex;
 		align-items: center;
 		gap: .5rem;
@@ -81,7 +81,14 @@
 	}
 
 
-	#sw_dict {
+
+	.querySelector-item {
+		all: unset;
+		cursor: pointer;
+	}
+
+	#sw_dict,
+	#querySelector {
 		display: flex;
 		align-items: start;
 		margin: 1rem 0;
@@ -89,7 +96,8 @@
 		overflow-x: scroll;
 	}
 
-	.sw-dict-item {
+	.sw-dict-item,
+	.querySelector-item {
 		display: inline-block;
 		padding: var(--btn-pad-y) var(--btn-pad-x);
 		text-decoration: none;
@@ -106,10 +114,12 @@
 	} */
 
 	#sw-dict-item-selected,
-	.sw-dict-item:hover {
+	.sw-dict-item:hover,
+	.querySelector-item:hover,
+	#querySelector-item-selected {
 		color: var(--bg);
 		background-color: var(--accent);
-		box-shadow: 0 0 8px #66afe999;
+		/* box-shadow: 0 0 8px #66afe999; */
 	}
 
 	#content {

@@ -26,7 +26,8 @@ var (
 	gitCommit string
 	dicts     = []Dict{
 		{"معجم الغني", "mujamul_ghoni"},
-		{"معجم اللغة العربية المعاصرة", "mujamul_muashiroh"},
+		{"المعاصرة", "mujamul_muashiroh"}, // using the shorter name
+		// {"معجم اللغة العربية المعاصرة", "mujamul_muashiroh"},
 		{"معجم الوسيط", "mujamul_wasith"},
 		{"معجم المحيط", "mujamul_muhith"},
 		{"مختار الصحاح", "mujamul_shihah"},
@@ -83,8 +84,7 @@ func main() {
 	log.Println("Initalizaion done")
 
 	http.HandleFunc("/mujamul_ghoni", func(w http.ResponseWriter, r *http.Request) {
-		word := harakatRgx.ReplaceAllString(r.FormValue("w"), "")
-		mujamul_ghoni(db, word, w, tmpl)
+		mujamul_ghoni(db, w, r, tmpl)
 	})
 
 	http.HandleFunc("/mujamul_muashiroh", func(w http.ResponseWriter, r *http.Request) {

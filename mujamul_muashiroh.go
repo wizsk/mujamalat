@@ -34,7 +34,7 @@ func mujamul_muashirohEntry(db *sql.DB, word string) []Entry_mujamul_muashiroh {
 
 func mujamul_muashiroh(db *sql.DB, word string, w io.Writer, tmpl templateWraper) {
 	word = strings.TrimSpace(word)
-	t := TmplData{Query: word, Curr: "mujamul_muashiroh", Dicts: dicts, DictsMap: dictsMap}
+	t := TmplData{Query: word, Queries: strings.Split(word, " "), Curr: "mujamul_muashiroh", Dicts: dicts, DictsMap: dictsMap}
 	if word == "" {
 		le(tmpl.ExecuteTemplate(w, mainTemplateName, &t))
 		return

@@ -2,6 +2,7 @@
 let selectedDict = "{{.Curr}}";
 let selectedDictAr = "{{index .DictsMap .Curr}}";
 
+
 let searhInvId;
 const contentHolder = document.getElementById("content");
 const dicts = document.getElementsByClassName('sw-dict-item');
@@ -33,12 +34,21 @@ document.addEventListener("DOMContentLoaded", () => {
     // w.setSelectionRange(w.value.length, w.value.length);
 });
 
+form.onsubmit = (e) => {
+    e.preventDefault();
+    urlParams.set('w', w.value.trim());
+    window.location.href = `${window.location.pathname}?${urlParams.toString()}`;
+}
+
 w.oninput = () => {
     clearInterval(searhInvId);
     searhInvId = setTimeout(() => {
-        const word = w.value.trim();
-        if (word === "" || word === preQuery) return;
-        preQuery = word;
+        const query = w.value.trim();
+        if (query === "" || query === preQuery) return;
+        preQuery = query;
+
+        const queryArr = query.split(' ');
+        const word = queryArr[queryArr.length - 1];
 
         console.log(`req: /content?dict=${selectedDict}&w=${w.value.trim()}`);
         fetch(`/content?dict=${selectedDict}&w=${word}`).then(async (r) => {
@@ -46,8 +56,10 @@ w.oninput = () => {
                 const h = await r.text();
                 contentHolder.innerHTML = h;
                 document.title = `${selectedDictAr}: ${word}`;
-                window.history.pushState({ html: h, query: word, title: `${selectedDictAr}: ${word}` },
+                window.history.pushState(
+                    { html: h, query: word, title: `${selectedDictAr}: ${word}` },
                     '', newUrl);
+
             }
         }).catch((err) => {
             contentHolder.innerHTML =
@@ -64,10 +76,23 @@ w.oninput = () => {
             dicts[i].href = `/${n}?w=${word}`;
         }
 
-        urlParams.set('w', word);
+        if (queryArr.length > 1) {
+            let b = "";
+            for (let i = 0; i < queryArr.length; i++) {
+                const v = queryArr[i];
+                b += `<button type="button" onclick="changeQuery('${i}', '${v}')"
+            class="querySelector-item" id="${queryArr.length - 1 === i ? 'querySelector-item-selected' : ''}">
+            ${v}</button>`
+            }
+            querySelector.innerHTML = b;
+        } else {
+            querySelector.innerHTML = "";
+        }
+
+        urlParams.set('w', query);
+        urlParams.set('idx', queryArr.length - 1);
         const newUrl = `${window.location.pathname}?${urlParams.toString()}`;
         document.title = word;
-
     }, 500);
 }
 
@@ -247,3 +272,11 @@ function selectDict(s, minus1) {
 document.querySelectorAll(".change-dict-btn").forEach(e => {
     e.addEventListener('click', toggleChangeDict);
 });
+
+function changeQuery(idx, word) {
+    console.log(idx, word);
+
+    urlParams.set('idx', idx);
+    const newUrl = `${window.location.pathname}?${urlParams.toString()}`;
+    window.location.href = newUrl;
+}

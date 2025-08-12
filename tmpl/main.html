@@ -22,6 +22,17 @@
 <body>
     {{template "nav.html" .}}
 
+    <div id="querySelector">
+        {{if and (gt (len .Queries) 1) (ne "ar_en" .Curr)}}
+        {{range $i, $v := .Queries}}
+        <button type="button" onclick="changeQuery('{{$i}}', '{{$v}}')"
+            class="querySelector-item" id="{{if eq $i $.Idx}}querySelector-item-selected{{end}}">
+            {{$v}}
+        </button>
+        {{end}}
+        {{end}}
+    </div>
+
     <div id="content">
         {{if not .Query}}
         <h3 class="eng">Shortcuts</h3>
@@ -100,6 +111,7 @@
     </div>
     <script>
         // {{template "main.js" .}}
+        // {{template "query.js" .}}
     </script>
 </body>
 

@@ -2,7 +2,9 @@ package main
 
 type TmplData struct {
 	Query             string
-	Curr              string
+	Queries           []string
+	Idx               int
+	Curr              string // current dict
 	Dicts             []Dict
 	DictsMap          map[string]string
 	Mujamul_ghoni     []Entry_mujamul_ghoni

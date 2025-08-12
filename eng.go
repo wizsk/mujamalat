@@ -22,7 +22,7 @@ func arEnEntry(d *Dictionary, query string) []Entry_arEn {
 
 func arEn(d *Dictionary, word string, w io.Writer, tmpl templateWraper) {
 	word = strings.TrimSpace(word)
-	t := TmplData{Query: word, Curr: "ar_en", Dicts: dicts, DictsMap: dictsMap}
+	t := TmplData{Query: word, Queries: strings.Split(word, " "), Curr: "ar_en", Dicts: dicts, DictsMap: dictsMap}
 	if word == "" {
 		le(tmpl.ExecuteTemplate(w, mainTemplateName, &t))
 		return
@@ -54,7 +54,7 @@ func lanelexconEntry(db *sql.DB, query string) []Entry_eng {
 
 func lanelexcon(db *sql.DB, word string, w io.Writer, tmpl templateWraper) {
 	word = strings.TrimSpace(word)
-	t := TmplData{Query: word, Curr: "lanelexcon", Dicts: dicts, DictsMap: dictsMap}
+	t := TmplData{Query: word, Queries: strings.Split(word, " "), Curr: "lanelexcon", Dicts: dicts, DictsMap: dictsMap}
 	if word == "" {
 		le(tmpl.ExecuteTemplate(w, mainTemplateName, &t))
 		return
@@ -106,7 +106,7 @@ func hanswehrEntry(db *sql.DB, query string) []Entry_eng {
 
 func hanswehr(db *sql.DB, word string, w io.Writer, tmpl templateWraper) {
 	word = strings.TrimSpace(word)
-	t := TmplData{Query: word, Curr: "hanswehr", Dicts: dicts, DictsMap: dictsMap}
+	t := TmplData{Query: word, Queries: strings.Split(word, " "), Curr: "hanswehr", Dicts: dicts, DictsMap: dictsMap}
 	if word == "" {
 		le(tmpl.ExecuteTemplate(w, mainTemplateName, &t))
 		return

@@ -30,7 +30,7 @@ func mujamul_wasithEnty(db *sql.DB, query string) []Entry_mujamul_wasith {
 
 func mujamul_wasith(db *sql.DB, word string, w io.Writer, tmpl templateWraper) {
 	word = strings.TrimSpace(word)
-	t := TmplData{Query: word, Curr: "mujamul_wasith", Dicts: dicts, DictsMap: dictsMap}
+	t := TmplData{Query: word, Queries: strings.Split(word, " "), Curr: "mujamul_wasith", Dicts: dicts, DictsMap: dictsMap}
 	if word == "" {
 		le(tmpl.ExecuteTemplate(w, mainTemplateName, &t))
 		return

@@ -31,7 +31,7 @@ func lisanularabEntry(db *sql.DB, word string) []Entry_lisanularab {
 
 func lisanularab(db *sql.DB, word string, w io.Writer, tmpl templateWraper) {
 	word = strings.TrimSpace(word)
-	t := TmplData{Query: word, Curr: "lisanularab", Dicts: dicts, DictsMap: dictsMap}
+	t := TmplData{Query: word, Queries: strings.Split(word, " "), Curr: "lisanularab", Dicts: dicts, DictsMap: dictsMap}
 	if word == "" {
 		if err := (tmpl.ExecuteTemplate(w, mainTemplateName, &t)); err != nil {
 			log.Println("lisaularab: err:", err)

@@ -9,15 +9,15 @@ LDFLAGS := -ldflags "-X 'main.buildTime=$(BUILD_TIME)' -X 'main.gitCommit=$(GIT_
 Tags := -tags 'static netgo'
 TagsD := -tags 'netgo'
 
-all: linux
+all: curr
 
-linux:
-	@echo "Building for linux amd64"
-	@env GOOS=linux GOARCH=amd64 CGO_ENABLED=0 go build $(Tags) $(LDFLAGS) -o $(OUTPUT_DIR)/$(APP_NAME) .
+curr:
+	@echo "Building satatic version for for current os"
+	@env CGO_ENABLED=0 go build $(Tags) $(LDFLAGS) -o $(OUTPUT_DIR)/ .
 
-linux_dynamic:
-	@echo "Building for linux amd64"
-	@env GOOS=linux GOARCH=amd64 CGO_ENABLED=0 go build $(TagsD) $(LDFLAGS) -o $(OUTPUT_DIR)/$(APP_NAME) .
+curr_dynamic:
+	@echo "Building dyanmic version for for current os"
+	@env CGO_ENABLED=0 go build $(TagsD) $(LDFLAGS) -o $(OUTPUT_DIR)/ .
 
 
 

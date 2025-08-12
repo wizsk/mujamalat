@@ -10,13 +10,11 @@ document.addEventListener('keydown', (e) => {
                 break;
 
             case "KeyK":
-            case "ArrowLeft":
                 e.preventDefault();
                 querySelectorNextPre(true);
                 break;
 
             case "KeyJ":
-            case "ArrowRight":
                 e.preventDefault();
                 querySelectorNextPre(false);
                 break;

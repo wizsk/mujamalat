@@ -6,13 +6,15 @@
 		font-style: normal;
 	}
 
-	* {
+	:root {
 		direction: rtl;
 		font-family: 'font';
+		box-sizing: border-box;
 
 		--btn-pad-y: 6px;
 		--btn-pad-x: 12px;
 		--border-radious: 4px;
+		--main-padding-x: 2rem;
 		/* light color ig */
 		--color: rgb(34, 34, 34);
 		--color-highlight: #02647a;
@@ -29,16 +31,29 @@
 		--font-size: 2em;
 		font-size: var(--font-size);
 		--max-width: 35em;
-		padding: 1rem;
-		margin: 1rem auto;
-		max-width: var(--max-width);
+		margin: 0 auto;
 		background-color: var(--bg);
+	}
+
+	#nav {
+		position: fixed;
+		top: 0;
+		right: 0;
+		width: 100vw;
+		background-color: var(--bg);
+		border-bottom: 1px solid #ccc;
+		padding-top: 1rem;
+	}
+
+	#navSpace {
+		height: 3rem;
 	}
 
 	form {
 		margin: 0 auto;
-		max-width: 600px;
 		display: flex;
+		width: fit-content;
+		max-width: 90%;
 		align-items: center;
 		gap: .5rem;
 	}
@@ -90,8 +105,10 @@
 	#sw_dict,
 	#querySelector {
 		display: flex;
+		width: 90%;
+		max-width: var(--max-width);
 		align-items: start;
-		margin: 1rem 0;
+		margin: 1rem auto;
 		gap: 0.5rem;
 		overflow-x: scroll;
 	}
@@ -119,12 +136,14 @@
 	#querySelector-item-selected {
 		color: var(--bg);
 		background-color: var(--accent);
-		/* box-shadow: 0 0 8px #66afe999; */
 	}
 
 	#content {
-		margin-top: 2rem;
+		padding: 0 var(--main-padding-x);
+		margin: 0 auto;
+		margin-top: 15rem;
 		margin-bottom: 12rem;
+		max-width: var(--max-width);
 		/* text-align: justify; */
 	}
 
@@ -140,7 +159,7 @@
 
 	hr {
 		border: 0;
-		border-top: 1px solid rgba(from var(--accent) r g b / 70%);
+		border-top: 1px solid #ccc;
 	}
 
 	.btn {
@@ -277,6 +296,11 @@
 
 		#change-dict-items-list {
 			max-height: 80vh;
+		}
+
+		#content {
+			margin-top: 10rem;
+			padding: 0 .8rem;
 		}
 
 	}

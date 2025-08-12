@@ -20,19 +20,13 @@
 </head>
 
 <body>
-    {{template "nav.html" .}}
+    <nav id="nav">
+        {{template "nav.html" .}}
+    </nav>
 
-    <div id="querySelector">
-        <!-- if and (gt (len .Queries) 1) (ne "ar_en" .Curr)-->
-        {{if gt (len .Queries) 1}}
-            {{range $i, $v := .Queries}}
-            <button type="button" onclick="changeQuery('{{$i}}', '{{$v}}')"
-                class="querySelector-item" id="{{if eq $i $.Idx}}querySelector-item-selected{{end}}">
-                {{$v}}
-            </button>
-            {{end}}
-        {{end}}
-    </div>
+
+    
+    <div id="navSpace" class="{{if le (len .Queries) 1}}hidden{{end}}"></div>
 
     <div id="content">
         {{if not .Query}}

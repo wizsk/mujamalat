@@ -79,10 +79,12 @@ w.oninput = () => {
             class="querySelector-item" id="${queryArr.length - 1 === i ? 'querySelector-item-selected' : ''}">
             ${v}</button>`
             }
+            navSpace.classList.remove('hidden');
             querySelector.innerHTML = b;
         } else {
             querySelector.innerHTML = "";
-        }
+            navSpace.classList.add('hidden');
+        } 
 
         urlParams.set('w', query);
         urlParams.set('idx', queryArr.length - 1);

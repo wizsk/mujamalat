@@ -71,11 +71,6 @@ w.oninput = () => {
         })
 
 
-        for (let i = 0; i < dicts.length; i++) {
-            const n = dicts[i].getAttribute('data-dict-name');
-            dicts[i].href = `/${n}?w=${word}`;
-        }
-
         if (queryArr.length > 1) {
             let b = "";
             for (let i = 0; i < queryArr.length; i++) {
@@ -91,6 +86,12 @@ w.oninput = () => {
 
         urlParams.set('w', query);
         urlParams.set('idx', queryArr.length - 1);
+
+        for (let i = 0; i < dicts.length; i++) {
+            const n = dicts[i].getAttribute('data-dict-name');
+            dicts[i].href = `/${n}?${urlParams.toString()}`;
+        }
+
         const newUrl = `${window.location.pathname}?${urlParams.toString()}`;
         document.title = word;
     }, 500);

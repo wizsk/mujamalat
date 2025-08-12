@@ -61,6 +61,7 @@ func main() {
 	var db *sql.DB
 	var arEnDict *Dictionary
 	var tmpl templateWraper
+	sv := servData{db: db}
 
 	go func() {
 		db = ke(sql.Open("sqlite", unzipAndWriteDb()))
@@ -75,6 +76,7 @@ func main() {
 
 	go func() {
 		tmpl = ke(openTmpl(debug))
+		sv.tmpl = tmpl
 		done <- struct{}{}
 	}()
 
@@ -84,47 +86,78 @@ func main() {
 	log.Println("Initalizaion done")
 
 	http.HandleFunc("/mujamul_ghoni", func(w http.ResponseWriter, r *http.Request) {
-		mujamul_ghoni(db, w, r, tmpl)
+		q, t := sv.getQueries(w, r, "mujamul_ghoni")
+		if q != "" {
+			t.Mujamul_ghoni = mujamul_ghoniEntry(db, q)
+			le(tmpl.ExecuteTemplate(w, mainTemplateName, t))
+		}
 	})
 
 	http.HandleFunc("/mujamul_muashiroh", func(w http.ResponseWriter, r *http.Request) {
-		word := harakatRgx.ReplaceAllString(r.FormValue("w"), "")
-		mujamul_muashiroh(db, word, w, tmpl)
+		q, t := sv.getQueries(w, r, "mujamul_muashiroh")
+		if q != "" {
+			t.Mujamul_muashiroh = mujamul_muashirohEntry(db, q)
+			le(tmpl.ExecuteTemplate(w, mainTemplateName, t))
+		}
 	})
 
 	http.HandleFunc("/mujamul_wasith", func(w http.ResponseWriter, r *http.Request) {
-		word := harakatRgx.ReplaceAllString(r.FormValue("w"), "")
-		mujamul_wasith(db, word, w, tmpl)
+		q, t := sv.getQueries(w, r, "mujamul_wasith")
+		if q != "" {
+			t.Mujamul_wasith = mujamul_wasithEnty(db, q)
+			le(tmpl.ExecuteTemplate(w, mainTemplateName, t))
+		}
 	})
 
 	http.HandleFunc("/mujamul_muhith", func(w http.ResponseWriter, r *http.Request) {
-		word := harakatRgx.ReplaceAllString(r.FormValue("w"), "")
-		mujamul_muhith(db, word, w, tmpl)
+		q, t := sv.getQueries(w, r, "mujamul_muhith")
+		if q != "" {
+			t.Mujamul_muhith = mujamul_muhithEntry(db, q)
+			le(tmpl.ExecuteTemplate(w, mainTemplateName, t))
+		}
 	})
 
 	http.HandleFunc("/mujamul_shihah", func(w http.ResponseWriter, r *http.Request) {
-		word := harakatRgx.ReplaceAllString(r.FormValue("w"), "")
-		mujamul_shihah(db, word, w, tmpl)
+		q, t := sv.getQueries(w, r, "mujamul_shihah")
+		if q != "" {
+			t.Mujamul_shihah = mujamul_shihahEntry(db, q)
+			le(tmpl.ExecuteTemplate(w, mainTemplateName, t))
+		}
 	})
 
 	http.HandleFunc("/lisanularab", func(w http.ResponseWriter, r *http.Request) {
-		word := harakatRgx.ReplaceAllString(r.FormValue("w"), "")
-		lisanularab(db, word, w, tmpl)
+		q, t := sv.getQueries(w, r, "lisanularab")
+		if q != "" {
+			t.Lisanularab = lisanularabEntry(db, q)
+			le(tmpl.ExecuteTemplate(w, mainTemplateName, t))
+		}
 	})
 
 	http.HandleFunc("/hanswehr", func(w http.ResponseWriter, r *http.Request) {
-		word := harakatRgx.ReplaceAllString(r.FormValue("w"), "")
-		hanswehr(db, word, w, tmpl)
+		q, t := sv.getQueries(w, r, "hanswehr")
+		if q != "" {
+			t.Hanswehr = hanswehrEntry(db, q)
+			le(tmpl.ExecuteTemplate(w, mainTemplateName, t))
+		}
 	})
 
 	http.HandleFunc("/lanelexcon", func(w http.ResponseWriter, r *http.Request) {
-		word := harakatRgx.ReplaceAllString(r.FormValue("w"), "")
-		lanelexcon(db, word, w, tmpl)
+		q, t := sv.getQueries(w, r, "lanelexcon")
+		if q != "" {
+			t.Lanelexcon = lanelexconEntry(db, q)
+			le(tmpl.ExecuteTemplate(w, mainTemplateName, t))
+		}
 	})
 
 	http.HandleFunc("/ar_en", func(w http.ResponseWriter, r *http.Request) {
-		word := harakatRgx.ReplaceAllString(r.FormValue("w"), "")
-		arEn(arEnDict, word, w, tmpl)
+		q, t := sv.getQueries(w, r, "ar_en")
+		if q != "" {
+			t.ArEn = arEnDict.FindWord(q)
+			le(tmpl.ExecuteTemplate(w, mainTemplateName, t))
+		}
+		// old way show all at once. keeping code just incase
+		// word := harakatRgx.ReplaceAllString(r.FormValue("w"), "")
+		// arEn(arEnDict, word, w, tmpl)
 	})
 
 	// root

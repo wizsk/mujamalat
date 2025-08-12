@@ -7,8 +7,10 @@ import (
 	"io"
 	"log"
 	"net"
+	"net/http"
 	"os"
 	"runtime"
+	"slices"
 	"strconv"
 	"strings"
 	"time"
@@ -144,4 +146,32 @@ func printVersionWritter(w io.Writer) {
 	if gitCommit != "" {
 		fmt.Fprintf(w, "git commit: %s\n", gitCommit)
 	}
+}
+
+func (s *servData) getQueries(w http.ResponseWriter, r *http.Request, curr string) (string, *TmplData) {
+	queries := []string{}
+	for _, v := range strings.Split(
+		harakatRgx.ReplaceAllString(r.FormValue("w"), ""),
+		" ") {
+		if v != "" && !slices.Contains(queries, v) {
+			queries = append(queries, v)
+		}
+	}
+
+	t := TmplData{
+		Query: strings.Join(queries, " "), Queries: queries,
+		Curr: curr, Dicts: dicts, DictsMap: dictsMap}
+	if len(queries) == 0 {
+		le(s.tmpl.ExecuteTemplate(w, mainTemplateName, &t))
+		return "", nil
+	}
+
+	t.Idx = len(queries) - 1
+	query := queries[t.Idx]
+	idx, err := strconv.Atoi(r.FormValue("idx"))
+	if err == nil && idx > -1 && idx < len(queries) {
+		t.Idx = idx
+		query = queries[idx]
+	}
+	return query, &t
 }

@@ -1,5 +1,12 @@
 package main
 
+import "database/sql"
+
+type servData struct {
+	tmpl templateWraper
+	db   *sql.DB
+}
+
 type TmplData struct {
 	Query             string
 	Queries           []string

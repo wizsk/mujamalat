@@ -36,21 +36,21 @@ document.addEventListener("DOMContentLoaded", () => {
 
 form.onsubmit = (e) => {
     e.preventDefault();
-    urlParams.set('w', w.value.trim());
+    urlParams.set('w', w.value.trim().replace(/(\s+)/, " "));
     window.location.href = `${window.location.pathname}?${urlParams.toString()}`;
 }
 
 w.oninput = () => {
     clearInterval(searhInvId);
     searhInvId = setTimeout(() => {
-        const query = w.value.trim();
+        const query = w.value.trim().replace(/(\s+)/, " ");
         if (query === "" || query === preQuery) return;
         preQuery = query;
 
-        const queryArr = query.split(' ');
+        const queryArr = query.split(" ");
         const word = queryArr[queryArr.length - 1];
 
-        console.log(`req: /content?dict=${selectedDict}&w=${w.value.trim()}`);
+        console.log(`req: /content?dict=${selectedDict}&w=${word}`);
         fetch(`/content?dict=${selectedDict}&w=${word}`).then(async (r) => {
             if (r.ok) {
                 const h = await r.text();
@@ -84,7 +84,7 @@ w.oninput = () => {
         } else {
             querySelector.innerHTML = "";
             navSpace.classList.add('hidden');
-        } 
+        }
 
         urlParams.set('w', query);
         urlParams.set('idx', queryArr.length - 1);

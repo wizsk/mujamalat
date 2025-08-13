@@ -91,84 +91,77 @@ func main() {
 	<-done
 	log.Println("Initalizaion done")
 
-	http.HandleFunc("/mujamul_ghoni", func(w http.ResponseWriter, r *http.Request) {
-		q, t := sv.getQueries(w, r, "mujamul_ghoni")
-		if q != "" {
-			t.Mujamul_ghoni = mujamul_ghoniEntry(db, q)
-			le(tmpl.ExecuteTemplate(w, mainTemplateName, t))
-		}
-	})
-
-	http.HandleFunc("/mujamul_muashiroh", func(w http.ResponseWriter, r *http.Request) {
-		q, t := sv.getQueries(w, r, "mujamul_muashiroh")
-		if q != "" {
-			t.Mujamul_muashiroh = mujamul_muashirohEntry(db, q)
-			le(tmpl.ExecuteTemplate(w, mainTemplateName, t))
-		}
-	})
-
-	http.HandleFunc("/mujamul_wasith", func(w http.ResponseWriter, r *http.Request) {
-		q, t := sv.getQueries(w, r, "mujamul_wasith")
-		if q != "" {
-			t.Mujamul_wasith = mujamul_wasithEnty(db, q)
-			le(tmpl.ExecuteTemplate(w, mainTemplateName, t))
-		}
-	})
-
-	http.HandleFunc("/mujamul_muhith", func(w http.ResponseWriter, r *http.Request) {
-		q, t := sv.getQueries(w, r, "mujamul_muhith")
-		if q != "" {
-			t.Mujamul_muhith = mujamul_muhithEntry(db, q)
-			le(tmpl.ExecuteTemplate(w, mainTemplateName, t))
-		}
-	})
-
-	http.HandleFunc("/mujamul_shihah", func(w http.ResponseWriter, r *http.Request) {
-		q, t := sv.getQueries(w, r, "mujamul_shihah")
-		if q != "" {
-			t.Mujamul_shihah = mujamul_shihahEntry(db, q)
-			le(tmpl.ExecuteTemplate(w, mainTemplateName, t))
-		}
-	})
-
-	http.HandleFunc("/lisanularab", func(w http.ResponseWriter, r *http.Request) {
-		q, t := sv.getQueries(w, r, "lisanularab")
-		if q != "" {
-			t.Lisanularab = lisanularabEntry(db, q)
-			le(tmpl.ExecuteTemplate(w, mainTemplateName, t))
-		}
-	})
-
-	http.HandleFunc("/hanswehr", func(w http.ResponseWriter, r *http.Request) {
-		q, t := sv.getQueries(w, r, "hanswehr")
-		if q != "" {
-			t.Hanswehr = hanswehrEntry(db, q)
-			le(tmpl.ExecuteTemplate(w, mainTemplateName, t))
-		}
-	})
-
-	http.HandleFunc("/lanelexcon", func(w http.ResponseWriter, r *http.Request) {
-		q, t := sv.getQueries(w, r, "lanelexcon")
-		if q != "" {
-			t.Lanelexcon = lanelexconEntry(db, q)
-			le(tmpl.ExecuteTemplate(w, mainTemplateName, t))
-		}
-	})
-
-	http.HandleFunc("/ar_en", func(w http.ResponseWriter, r *http.Request) {
-		q, t := sv.getQueries(w, r, "ar_en")
-		if q != "" {
-			t.ArEn = arEnDict.FindWord(q)
-			le(tmpl.ExecuteTemplate(w, mainTemplateName, t))
-		}
-		// old way show all at once. keeping code just incase
-		// word := harakatRgx.ReplaceAllString(r.FormValue("w"), "")
-		// arEn(arEnDict, word, w, tmpl)
-	})
-
 	// root
 	http.HandleFunc("/", func(w http.ResponseWriter, r *http.Request) {
-		http.Redirect(w, r, "/mujamul_ghoni", http.StatusMovedPermanently)
+		switch r.URL.Path {
+		case "/mujamul_ghoni":
+			q, t := sv.getQueries(w, r, "mujamul_ghoni")
+			if q != "" {
+				t.Mujamul_ghoni = mujamul_ghoniEntry(db, q)
+				le(tmpl.ExecuteTemplate(w, mainTemplateName, t))
+			}
+
+		case "/mujamul_muashiroh":
+			q, t := sv.getQueries(w, r, "mujamul_muashiroh")
+			if q != "" {
+				t.Mujamul_muashiroh = mujamul_muashirohEntry(db, q)
+				le(tmpl.ExecuteTemplate(w, mainTemplateName, t))
+			}
+
+		case "/mujamul_wasith":
+			q, t := sv.getQueries(w, r, "mujamul_wasith")
+			if q != "" {
+				t.Mujamul_wasith = mujamul_wasithEnty(db, q)
+				le(tmpl.ExecuteTemplate(w, mainTemplateName, t))
+			}
+
+		case "/mujamul_muhith":
+			q, t := sv.getQueries(w, r, "mujamul_muhith")
+			if q != "" {
+				t.Mujamul_muhith = mujamul_muhithEntry(db, q)
+				le(tmpl.ExecuteTemplate(w, mainTemplateName, t))
+			}
+
+		case "/mujamul_shihah":
+			q, t := sv.getQueries(w, r, "mujamul_shihah")
+			if q != "" {
+				t.Mujamul_shihah = mujamul_shihahEntry(db, q)
+				le(tmpl.ExecuteTemplate(w, mainTemplateName, t))
+			}
+
+		case "/lisanularab":
+			q, t := sv.getQueries(w, r, "lisanularab")
+			if q != "" {
+				t.Lisanularab = lisanularabEntry(db, q)
+				le(tmpl.ExecuteTemplate(w, mainTemplateName, t))
+			}
+
+		case "/hanswehr":
+			q, t := sv.getQueries(w, r, "hanswehr")
+			if q != "" {
+				t.Hanswehr = hanswehrEntry(db, q)
+				le(tmpl.ExecuteTemplate(w, mainTemplateName, t))
+			}
+
+		case "/lanelexcon":
+			q, t := sv.getQueries(w, r, "lanelexcon")
+			if q != "" {
+				t.Lanelexcon = lanelexconEntry(db, q)
+				le(tmpl.ExecuteTemplate(w, mainTemplateName, t))
+			}
+
+		case "/ar_en":
+			q, t := sv.getQueries(w, r, "ar_en")
+			if q != "" {
+				t.ArEn = arEnDict.FindWord(q)
+				le(tmpl.ExecuteTemplate(w, mainTemplateName, t))
+			}
+			// old way show all at once. keeping code just incase
+			// word := harakatRgx.ReplaceAllString(r.FormValue("w"), "")
+			// arEn(arEnDict, word, w, tmpl)
+		default:
+			http.Redirect(w, r, "/mujamul_ghoni", http.StatusMovedPermanently)
+		}
 	})
 
 	http.HandleFunc("/content", func(w http.ResponseWriter, r *http.Request) {

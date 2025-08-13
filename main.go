@@ -161,6 +161,7 @@ func main() {
 			// arEn(arEnDict, word, w, tmpl)
 		default:
 			http.Redirect(w, r, "/mujamul_ghoni", http.StatusMovedPermanently)
+			return
 		}
 	})
 

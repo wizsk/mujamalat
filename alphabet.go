@@ -99,7 +99,7 @@ var arabicAphabets = map[rune]struct{}{
 	LAM_ALEF_HAMZA_ABOVE: {},
 }
 
-// remove non arabic everything, exept "_"
+// remove non-arabic everything, except Underscore "_"
 func rmNonAr(s string) string {
 	r := make([]rune, 0, len(s))
 	foundAr := false

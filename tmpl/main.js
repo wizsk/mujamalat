@@ -14,9 +14,18 @@ var isChangeDictShwoing = false;
 
 
 document.addEventListener("DOMContentLoaded", () => {
+    if (w.value) {
+        urlParams.set('w', w.value);
+    } else {
+        urlParams.delete('w');
+        urlParams.delete('idx');
+    }
+
+    let u = urlParams.toString()
+    u = u === "" ? "" : `?${u}`
     history.replaceState(
         { html: contentHolder.innerHTML, query: "{{.Query}}", title: document.title },
-        "", `${window.location.pathname}?${urlParams.toString()}`);
+        "", `${window.location.pathname}${u}`);
 
     const selected = document.getElementById('sw-dict-item-selected');
     if (selected && selected.scrollIntoView) {

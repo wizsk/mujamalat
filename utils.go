@@ -148,17 +148,38 @@ func printVersionWritter(w io.Writer) {
 	}
 }
 
+func parseQuery(s string, clean func(string) string) []string {
+	q := strings.Split(strings.TrimSpace(s), " ")
+	if len(q) == 0 {
+		return nil
+	}
+
+	res := []string{}
+	for _, v := range q {
+		v = clean(v)
+		if v != "" {
+			res = append(res, v)
+		}
+	}
+	return res
+}
+
 func (s *servData) getQueries(w http.ResponseWriter, r *http.Request, curr string) (string, *TmplData) {
-	in := harakatRgx.ReplaceAllString(
-		strings.TrimSpace(r.FormValue("w")), "")
+	in := strings.TrimSpace(r.FormValue("w"))
+	queries := []string{}
+	if curr == hanswehrName {
+		// keeping the english search featuere availabe
+		queries = parseQuery(in, rmHarakats)
+	} else {
+		queries = parseQuery(in, rmNonAr)
+	}
 
 	t := TmplData{Curr: curr, Dicts: dicts, DictsMap: dictsMap}
-	if in == "" {
+	if len(queries) == 0 {
 		le(s.tmpl.ExecuteTemplate(w, mainTemplateName, &t))
 		return "", nil
 	}
 
-	queries := []string{}
 	for _, v := range strings.Split(
 		in,
 		" ") {
@@ -177,5 +198,5 @@ func (s *servData) getQueries(w http.ResponseWriter, r *http.Request, curr strin
 		t.Idx = idx
 		query = queries[idx]
 	}
-	return query, &t
+	return strings.ReplaceAll(query, "_", " "), &t
 }

@@ -19,6 +19,12 @@ const (
 	genricTemplateName = "genric-dict"
 	portRangeStart     = 8080
 	portrangeEnd       = 8099
+
+	// dict names
+	lisanularabName = "lisanularab"
+	lanelexconName  = "lanelexcon"
+	hanswehrName    = "hanswehr"
+	arEnName        = "ar_en"
 )
 
 var (
@@ -31,10 +37,10 @@ var (
 		{"معجم الوسيط", "mujamul_wasith"},
 		{"معجم المحيط", "mujamul_muhith"},
 		{"مختار الصحاح", "mujamul_shihah"},
-		{"لسان العرب", "lisanularab"},
-		{"لينليكسكون", "lanelexcon"},
-		{"هانز وير", "hanswehr"},
-		{"قاموس مباشر", "ar_en"},
+		{"لسان العرب", lisanularabName},
+		{"لينليكسكون", lanelexconName},
+		{"هانز وير", hanswehrName},
+		{"قاموس مباشر", arEnName},
 		// {"", "quran"},
 		// {"", "ghoribulquran"},
 	}
@@ -167,7 +173,13 @@ func main() {
 
 	http.HandleFunc("/content", func(w http.ResponseWriter, r *http.Request) {
 		d := r.FormValue("dict")
-		word := strings.TrimSpace(harakatRgx.ReplaceAllString(r.FormValue("w"), ""))
+		word := strings.TrimSpace(r.FormValue("w"))
+		if d == hanswehrName {
+			word = strings.ReplaceAll(rmHarakats(word), "_", " ")
+		} else {
+			word = strings.ReplaceAll(rmNonAr(word), "_", " ")
+		}
+
 		if word == "" {
 			le(tmpl.ExecuteTemplate(w, genricTemplateName, nil))
 		}

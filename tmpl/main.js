@@ -1,8 +1,6 @@
 // don't remve this comment
 let selectedDict = "{{.Curr}}";
 let selectedDictAr = "{{index .DictsMap .Curr}}";
-
-
 let searhInvId;
 const contentHolder = document.getElementById("content");
 const dicts = document.getElementsByClassName('sw-dict-item');
@@ -23,7 +21,7 @@ window.addEventListener("resize", () => {
 
 document.addEventListener("DOMContentLoaded", () => {
     setSavedFontSize();
-    navSpace.style.height = `${nav.offsetHeight + 20}px`
+    setNavHeight();
 
     const selected = document.getElementById('sw-dict-item-selected');
     if (selected && selected.scrollIntoView) {
@@ -33,10 +31,18 @@ document.addEventListener("DOMContentLoaded", () => {
             inline: 'center'     // Center the element horizontally
         });
     }
-
     if (w.value.length === 0) w.focus();
 });
 
+w.onfocus = () => showHideNav(true);
+
+let lastScrollTop = 0;
+let navHidden = true;
+window.addEventListener("scroll", function () {
+    let currentScroll = window.pageYOffset || document.documentElement.scrollTop;
+    showHideNav(currentScroll < lastScrollTop);
+    lastScrollTop = currentScroll <= 0 ? 0 : currentScroll; // Prevent negative scroll values
+});
 
 form.onsubmit = (e) => {
     e.preventDefault();
@@ -78,10 +84,15 @@ w.oninput = () => {
             let b = "";
             for (let i = 0; i < queryArr.length; i++) {
                 const v = queryArr[i];
-                const idx = `${i + 1}`.replace(/[0-9]/g, (d) => String.fromCharCode(0x0660 + parseInt(d)));
+                let idx = "";
+                if (i < 10)
+                    idx = `${i + 1}:`
+                        .replace(/[0-9]/g, (d) =>
+                            String.fromCharCode(0x0660 + parseInt(d)));
+
                 b += `<a href="/${selectedDict}?w=${query}&idx=${i}"
                 class="querySelector-item" id="${queryArr.length - 1 === i ? 'querySelector-item-selected' : ''}">
-                ${idx}:${v}</a>`
+                ${idx}${v}</a>`
             }
             querySelector.innerHTML = b;
             querySelector.classList.remove('hidden');
@@ -100,4 +111,38 @@ w.oninput = () => {
         document.title = `${selectedDictAr}: ${word}`;
         window.history.replaceState(null, '', `${window.location.pathname}?${p}`);
     }, 250);
+}
+
+/**  @param {boolean} show */
+function showHideNav(show) {
+    if (show) {
+        if (navHidden) return;
+        nav.style.transform = "";
+        navHidden = true;
+    } else {
+        if (!navHidden) return;
+        const s = querySelector.classList.contains('hidden') ? getFullHeight(nav)
+            : getFullHeight(form) + getFullHeight(sw_dict);
+        nav.style.transform = `translateY(-${s}px)`
+        navHidden = false;
+    }
+}
+
+/** Set the div which will take space so, other elements don't do behind the nav */
+const setNavHeight = () => navSpace.style.height = `${nav.offsetHeight + 20}px`
+
+function getFullHeight(element) {
+    const rect = element.getBoundingClientRect();
+    const style = window.getComputedStyle(element);
+
+    const marginTop = parseFloat(style.marginTop);
+    const marginBottom = parseFloat(style.marginBottom);
+    const paddingTop = parseFloat(style.paddingTop);
+    const paddingBottom = parseFloat(style.paddingBottom);
+    const borderTop = parseFloat(style.borderTopWidth);
+    const borderBottom = parseFloat(style.borderBottomWidth);
+
+    // Full height = content height + padding + border + margin
+    const fullHeight = rect.height + marginTop + marginBottom + paddingTop + paddingBottom + borderTop + borderBottom;
+    return fullHeight;
 }

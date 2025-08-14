@@ -17,7 +17,7 @@
     {{range $i, $v := .Queries}}
     <a href="/{{$.Curr}}?w={{$.Query}}&idx={{$i}}" class="querySelector-item"
         id="{{if eq $i $.Idx}}querySelector-item-selected{{end}}">
-        {{$i | add 1 | arnum}}:{{$v}}</a>
+        {{if lt $i 9}}{{$i | add 1 | arnum}}:{{end}}{{$v}}</a>
     {{end}}
     {{end}}
 </div>

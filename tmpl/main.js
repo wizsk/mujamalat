@@ -24,7 +24,7 @@ document.addEventListener("DOMContentLoaded", () => {
     let u = urlParams.toString()
     u = u === "" ? "" : `?${u}`
     history.replaceState(
-        { html: contentHolder.innerHTML, query: "{{.Query}}", title: document.title },
+        { html: contentHolder.innerHTML, query: "{{.Query}}", peram: u, title: document.title },
         "", `${window.location.pathname}${u}`);
 
     const selected = document.getElementById('sw-dict-item-selected');
@@ -64,10 +64,11 @@ w.oninput = () => {
             if (r.ok) {
                 const h = await r.text();
                 contentHolder.innerHTML = h;
+
                 document.title = `${selectedDictAr}: ${word}`;
                 window.history.pushState(
-                    { html: h, query: word, title: `${selectedDictAr}: ${word}` },
-                    '', newUrl);
+                    { html: h, query: word, peram: p, title: `${selectedDictAr}: ${word}` },
+                    '', `${window.location.pathname}?${p}`);
 
             }
         }).catch((err) => {
@@ -97,14 +98,8 @@ w.oninput = () => {
 
         urlParams.set('w', query);
         urlParams.set('idx', queryArr.length - 1);
-
-        for (let i = 0; i < dicts.length; i++) {
-            const n = dicts[i].getAttribute('data-dict-name');
-            dicts[i].href = `/${n}?${urlParams.toString()}`;
-        }
-
-        const newUrl = `${window.location.pathname}?${urlParams.toString()}`;
-        document.title = word;
+        const p = urlParams.toString();
+        setDictSelectPerams(p);
     }, 500);
 }
 
@@ -113,6 +108,7 @@ window.addEventListener("popstate", (e) => {
         contentHolder.innerHTML = e.state.html;
         document.title = e.state.title;
         w.value = e.state.query;
+        setDictSelectPerams(e.state.peram);
     }
 });
 
@@ -212,4 +208,12 @@ function changeQuery(idx, word) {
     urlParams.set('idx', idx);
     const newUrl = `${window.location.pathname}?${urlParams.toString()}`;
     window.location.href = newUrl;
+}
+
+/** @param {string} p */
+function setDictSelectPerams(p) {
+    for (let i = 0; i < dicts.length; i++) {
+        const n = dicts[i].getAttribute('data-dict-name');
+        dicts[i].href = `/${n}?${p}`;
+    }
 }

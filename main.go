@@ -32,17 +32,15 @@ var (
 	gitCommit string
 	dicts     = []Dict{
 		{"معجم الغني", "mujamul_ghoni"},
+		{"قاموس مباشر", arEnName},
+		{"هانز وير", hanswehrName},
+		{"لينليكسكون", lanelexconName},
 		{"المعاصرة", "mujamul_muashiroh"}, // using the shorter name
 		// {"معجم اللغة العربية المعاصرة", "mujamul_muashiroh"},
 		{"معجم الوسيط", "mujamul_wasith"},
 		{"معجم المحيط", "mujamul_muhith"},
 		{"مختار الصحاح", "mujamul_shihah"},
 		{"لسان العرب", lisanularabName},
-		{"لينليكسكون", lanelexconName},
-		{"هانز وير", hanswehrName},
-		{"قاموس مباشر", arEnName},
-		// {"", "quran"},
-		// {"", "ghoribulquran"},
 	}
 
 	dictsMap map[string]string = func(ds []Dict) map[string]string {

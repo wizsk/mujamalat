@@ -9,14 +9,26 @@ document.addEventListener('keydown', (e) => {
                 toggleChangeDict();
                 break;
 
+            case "KeyH":
+            case "ArrowDown":
+                e.preventDefault();
+                querySelectorNextPre(true, 'sw-dict-item', 'sw-dict-item-selected');
+                break;
+
+            case "Semicolon":
+            case "ArrowUp":
+                e.preventDefault();
+                querySelectorNextPre(false, 'sw-dict-item', 'sw-dict-item-selected');
+                break;
+
             case "KeyK":
                 e.preventDefault();
-                querySelectorNextPre(true);
+                querySelectorNextPre(true, 'querySelector-item', 'querySelector-item-selected');
                 break;
 
             case "KeyJ":
                 e.preventDefault();
-                querySelectorNextPre(false);
+                querySelectorNextPre(false, 'querySelector-item', 'querySelector-item-selected');
                 break;
         }
         return;
@@ -89,32 +101,48 @@ document.addEventListener('keydown', (e) => {
             toggleChangeDict();
             break;
 
-
         case "KeyK":
         case "ArrowLeft":
             e.preventDefault();
-            querySelectorNextPre(true);
+            querySelectorNextPre(true, 'querySelector-item', 'querySelector-item-selected');
             break;
 
         case "KeyJ":
         case "ArrowRight":
             e.preventDefault();
-            querySelectorNextPre(false);
+            querySelectorNextPre(false, 'querySelector-item', 'querySelector-item-selected');
             break;
+
+        case "KeyH":
+        case "ArrowDown":
+            e.preventDefault();
+            querySelectorNextPre(true, 'sw-dict-item', 'sw-dict-item-selected');
+            break;
+
+        case "Semicolon":
+        case "ArrowUp":
+            e.preventDefault();
+            querySelectorNextPre(false, 'sw-dict-item', 'sw-dict-item-selected');
+            break;
+
     }
 
 })
 
 
-/** @param {boolean} next if true then goes to the next query otherwise preveious */
-function querySelectorNextPre(next) {
+/** 
+ * @param {boolean} next if true then goes to the next query otherwise preveious 
+ * @param {string}  className classname for the buttons
+ * @param {string}  id is the button wich is selected for now
+ */
+function querySelectorNextPre(next, className, id) {
     /** @type {NodeListOf<HTMLElement>} */
-    const children = querySelector.getElementsByClassName('querySelector-item');
+    const children = document.getElementsByClassName(className);
     if (children.length < 2) return;
 
     let curr = -1;
     for (let i = 0; i < children.length; i++) {
-        if (children[i].id === "querySelector-item-selected") {
+        if (children[i].id === id) {
             curr = i;
             break;
         }

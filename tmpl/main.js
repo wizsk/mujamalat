@@ -30,7 +30,7 @@ document.addEventListener("DOMContentLoaded", () => {
     const selected = document.getElementById('sw-dict-item-selected');
     if (selected && selected.scrollIntoView) {
         selected.scrollIntoView({
-            behavior: 'smooth',    // auto Or 'smooth' if you want animation
+            // behavior: 'smooth',    // auto Or 'smooth' if you want animation
             block: 'nearest',
             inline: 'center'     // Center the element horizontally
         });

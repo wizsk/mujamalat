@@ -149,15 +149,15 @@ func printVersionWritter(w io.Writer) {
 }
 
 func parseQuery(s string, clean func(string) string) []string {
-	q := strings.Split(strings.TrimSpace(s), " ")
-	if len(q) == 0 {
+	s = strings.TrimSpace(s)
+	if s == "" {
 		return nil
 	}
 
 	res := []string{}
-	for _, v := range q {
+	for v := range strings.SplitSeq(s, " ") {
 		v = clean(v)
-		if v != "" {
+		if v != "" && !slices.Contains(res, v) {
 			res = append(res, v)
 		}
 	}
@@ -180,23 +180,13 @@ func (s *servData) getQueries(w http.ResponseWriter, r *http.Request, curr strin
 		return "", nil
 	}
 
-	for _, v := range strings.Split(
-		in,
-		" ") {
-		if v != "" && !slices.Contains(queries, v) {
-			queries = append(queries, v)
-		}
-	}
-
 	t.Query = strings.Join(queries, " ")
 	t.Queries = queries
-	t.Idx = len(queries) - 1
-
-	query := queries[t.Idx]
 	idx, err := strconv.Atoi(r.FormValue("idx"))
 	if err == nil && idx > -1 && idx < len(queries) {
 		t.Idx = idx
-		query = queries[idx]
+	} else {
+		t.Idx = len(queries) - 1
 	}
-	return strings.ReplaceAll(query, "_", " "), &t
+	return strings.ReplaceAll(queries[t.Idx], "_", " "), &t
 }

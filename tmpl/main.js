@@ -12,20 +12,18 @@ const changeDictInpt = document.getElementById("change-dict-inpt");
 var preQuery = "";
 var isChangeDictShwoing = false;
 
+let resizeTimoutId;
+window.addEventListener("resize", () => {
+    clearInterval(resizeTimoutId);
+    resizeTimoutId = setTimeout(() => {
+        console.log("resized");
+        navSpace.style.height = `${nav.offsetHeight + 20}px`;
+    }, 100);
+});
 
 document.addEventListener("DOMContentLoaded", () => {
-    if (w.value) {
-        urlParams.set('w', w.value);
-    } else {
-        urlParams.delete('w');
-        urlParams.delete('idx');
-    }
-
-    let u = urlParams.toString()
-    u = u === "" ? "" : `?${u}`
-    history.replaceState(
-        { html: contentHolder.innerHTML, query: "{{.Query}}", peram: u, title: document.title },
-        "", `${window.location.pathname}${u}`);
+    setSavedFontSize();
+    navSpace.style.height = `${nav.offsetHeight + 20}px`
 
     const selected = document.getElementById('sw-dict-item-selected');
     if (selected && selected.scrollIntoView) {
@@ -36,12 +34,9 @@ document.addEventListener("DOMContentLoaded", () => {
         });
     }
 
-    setSavedFontSize();
-
-    if (w.value.length === 0)
-        w.focus();
-    // w.setSelectionRange(w.value.length, w.value.length);
+    if (w.value.length === 0) w.focus();
 });
+
 
 form.onsubmit = (e) => {
     e.preventDefault();
@@ -51,7 +46,7 @@ form.onsubmit = (e) => {
 
 w.oninput = () => {
     clearInterval(searhInvId);
-    searhInvId = setTimeout(() => {
+    searhInvId = setTimeout(async () => {
         const query = w.value.trim().replace(/(\s+)/, " ");
         if (query === "" || query === preQuery) return;
         preQuery = query;
@@ -59,161 +54,50 @@ w.oninput = () => {
         const queryArr = query.split(" ");
         const word = queryArr[queryArr.length - 1];
 
+        urlParams.set('w', query);
+        urlParams.set('idx', queryArr.length - 1);
+
         console.log(`req: /content?dict=${selectedDict}&w=${word}`);
-        fetch(`/content?dict=${selectedDict}&w=${word}`).then(async (r) => {
-            if (r.ok) {
-                const h = await r.text();
-                contentHolder.innerHTML = h;
+        const r = await fetch(`/content?dict=${selectedDict}&w=${word}`).catch((err) =>
+            console.error(err)
+        );
 
-                document.title = `${selectedDictAr}: ${word}`;
-                window.history.pushState(
-                    { html: h, query: word, peram: p, title: `${selectedDictAr}: ${word}` },
-                    '', `${window.location.pathname}?${p}`);
-
-            }
-        }).catch((err) => {
+        if (r && r.ok) {
+            const h = await r.text();
+            contentHolder.innerHTML = h;
+        } else {
             contentHolder.innerHTML =
-                `<div style="text-align: center; margin-top: 4rem; color: var(--alert);">
-                Cound't fetch results. Is the server running? Refresshing in 3seconds...
-            </div>`;
-            console.error(err);
-            setTimeout(() => window.location.href = newUrl, 3000);
-        })
+                `<div style="direction: ltr; text-align: center;
+                margin-top: 4rem; color: var(--alert);">
+                    Cound't fetch results. Is the server running?
+                </div>`;
+        }
 
 
         if (queryArr.length > 1) {
             let b = "";
             for (let i = 0; i < queryArr.length; i++) {
                 const v = queryArr[i];
-                b += `<button type="button" onclick="changeQuery('${i}', '${v}')"
-            class="querySelector-item" id="${queryArr.length - 1 === i ? 'querySelector-item-selected' : ''}">
-            ${v}</button>`
+                const idx = `${i + 1}`.replace(/[0-9]/g, (d) => String.fromCharCode(0x0660 + parseInt(d)));
+                b += `<a href="/${selectedDict}?w=${query}&idx=${i}"
+                class="querySelector-item" id="${queryArr.length - 1 === i ? 'querySelector-item-selected' : ''}">
+                ${idx}:${v}</a>`
             }
-            navSpace.classList.remove('hidden');
             querySelector.innerHTML = b;
+            querySelector.classList.remove('hidden');
         } else {
             querySelector.innerHTML = "";
-            navSpace.classList.add('hidden');
+            querySelector.classList.add('hidden');
         }
 
-        urlParams.set('w', query);
-        urlParams.set('idx', queryArr.length - 1);
+        navSpace.style.height = `${nav.offsetHeight + 20}px`;
         const p = urlParams.toString();
-        setDictSelectPerams(p);
-    }, 500);
-}
+        for (let i = 0; i < dicts.length; i++) {
+            const n = dicts[i].getAttribute('data-dict-name');
+            dicts[i].href = `/${n}?${p}`;
+        }
 
-window.addEventListener("popstate", (e) => {
-    if (e.state) {
-        contentHolder.innerHTML = e.state.html;
-        document.title = e.state.title;
-        w.value = e.state.query;
-        setDictSelectPerams(e.state.peram);
-    }
-});
-
-
-const fontDiffCVal = 2.0;
-
-function saveFont(s) {
-    window.localStorage.setItem("font-size-for-kamusssss", s)
-}
-
-function setSavedFontSize() {
-    const s = window.localStorage.getItem("font-size-for-kamusssss");
-    if (s) {
-        document.body.style.fontSize = s;
-        resetFont.classList.remove("hidden");
-    }
-}
-
-function fontSizeInc() {
-    const v = parseFloat(window.getComputedStyle(document.body, null).getPropertyValue("font-size"))
-    const s = `${v + fontDiffCVal}px`;
-    document.body.style.fontSize = s;
-    saveFont(s);
-    resetFont.classList.remove("hidden");
-}
-
-function fontSizeDec() {
-    const v = parseFloat(window.getComputedStyle(document.body, null).getPropertyValue("font-size"))
-    const s = `${v - fontDiffCVal}px`;
-    document.body.style.fontSize = s;
-    saveFont(s);
-    resetFont.classList.remove("hidden");
-}
-
-function scroolToTop() { window.scrollTo({ top: 0, behavior: 'smooth' }); }
-
-function resetFontSize() {
-    console.log("fontsize reset-edd")
-    localStorage.removeItem("font-size-for-kamusssss");
-    document.body.style.fontSize = "";
-    resetFont.classList.add("hidden");
-}
-
-plus.onclick = fontSizeInc;
-minus.onclick = fontSizeDec;
-up.onclick = scroolToTop;
-
-resetFont.onclick = resetFontSize;
-
-function toggleChangeDict() {
-    if (changeDict.classList.contains("hidden")) {
-        w.blur();
-        // document.body.classList.add('no-scroll');
-        changeDict.classList.remove("hidden");
-        changeDictInpt.value = "";
-        changeDictInpt.focus();
-        isChangeDictShwoing = true;
-    } else {
-        changeDictInpt.blur();
-        changeDict.classList.add("hidden");
-        // document.body.classList.remove('no-scroll');
-        isChangeDictShwoing = false;
-    }
-}
-
-// if success then returns true
-function selectDict(s, minus1) {
-    let v = -1;
-
-    if (typeof s === "string") {
-        s = s.replace(/[\u0660-\u0669]/g, d => d.charCodeAt(0) - 0x0660);
-        v = parseInt(s);
-    } else if (typeof s === "number") {
-        v = s;
-    }
-
-    if (minus1) v -= 1;
-
-    if (v > -1 && v < dicts.length) {
-        const n = dicts[v].getAttribute('data-dict-name');
-        if (selectedDict !== n)
-            dicts[v].click();
-        toggleChangeDict();
-        return true;
-    }
-
-    return false;
-}
-
-document.querySelectorAll(".change-dict-btn").forEach(e => {
-    e.addEventListener('click', toggleChangeDict);
-});
-
-function changeQuery(idx, word) {
-    console.log(idx, word);
-
-    urlParams.set('idx', idx);
-    const newUrl = `${window.location.pathname}?${urlParams.toString()}`;
-    window.location.href = newUrl;
-}
-
-/** @param {string} p */
-function setDictSelectPerams(p) {
-    for (let i = 0; i < dicts.length; i++) {
-        const n = dicts[i].getAttribute('data-dict-name');
-        dicts[i].href = `/${n}?${p}`;
-    }
+        document.title = `${selectedDictAr}: ${word}`;
+        window.history.replaceState(null, '', `${window.location.pathname}?${p}`);
+    }, 250);
 }

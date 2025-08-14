@@ -26,7 +26,7 @@
 
 
     
-    <div id="navSpace" class="{{if le (len .Queries) 1}}hidden{{end}}"></div>
+    <div id="navSpace"></div>
 
     <div id="content">
         {{if not .Query}}
@@ -106,6 +106,7 @@
     </div>
     <script>
         // {{template "main.js" .}}
+        // {{template "btn.js" .}}
         // {{template "key.js" .}}
     </script>
 </body>

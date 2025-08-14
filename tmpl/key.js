@@ -1,7 +1,7 @@
 // key.js
 
 document.addEventListener('keydown', (e) => {
-    // console.log(e.code)
+    // console.log(e.code);
     if (e.ctrlKey) {
         switch (e.code) {
             case "KeyP":
@@ -59,6 +59,19 @@ document.addEventListener('keydown', (e) => {
 
     if (document.activeElement === w) return;
 
+    if (e.code && /^Digit[1-9]$/.test(e.code)) {
+        const i = parseInt(e.code.at(5)) - 1;
+
+        if (e.shiftKey && i < dicts.length) {
+            dicts[i].click();
+            return
+        }
+
+        const q = document.getElementsByClassName("querySelector-item");
+        if (i < q.length) q[i].click();
+
+        return;
+    }
 
     const input = w;
     switch (e.code) {

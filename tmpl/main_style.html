@@ -45,10 +45,6 @@
 		padding-top: 1rem;
 	}
 
-	#navSpace {
-		height: 3rem;
-	}
-
 	form {
 		margin: 0 auto;
 		display: flex;
@@ -126,9 +122,16 @@
 	}
 
 	/* for scroll pading */
-	/* .sw-dict-item:last-of-type {
-		margin-left: 4rem;
-	} */
+	.sw-dict-item:first-child,
+	.querySelector-item:first-child {
+		margin-right: 0.5rem;
+	}
+
+	.sw-dict-item:last-child,
+	.querySelector-item:last-child {
+		margin-left: 0.5rem;
+	}
+
 
 	#sw-dict-item-selected,
 	.sw-dict-item:hover,
@@ -141,7 +144,7 @@
 	#content {
 		padding: 0 var(--main-padding-x);
 		margin: 0 auto;
-		margin-top: 15rem;
+		/* margin-top: 15rem; */
 		margin-bottom: 12rem;
 		max-width: var(--max-width);
 		/* text-align: justify; */
@@ -299,7 +302,6 @@
 		}
 
 		#content {
-			margin-top: 10rem;
 			padding: 0 .8rem;
 		}
 
@@ -307,7 +309,7 @@
 
 
 	.hidden {
-		display: none;
+		display: none !important;
 	}
 
 	.eng {

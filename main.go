@@ -176,6 +176,7 @@ func main() {
 
 		if word == "" {
 			le(tmpl.ExecuteTemplate(w, genricTemplateName, nil))
+			return
 		}
 
 		switch d {

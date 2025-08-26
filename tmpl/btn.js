@@ -33,7 +33,11 @@ function fontSizeDec() {
     resetFont.classList.remove("hidden");
 }
 
-function scroolToTop() { window.scrollTo({ top: 0, behavior: 'smooth' }); }
+function scroolToTop() {
+    window.scrollTo({ top: 0, behavior: 'smooth' });
+    w.focus();
+    w.select();
+}
 
 function resetFontSize() {
     console.log("fontsize reset-edd")

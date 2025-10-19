@@ -98,7 +98,8 @@ func unzipAndWriteDb() string {
 
 func servePubData() http.Handler {
 	// return http.FileServerFS(pubData)
-	return http.StripPrefix("/pub/", http.FileServer(http.Dir("./pub")))
+	return http.StripPrefix("/pub/", http.FileServer(
+		http.Dir(filepath.Join(rootDir, "pub"))))
 }
 
 func open(name string) (io.ReadCloser, error) {
@@ -109,12 +110,13 @@ func openTmpl(debug bool) (templateWraper, error) {
 	if debug {
 		return &tmplW{}, nil
 	}
-	return template.New("n").Funcs(tmplFuncs).ParseGlob("tmpl/*")
+	return template.New("n").Funcs(tmplFuncs).
+		ParseGlob(filepath.Join(rootDir, "./tmpl") + "/*")
 
 }
 
 func MakeArEnDict() *Dictionary {
-	dataRoot := "./db/ar_en_data"
+	dataRoot := "db/ar_en_data"
 	dicts := []string{"dictprefixes", "dictstems", "dictsuffixes"}
 	tables := []string{"tableab", "tableac", "tablebc"}
 

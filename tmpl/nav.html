@@ -15,9 +15,9 @@
     <!-- if and (gt (len .Queries) 1) (ne "ar_en" .Curr)-->
     {{if gt (len .Queries) 1}}
     {{range $i, $v := .Queries}}
-    <a href="/{{$.Curr}}?w={{$.Query}}&idx={{$i}}" class="querySelector-item"
+    <button onclick="changeQueryIdx(this, '{{$v}}', parseInt('{{$i}}'))" class="querySelector-item"
         id="{{if eq $i $.Idx}}querySelector-item-selected{{end}}">
-        {{if lt $i 9}}{{$i | add 1 | arnum}}:{{end}}{{$v}}</a>
+        {{if lt $i 9}}{{$i | add 1 | arnum}}:{{end}}{{$v}}</button>
     {{end}}
     {{end}}
 </div>

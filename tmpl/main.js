@@ -1,4 +1,4 @@
-// don't remve this comment
+// don't remove this comment
 let selectedDict = "{{.Curr}}";
 let selectedDictAr = "{{index .DictsMap .Curr}}";
 const contentHolder = document.getElementById("content");
@@ -58,7 +58,7 @@ window.addEventListener("scroll", function () {
 
 form.onsubmit = (e) => {
     e.preventDefault();
-    window.location.href = `${window.location.pathname}?w=${preQuery}&idx=${queryIdx}`;
+    window.location.href = `${window.location.pathname}?w=${w.value}&idx=${queryIdx}`;
 }
 
 let searhInvId;
@@ -103,9 +103,10 @@ w.oninput = () => {
                         .replace(/[0-9]/g, (d) =>
                             String.fromCharCode(0x0660 + parseInt(d)));
 
-                b += `<a href="/${selectedDict}?w=${query}&idx=${i}"
+
+                b += `<button onclick="changeQueryIdx(this, ${JSON.stringify(v)}, ${i})"
                 class="querySelector-item" id="${queryArr.length - 1 === i ? 'querySelector-item-selected' : ''}">
-                ${idx}${v}</a>`
+                ${idx}${v}</button>`
             }
             querySelector.innerHTML = b;
             querySelector.classList.remove('hidden');
@@ -119,6 +120,37 @@ w.oninput = () => {
         document.title = `${selectedDictAr}: ${word}`;
         window.history.replaceState(null, '', `${window.location.pathname}?w=${word}&idx=${queryIdx}`);
     }, 250);
+}
+
+/**
+ *
+ * @param {HTMLButtonElement} el
+ * @param {string} word
+ * @param {number} idx
+ */
+async function changeQueryIdx(el, word, idx) {
+    queryIdx = idx;
+    document.title = `${selectedDictAr}: ${word}`;
+    window.history.replaceState(null, '', `${window.location.pathname}?w=${preQuery}&idx=${queryIdx}`);
+
+    document.getElementById('querySelector-item-selected').id = "";
+    el.id = 'querySelector-item-selected';
+
+    console.log(`req: /content?dict=${selectedDict}&w=${word}`);
+    const r = await fetch(`/content?dict=${selectedDict}&w=${word}`).catch((err) =>
+        console.error(err)
+    );
+
+    if (r && r.ok) {
+        const h = await r.text();
+        contentHolder.innerHTML = h;
+    } else {
+        contentHolder.innerHTML =
+            `<div style="direction: ltr; text-align: center;
+                margin-top: 4rem; color: var(--alert);">
+                    Cound't fetch results. Is the server running?
+                </div>`;
+    }
 }
 
 /**  @param {boolean} show */

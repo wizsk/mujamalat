@@ -68,7 +68,7 @@ func hanswehrEntry(db *sql.DB, query string) []Entry_eng {
 	en := []Entry_eng{}
 
 	r := lev(db.Query(`SELECT word, meanings, is_root FROM hanswehr
-	WHERE parent_id IN (SELECT parent_id FROM hanswehr WHERE word = ?)
+	WHERE parent_id IN (SELECT parent_id FROM hanswehr WHERE is_root AND word = ?)
 	ORDER BY ID`, query))
 
 	for r.Next() {

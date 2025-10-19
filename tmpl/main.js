@@ -1,14 +1,21 @@
 // don't remve this comment
 let selectedDict = "{{.Curr}}";
 let selectedDictAr = "{{index .DictsMap .Curr}}";
-let searhInvId;
 const contentHolder = document.getElementById("content");
 const dicts = document.getElementsByClassName('sw-dict-item');
-const urlParams = new URLSearchParams(window.location.search);
 const changeDict = document.getElementById("change-dict");
 const changeDictInpt = document.getElementById("change-dict-inpt");
-var preQuery = "";
-var isChangeDictShwoing = false;
+let currWord = "{{if .Queries}}{{index .Queries .Idx}}{{end}}";
+let preQuery = "{{.Query}}"; // this is current query belive it or not! lol
+let queryIdx = 0;
+try {
+    queryIdx = parseInt("{{.Idx}}");
+} catch (er) {
+    console.log("warn:", er)
+    queryIdx = 0;
+}
+let isChangeDictShwoing = false;
+
 
 let resizeTimoutId;
 window.addEventListener("resize", () => {
@@ -32,6 +39,11 @@ document.addEventListener("DOMContentLoaded", () => {
         });
     }
     if (w.value.length === 0) w.focus();
+    let p = "";
+    if (currWord !== "") {
+        p = `?w=${preQuery}&idx=${queryIdx}`
+    }
+    window.history.replaceState(null, '', `${window.location.pathname}${p}`);
 });
 
 w.onfocus = () => showHideNav(true);
@@ -46,10 +58,10 @@ window.addEventListener("scroll", function () {
 
 form.onsubmit = (e) => {
     e.preventDefault();
-    urlParams.set('w', w.value.trim().replace(/(\s+)/, " "));
-    window.location.href = `${window.location.pathname}?${urlParams.toString()}`;
+    window.location.href = `${window.location.pathname}?w=${preQuery}&idx=${queryIdx}`;
 }
 
+let searhInvId;
 w.oninput = () => {
     clearInterval(searhInvId);
     searhInvId = setTimeout(async () => {
@@ -58,10 +70,11 @@ w.oninput = () => {
         preQuery = query;
 
         const queryArr = query.split(" ");
-        const word = queryArr[queryArr.length - 1];
+        queryIdx = queryArr.length - 1;
 
-        urlParams.set('w', query);
-        urlParams.set('idx', queryArr.length - 1);
+        const word = queryArr[queryIdx];
+        currWord = word;
+
 
         console.log(`req: /content?dict=${selectedDict}&w=${word}`);
         const r = await fetch(`/content?dict=${selectedDict}&w=${word}`).catch((err) =>
@@ -102,14 +115,9 @@ w.oninput = () => {
         }
 
         navSpace.style.height = `${nav.offsetHeight + 20}px`;
-        const p = urlParams.toString();
-        for (let i = 0; i < dicts.length; i++) {
-            const n = dicts[i].getAttribute('data-dict-name');
-            dicts[i].href = `/${n}?${p}`;
-        }
 
         document.title = `${selectedDictAr}: ${word}`;
-        window.history.replaceState(null, '', `${window.location.pathname}?${p}`);
+        window.history.replaceState(null, '', `${window.location.pathname}?w=${word}&idx=${queryIdx}`);
     }, 250);
 }
 

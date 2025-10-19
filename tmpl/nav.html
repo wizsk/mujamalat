@@ -7,7 +7,7 @@
 <div id="sw_dict">
     {{range .Dicts}}
     <a class="sw-dict-item" id="{{if eq .En $.Curr}}sw-dict-item-selected{{end}}" data-dict-name="{{.En}}"
-        href="/{{.En}}?w={{$.Query}}&idx={{$.Idx}}">{{.Ar}}</a>
+        data-dict-name-ar="{{.Ar}}" href="/{{.En}}?w={{$.Query}}&idx={{$.Idx}}">{{.Ar}}</a>
     {{end}}
 </div>
 

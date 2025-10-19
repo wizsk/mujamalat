@@ -48,7 +48,20 @@ func lanelexconEntry(db *sql.DB, query string) []Entry_eng {
 		en = append(en, e)
 	}
 	r.Close()
+	if len(en) > 0 || len(query) > 1 {
+		return en
+	}
 
+	r = lev(db.Query(`SELECT word, meanings, is_root FROM lanelexcon
+	WHERE word LIKE ? LIMIT 100`, query))
+	for r.Next() {
+		e := Entry_eng{}
+		if le(r.Scan(&e.Word, &e.Meaning, &e.IsRoot)) {
+			continue
+		}
+		en = append(en, e)
+	}
+	r.Close()
 	return en
 }
 
@@ -83,9 +96,25 @@ func hanswehrEntry(db *sql.DB, query string) []Entry_eng {
 	if len(en) > 0 {
 		return en
 	}
+	r = lev(db.Query(`SELECT word, meanings, is_root FROM hanswehr
+	WHERE parent_id IN (SELECT parent_id FROM hanswehr WHERE is_root AND word = ?)
+	ORDER BY ID`, query))
+
+	for r.Next() {
+		e := Entry_eng{}
+		if le(r.Scan(&e.Word, &e.Meaning, &e.IsRoot)) {
+			continue
+		}
+		en = append(en, e)
+	}
+	r.Close()
+
+	if len(en) > 0 || len(query) > 1 {
+		return en
+	}
 
 	r = lev(db.Query(`SELECT word, meanings, is_root FROM hanswehr
-	WHERE meanings LIKE ? LIMIT 80`, "%"+query+"%"))
+	WHERE meanings LIKE ? LIMIT 100`, "%"+query+"%"))
 
 	for r.Next() {
 		e := Entry_eng{}

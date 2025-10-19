@@ -323,7 +323,7 @@
 </style>
 
 {{define "eng-style"}}
-<style>
+<style id="eng_style">
 	@font-face {
 		font-family: "eng-font";
 		src: url("/pub/Amiri-Regular.ttf") format("truetype");
@@ -341,10 +341,14 @@
 		display: none;
 	}
 </style>
+<script>
+	if ('{{if not (or (eq "lanelexcon" .Curr) (eq "hanswehr" .Curr))}}y{{end}}' === 'y')
+		eng_style.disabled = true;
+</script>
 {{end}}
 
 {{define "ar_en-style"}}
-<style>
+<style id="ar_en_style">
 	table {
 		margin: 0 auto;
 		direction: ltr;
@@ -379,4 +383,8 @@
 		background-color: rgba(from var(--accent) r g b / 10%);
 	}
 </style>
+<script>
+	if ('{{if ne "ar_en" .Curr}}y{{end}}' === 'y')
+		ar_en_style.disabled = true;
+</script>
 {{end}}

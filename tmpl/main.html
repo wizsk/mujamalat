@@ -5,15 +5,10 @@
     <meta charset="UTF-8">
     <link rel="shortcut icon" href="/pub/fav.png" type="image/x-icon">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
+
     {{template "main_style.html"}}
-
-    {{if eq "ar_en" .Curr}}
-    {{template "ar_en-style"}}
-    {{end}}
-
-    {{if or (eq "lanelexcon" .Curr) (eq "hanswehr" .Curr)}}
-    {{template "eng-style"}}
-    {{end}}
+    {{template "ar_en-style" .}}
+    {{template "eng-style" .}}
 
 
     <title>{{index .DictsMap .Curr}}{{if .Queries}}: {{index .Queries .Idx}}{{end}}</title>
@@ -104,6 +99,7 @@
     </div>
     <script>
         // {{template "main.js" .}}
+        // {{template "nav.js" .}}
         // {{template "btn.js" .}}
         // {{template "key.js" .}}
     </script>

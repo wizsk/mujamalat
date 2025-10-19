@@ -31,8 +31,8 @@ var (
 	buildTime string
 	gitCommit string
 	dicts     = []Dict{
-		{"معجم الغني", "mujamul_ghoni"},
 		{"قاموس مباشر", arEnName},
+		{"معجم الغني", "mujamul_ghoni"},
 		{"هانز وير", hanswehrName},
 		{"لينليكسكون", lanelexconName},
 		{"المعاصرة", "mujamul_muashiroh"}, // using the shorter name
@@ -158,7 +158,7 @@ func main() {
 			// word := harakatRgx.ReplaceAllString(r.FormValue("w"), "")
 			// arEn(arEnDict, word, w, tmpl)
 		default:
-			http.Redirect(w, r, "/mujamul_ghoni", http.StatusMovedPermanently)
+			http.Redirect(w, r, "/"+dicts[0].En, http.StatusMovedPermanently)
 			return
 		}
 	})

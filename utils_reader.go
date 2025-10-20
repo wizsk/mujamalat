@@ -45,12 +45,15 @@ func writeEntieslist(w io.Writer, title, dir, extArg string) {
 	}
 
 	fmt.Fprintln(w, title)
+	const txt = `<div class="hist-item-div">
+	- <button class="del" data-hash=%q data-name=%q>[مسح]</button>
+	<a class="hist-item" href="/rd/%s%s">%s</a>
+	</div>`
 	for i := len(files) - 1; i >= 0; i-- {
 		fmt.Fprintf(
 			w,
-			`<a class="hist-item" href="/rd/%s%s">- %s</a>`,
-			files[i].Sha,
-			extArg,
-			html.EscapeString(files[i].Name))
+			txt,
+			files[i].Sha, files[i].Name,
+			files[i].Sha, extArg, html.EscapeString(files[i].Name))
 	}
 }

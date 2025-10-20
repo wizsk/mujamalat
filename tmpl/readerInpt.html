@@ -82,11 +82,6 @@
             font-size: inherit;
         }
 
-        button {
-            display: inline-block;
-            padding: 1rem;
-        }
-
 
         #hist {
             margin: 3rem 1rem;
@@ -117,6 +112,25 @@
             }
         }
 
+        .hist-item-div {
+            display: flex;
+            align-items: center;
+            justify-items: start;
+            gap: 5px;
+        }
+
+        .del {
+            all: unset;
+            display: inline;
+            font-size: inherit;
+            font-family: inherit;
+            background-color: none;
+            padding: 0;
+            color: var(--alert);
+            border: none;
+            cursor: pointer;
+        }
+
         #goToDict {
             margin-top: 2rem;
             display: block;
@@ -136,8 +150,9 @@
             <label for="save">حفظ إلى السجل</label>
         </div>
         <div>
-            <button class="btn" id="submit" type="submit">اذهب</button>
-            <button class="btn btn-red" onclick="txt.value = ''" type="button">مسح</button>
+            <button style="margin-left: .5rem;" class="btn" id="submit" type="submit">اذهب</button>
+            <button style="margin-right: .5rem;" class="btn btn-red" onclick="txt.value = ''; txt.focus()"
+                type="button">مسح</button>
         </div>
     </form>
 
@@ -152,6 +167,18 @@
     {{end}}
 
     <script>
+
+        const del = document.getElementsByClassName("del");
+        for (let i = 0; i < del.length; i++) {
+            del[i].onclick = (e) => {
+                let msg = "هل تريد أن تمسح: " + e.target.dataset.name.slice(0, 50).trim();
+                msg += e.target.dataset.name.length > 50 ? "...؟" : "؟";
+                const c = confirm(msg);
+                if (c) {
+                    console.log("deleted!");
+                }
+            }
+        }
         document.addEventListener('keydown', (e) => {
             if ((e.ctrlKey || e.shiftKey) && e.code == "Enter") {
                 e.preventDefault();

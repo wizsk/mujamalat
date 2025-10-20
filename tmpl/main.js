@@ -96,6 +96,7 @@ w.oninput = () => {
 
         querySelector.innerHTML = "";
         if (queryArr.length > 1) {
+            let b = "";
             for (let i = 0; i < queryArr.length; i++) {
                 const v = queryArr[i];
                 let idx = "";
@@ -103,17 +104,12 @@ w.oninput = () => {
                     idx = `${i + 1}:`.replace(/[0-9]/g, (d) =>
                         String.fromCharCode(0x0660 + parseInt(d)));
 
-                const c = document.createElement("button");
-                c.onclick = (e) => changeQueryIdx(e, v, i);
-
-                c.classList.add('querySelector-item')
-                c.id = id = `${queryArr.length - 1 === i ? 'querySelector-item-selected' : ''}`;
-                c.innerText = `${idx}${v}`;
-                // b += `<button onclick="changeQueryIdx(this, ${JSON.stringify(v)}, ${i})"
-                // class="querySelector-item" id="${queryArr.length - 1 === i ? 'querySelector-item-selected' : ''}">
-                // ${idx}${v}</button>`
-                querySelector.appendChild(c);
+                b += `<button onclick='changeQueryIdx(this, ${JSON.stringify(v)}, ${i})'
+                class="querySelector-item" id="${queryArr.length - 1 === i ? 'querySelector-item-selected' : ''}">
+                ${idx}${v}</button>`
             }
+            console.log(b)
+            querySelector.innerHTML = b;
             querySelector.classList.remove('hidden');
         } else {
             querySelector.innerHTML = "";
@@ -124,7 +120,7 @@ w.oninput = () => {
 
         // {{if not .RDMode}}
         document.title = `${selectedDictAr}: ${word}`;
-        window.history.replaceState(null, '', `${window.location.pathname}?w=${word}&idx=${queryIdx}`);
+        window.history.replaceState(null, '', `${window.location.pathname}?w=${query}&idx=${queryIdx}`);
         // {{end}}
     }, 250);
 }
@@ -132,6 +128,8 @@ w.oninput = () => {
 async function getResAndShow(word) {
     if (!word || word === "")
         contentHolder.innerHTML = `{{template "not-found"}}`;
+
+    contentHolder.innerHTML = `{{template "wait"}}`;
 
     console.log(`req: /content?dict=${selectedDict}&w=${word}`);
     const r = await fetch(`/content?dict=${selectedDict}&w=${word}`).catch((err) =>
@@ -145,49 +143,6 @@ async function getResAndShow(word) {
         contentHolder.innerHTML = `{{template "server-issue"}}`;
     }
 }
-
-/**
- *
- * @param {HTMLButtonElement} el
- * @param {string} word
- * @param {number} idx
- */
-async function changeQueryIdx(el, word, idx) {
-    queryIdx = idx;
-    // {{if not .RDMode}}
-    document.title = `${selectedDictAr}: ${word}`;
-    window.history.replaceState(null, '', `${window.location.pathname}?w=${preQuery}&idx=${queryIdx}`);
-    // {{end}}
-
-    const old = document.getElementById('querySelector-item-selected');
-    if (old) old.id = "";
-
-    el.id = 'querySelector-item-selected';
-    getResAndShow(word);
-}
-
-/**  @param {boolean} show */
-function showHideNav(show) {
-    if (show) {
-        if (!navHidden) return;
-        if (!readerMode) nav.style.transform = "";
-        overlay.style.transform = "";
-        navHidden = false;
-    } else {
-        if (navHidden) return;
-        if (!readerMode) {
-            const s = querySelector.classList.contains('hidden') ? getFullHeight(nav)
-                : getFullHeight(form) + getFullHeight(sw_dict);
-
-            nav.style.transform = `translateY(-${s}px)`;
-        }
-        overlay.style.transform = `translateY(180px)`;
-        navHidden = true;
-    }
-}
-
-/** Set the div which will take space so, other elements don't do behind the nav */
-function setNavHeight() { navSpace.style.height = `${nav.offsetHeight + 20}px` }
 
 function getFullHeight(element) {
     const rect = element.getBoundingClientRect();
@@ -225,6 +180,24 @@ function openDictionay(w) {
     dict_container.classList.remove("hidden");
     setNavHeight();
     showHideNav(true);
+    history.pushState({}, "", window.location.href);
+
     getResAndShow(w);
 }
+
+
+// Handle browser back/forward
+window.addEventListener("popstate", (e) => {
+    closeDictContainer();
+});
+
+
+function closeDictContainer() {
+    dict_container.classList.add('hidden')
+    dict_container_tougle.classList.add('hidden')
+    document.body.style.overflow = "auto";
+    contentHolder.innerHTML = "";
+    readerMode = true;
+}
+
 // {{end}}

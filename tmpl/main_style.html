@@ -23,7 +23,6 @@
 		--accent-dark: #286090;
 		--alert: #a94442;
 		--ar-en-tbl-bg: #3379b73d;
-
 	}
 
 
@@ -191,6 +190,10 @@
 		border: 2px solid #00000000;
 	}
 
+	.svg-btn:hover {
+		color: var(--accent);
+	}
+
 	.svg-btn svg {
 		width: inherit;
 		height: inherit;
@@ -202,6 +205,8 @@
 		bottom: 0;
 		margin: 1rem 2rem;
 		transition: transform 0.3s ease;
+		transition: color 0.3s ease;
+		cursor: default;
 	}
 
 	/* schortcut or instructions */

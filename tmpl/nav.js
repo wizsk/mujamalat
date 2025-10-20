@@ -7,7 +7,6 @@ for (let i = 0; i < dicts.length; i++) {
 
         const cur = e.target.getAttribute('data-dict-name');
         if (selectedDict === cur) return;
-        contentHolder.innerHTML = "<center>انتطر...</center>"
         document.getElementById(selectedDictIdName).id = "";
         e.target.id = selectedDictIdName;
         selectedDict = cur;
@@ -36,4 +35,48 @@ for (let i = 0; i < dicts.length; i++) {
 
         getResAndShow(currWord);
     }
+}
+
+
+/**  @param {boolean} show */
+function showHideNav(show) {
+    if (show) {
+        if (!navHidden) return;
+        if (!readerMode) nav.style.transform = "";
+        overlay.style.transform = "";
+        navHidden = false;
+    } else {
+        if (navHidden) return;
+        if (!readerMode) {
+            const s = querySelector.classList.contains('hidden') ? getFullHeight(nav)
+                : getFullHeight(form) + getFullHeight(sw_dict);
+
+            nav.style.transform = `translateY(-${s}px)`;
+        }
+        overlay.style.transform = `translateY(180px)`;
+        navHidden = true;
+    }
+}
+
+/** Set the div which will take space so, other elements don't do behind the nav */
+function setNavHeight() { navSpace.style.height = `${nav.offsetHeight + 20}px` }
+
+/**
+ *
+ * @param {HTMLButtonElement} el
+ * @param {string} word
+ * @param {number} idx
+ */
+async function changeQueryIdx(el, word, idx) {
+    queryIdx = idx;
+    // {{if not .RDMode}}
+    document.title = `${selectedDictAr}: ${word}`;
+    window.history.replaceState(null, '', `${window.location.pathname}?w=${preQuery}&idx=${queryIdx}`);
+    // {{end}}
+
+    const old = document.getElementById('querySelector-item-selected');
+    if (old) old.id = "";
+
+    el.id = 'querySelector-item-selected';
+    getResAndShow(word);
 }

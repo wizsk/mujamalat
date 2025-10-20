@@ -54,14 +54,6 @@ function resetFontSize() {
     resetFont.classList.add("hidden");
 }
 
-dict_container_tougle.onclick = () => {
-    dict_container.classList.add('hidden')
-    dict_container_tougle.classList.add('hidden')
-    document.body.style.overflow = "auto";
-    contentHolder.innerHTML = "";
-    readerMode = true;
-}
-
 plus.onclick = fontSizeInc;
 minus.onclick = fontSizeDec;
 up.onclick = scroolToTop;

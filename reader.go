@@ -58,10 +58,10 @@ func readerPage(t templateWraper, w http.ResponseWriter, r *http.Request) {
 		if h == "" {
 			var s strings.Builder
 			writeEntieslist(&s,
-				"<div>الملفات الدائمة</div>",
+				`<div class="head">الملفات الدائمة</div>`,
 				readerHistDir, "?perm=true")
 			writeEntieslist(&s,
-				"<div>الملفات المؤقتة</div>",
+				`<div class="head">الملفات المؤقتة</div>`,
 				readerTmpDir, "")
 			if err := t.ExecuteTemplate(w, "readerInpt.html",
 				template.HTML(s.String())); debug && err != nil {

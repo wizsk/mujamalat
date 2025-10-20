@@ -23,9 +23,16 @@ type TmplData struct {
 	Lisanularab       []Entry_lisanularab
 	Hanswehr          []Entry_eng
 	ArEn              []Entry_arEn
+	RD                ReaderData
+	RDMode            bool
 }
 
 // dict names
 type Dict struct {
 	Ar, En string
+}
+
+type ReaderData struct {
+	Title string
+	Peras [][]string
 }

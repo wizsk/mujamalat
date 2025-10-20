@@ -1,0 +1,79 @@
+<nav id="nav">
+    {{template "nav.html" .}}
+</nav>
+
+<div id="navSpace" style="transition: height 0.3s ease;"></div>
+
+<div id="content">
+    {{if and (not .Query) (not .RDMode)}}
+    <h3 class="eng">Shortcuts</h3>
+
+    <ul class="s-list">
+        <li class="s-list-item"><span class="shortcut">Ctrl+p</span>: Open dictionary selector</li>
+        <li class="s-list-item"><span class="shortcut">p</span>: Open dictionary selector when input is not
+            focused
+        </li>
+        <li class="s-list-item"><span class="shortcut">+ / -</span>: Increase/Decrease font size</li>
+        <li class="s-list-item"><span class="shortcut">0</span>: Reset font size to default</li>
+        <li class="s-list-item"><span class="shortcut">u</span>: Scroll to the top of the page</li>
+        <li class="s-list-item"><span class="shortcut">i</span>: Focus on input and select text</li>
+        <li class="s-list-item"><span class="shortcut">s</span>: Focus on input (without selecting text)</li>
+    </ul>
+
+    <p class="eng"><em></em>Note: These shortcuts work regardless of your keyboard layout (Arabic/English).</em>
+    </p>
+    {{if eq "ar_en" .Curr}}
+    <p class="eng"><em></em>You can search multiple words at the same time only in this dictionary.</em></p>
+    {{end}}
+
+    {{else if .RDMode}}
+    <!-- do nothing here. Hense skiping the next ifs -->
+    {{template "reader" .RD}}
+
+    {{else if .Mujamul_ghoni}}
+    {{template "genric-dict" .Mujamul_ghoni}}
+
+    {{else if .Mujamul_muashiroh}}
+    {{template "genric-dict" .Mujamul_muashiroh}}
+
+    {{else if .Mujamul_wasith}}
+    {{template "genric-dict" .Mujamul_wasith}}
+
+    {{else if .Mujamul_muhith}}
+    {{template "genric-dict" .Mujamul_muhith}}
+
+    {{else if .Mujamul_shihah}}
+    {{template "genric-dict" .Mujamul_shihah}}
+
+    {{else if .Lisanularab}}
+    {{template "genric-dict" .Lisanularab}}
+
+    {{else if .Lanelexcon}}
+    {{template "genric-dict" .Lanelexcon}}
+
+    {{else if .Hanswehr}}
+    {{template "genric-dict" .Hanswehr}}
+
+    {{else if .ArEn}}
+    {{template "ar_en" .ArEn}}
+
+    {{else}}
+    {{template "no-res"}}
+    {{end}}
+</div>
+
+<div id="change-dict" class="flex hidden">
+    <div id="change-dict-items">
+        <button class="change-dict-btn-style change-dict-btn">×</button>
+        <input type="text" name="change-dict-inpt" id="change-dict-inpt" placeholder="١ - {{len .Dicts | arnum}}"
+            oninput="this.value = this.value.replace(/[^\u0660-\u0669\u0030-\u0039\-]/g, '');">
+
+        <div id="change-dict-items-list">
+            {{range $i, $v := .Dicts}}
+            <button type="button" class="change-dict-item" onclick="selectDict('{{$i}}')">
+                {{$i | add 1 | arnum}}: {{$v.Ar}}
+            </button>
+            {{end}}
+        </div>
+    </div>
+</div>

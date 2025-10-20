@@ -89,6 +89,10 @@ func main() {
 	<-done
 	log.Println("Initalizaion done")
 
+	http.HandleFunc("/rd/", func(w http.ResponseWriter, r *http.Request) {
+		readerPage(tmpl, w, r)
+	})
+
 	// root
 	http.HandleFunc("/", func(w http.ResponseWriter, r *http.Request) {
 		switch r.URL.Path {

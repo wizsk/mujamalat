@@ -1,0 +1,216 @@
+{{define "reader-css"}}
+<style>
+    /* from quran.com */
+    .speia {
+        --base: #f8ebd5;
+        --text: #010101;
+        --text-nf: #d20f39;
+    }
+
+    .latte {
+        --base: #eff1f5;
+        --text: #3a3c4e;
+        --text-nf: #d20f39;
+    }
+
+    .mocha {
+        --base: #1e1e2e;
+        --text: #cdd6f4;
+        --text-nf: #f38ba8;
+    }
+
+    #reader {
+        max-width: 35em;
+        text-align: right;
+        direction: rtl;
+        margin-left: auto;
+        margin-right: auto;
+        margin-top: 2rem;
+        margin-bottom: 3rem;
+        padding: 1rem 0.2rem;
+        padding-top: 0;
+    }
+
+    .pera {
+        text-indent: 6%;
+        margin-bottom: 1.3rem;
+    }
+
+    .word {
+        cursor: pointer;
+    }
+
+    .hidden {
+        display: none;
+    }
+</style>
+{{end}}
+
+{{define "reader"}}
+<div id="reader">
+    {{range .Peras}}
+    <div class="pera">
+        {{range .}}
+        <span onclick='s("{{.}}")'>{{.}}</span><!-- s alias to showWord. shorter name for space saving -->
+        {{end}}
+    </div>
+    {{end}}
+</div>
+{{end}}
+
+<div id="font-size">
+    <button class="btn" id="color">s</button>
+    <button class="btn" id="plus">+</button>
+    <button class="btn" id="minus">-</button>
+</div>
+
+<script>
+    // {{define "reader-js"}}
+    const nav = document.getElementById("font-size");
+    let lastScrollTop = 0;
+    let navHidden = false;
+    window.addEventListener("scroll", function () {
+        // this code is trash. I know. but, I'm on my freaking phone..
+        let currentScroll = window.pageYOffset || document.documentElement.scrollTop;
+        if (currentScroll < lastScrollTop) {
+            if (navHidden) {
+                nav.style.transform = "";
+                navHidden = !true;
+            }
+        } else {
+            if (!navHidden) {
+                nav.style.transform = `translateY(100px)`
+                navHidden = !false;
+            }
+        }
+        lastScrollTop = currentScroll <= 0 ? 0 : currentScroll; // Prevent negative scroll values
+    });
+    document.addEventListener('keydown', (e) => {
+        if (e.code === "Escape") {
+            if (document.activeElement === wordResInpt)
+                wordResInpt.blur();
+            else if (!wordTbl.classList.contains('hidden'))
+                window.history.back();
+            return;
+        }
+
+        // no composite key
+        if (/*e.shiftKey ||*/ e.ctrlKey || document.activeElement === wordResInpt) {
+            return;
+        }
+
+        const input = wordResInpt;
+        switch (e.code) {
+            case "KeyE":
+                e.preventDefault();
+                // closeWordTbl();
+                if (!wordTbl.classList.contains('hidden'))
+                    window.history.back();
+                break;
+
+            case "KeyS":
+                e.preventDefault();
+                input.focus();
+                input.setSelectionRange(input.value.length, input.value.length);
+                break;
+            case "KeyI":
+                e.preventDefault();
+                input.focus();
+                input.select();
+                break;
+
+            case "Equal":
+                e.preventDefault();
+                fontSizeInc();
+                break;
+            case "Minus":
+                e.preventDefault();
+                fontSizeDec();
+                break;
+
+            case "KeyT":
+                e.preventDefault();
+                changeColor();
+                break;
+
+        }
+
+    })
+
+    // latte, motcha
+    const colorClasses = [
+        'speia',
+        'mocha',
+        'latte',
+    ];
+
+    function changeColor() {
+        for (let i = 0; i < colorClasses.length; i++) {
+            const c = colorClasses[i]; // current
+            if (document.body.classList.contains(c)) {
+                const n = colorClasses[i + 1 < colorClasses.length ? i + 1 : 0]; // next
+                document.body.classList.remove(c);
+                document.body.classList.add(n);
+                color.innerText = n.toLowerCase().slice(0, 1);
+                break;
+            }
+        }
+    }
+
+    color.onclick = changeColor;
+
+    function closeWordTbl() {
+        if (wordTbl.classList.contains('hidden')) return;
+        wordTbl.classList.add('hidden');
+        document.body.style.overflow = 'auto';
+    }
+
+    function showWord(word, tabl) {
+        wordResInpt.value = word;
+        wordResTbl.innerHTML = tabl;
+
+        wordTbl.classList.remove('hidden');
+        document.body.style.overflow = 'hidden';
+
+        history.pushState({}, "", window.location.href)
+    }
+
+    // Handle browser back/forward
+    window.addEventListener("popstate", (e) => {
+        closeWordTbl();
+    });
+
+
+    let searhInvId;
+    const res = wordResTbl;
+    wordResInpt.oninput = () => {
+        clearInterval(searhInvId);
+        searhInvId = setTimeout(() => {
+            const words = wordResInpt.value.trim();
+            fetch(`/wr?w=${words}`).then(async (r) => {
+                if (r.ok) {
+                    res.innerHTML = await r.text();
+                }
+            }).catch((err) => {
+                res.innerText = "Cound't fetch results. Is the server running?";
+            })
+        }, 100);
+    }
+
+
+    const fontDiffCVal = 2.0;
+
+    function fontSizeInc() {
+        const s = parseFloat(window.getComputedStyle(document.body, null).getPropertyValue("font-size"))
+        document.body.style.fontSize = `${s + fontDiffCVal}px`;
+    }
+
+    function fontSizeDec() {
+        const s = parseFloat(window.getComputedStyle(document.body, null).getPropertyValue("font-size"))
+        document.body.style.fontSize = `${s - fontDiffCVal}px`;
+    }
+
+    plus.addEventListener("click", fontSizeInc)
+    minus.addEventListener("click", fontSizeDec)
+    // {{end}}
+</script>

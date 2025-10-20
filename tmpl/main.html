@@ -9,93 +9,46 @@
     {{template "main_style.html"}}
     {{template "ar_en-style" .}}
     {{template "eng-style" .}}
+    {{if .RDMode}}
+    {{template "reader-css"}}
+    {{end}}
 
-
+    {{if .RDMode}}
+    <title>.RD.Title</title>
+    {{else}}
     <title>{{index .DictsMap .Curr}}{{if .Queries}}: {{index .Queries .Idx}}{{end}}</title>
+    {{end}}
+
+    {{if .RDMode}}
+    <style>
+        #dict_container {
+            position: fixed;
+            background-color: var(--bg);
+            top: 0;
+            left: 0;
+            width: 100vw;
+            height: 100vh;
+            overflow: scroll;
+        }
+    </style>
+    {{end}}
 </head>
 
 <body>
-    <nav id="nav">
-        {{template "nav.html" .}}
-    </nav>
-
-    <div id="navSpace" style="transition: height 0.3s ease;"></div>
-
-    <div id="content">
-        {{if not .Query}}
-        <h3 class="eng">Shortcuts</h3>
-
-        <ul class="s-list">
-            <li class="s-list-item"><span class="shortcut">Ctrl+p</span>: Open dictionary selector</li>
-            <li class="s-list-item"><span class="shortcut">p</span>: Open dictionary selector when input is not focused
-            </li>
-            <li class="s-list-item"><span class="shortcut">+ / -</span>: Increase/Decrease font size</li>
-            <li class="s-list-item"><span class="shortcut">0</span>: Reset font size to default</li>
-            <li class="s-list-item"><span class="shortcut">u</span>: Scroll to the top of the page</li>
-            <li class="s-list-item"><span class="shortcut">i</span>: Focus on input and select text</li>
-            <li class="s-list-item"><span class="shortcut">s</span>: Focus on input (without selecting text)</li>
-        </ul>
-
-        <p class="eng"><em></em>Note: These shortcuts work regardless of your keyboard layout (Arabic/English).</em></p>
-        {{if eq "ar_en" .Curr}}
-        <p class="eng"><em></em>You can search multiple words at the same time only in this dictionary.</em></p>
-        {{end}}
-
-        {{else if .Mujamul_ghoni}}
-        {{template "genric-dict" .Mujamul_ghoni}}
-
-        {{else if .Mujamul_muashiroh}}
-        {{template "genric-dict" .Mujamul_muashiroh}}
-
-        {{else if .Mujamul_wasith}}
-        {{template "genric-dict" .Mujamul_wasith}}
-
-        {{else if .Mujamul_muhith}}
-        {{template "genric-dict" .Mujamul_muhith}}
-
-        {{else if .Mujamul_shihah}}
-        {{template "genric-dict" .Mujamul_shihah}}
-
-        {{else if .Lisanularab}}
-        {{template "genric-dict" .Lisanularab}}
-
-        {{else if .Lanelexcon}}
-        {{template "genric-dict" .Lanelexcon}}
-
-        {{else if .Hanswehr}}
-        {{template "genric-dict" .Hanswehr}}
-
-        {{else if .ArEn}}
-        {{template "ar_en" .ArEn}}
-
-        {{else}}
-        {{template "no-res"}}
-        {{end}}
+    {{if .RDMode}}
+    {{template "reader" .RD}}
+    {{end}}
+    <div id="dict_container" class="{{if .RDMode}}hidden{{end}}">
+        {{template "dict_container.html" .}}
     </div>
-
 
     <div id="overlay">
         <button class="btn" id="up">^</button>
         <button class="btn change-dict-btn">ل</button>
         <button class="btn" id="plus">١+</button>
         <button class="btn" id="minus">١-</button>
+        <button class="btn" onclick="dict_container.classList.add('hidden')">×</button>
         <button class="btn hidden" id="resetFont">م-</button>
-    </div>
-
-    <div id="change-dict" class="flex hidden">
-        <div id="change-dict-items">
-            <button class="change-dict-btn-style change-dict-btn">×</button>
-            <input type="text" name="change-dict-inpt" id="change-dict-inpt" placeholder="١ - {{len .Dicts | arnum}}"
-                oninput="this.value = this.value.replace(/[^\u0660-\u0669\u0030-\u0039\-]/g, '');">
-
-            <div id="change-dict-items-list">
-                {{range $i, $v := .Dicts}}
-                <button type="button" class="change-dict-item" onclick="selectDict('{{$i}}')">
-                    {{$i | add 1 | arnum}}: {{$v.Ar}}
-                </button>
-                {{end}}
-            </div>
-        </div>
     </div>
     <script>
         // {{template "main.js" .}}

@@ -3,6 +3,7 @@ const selectedDictIdName = "sw-dict-item-selected";
 for (let i = 0; i < dicts.length; i++) {
     dicts[i].onclick = async (e) => {
         e.preventDefault();
+        console.log(e)
 
         const cur = e.target.getAttribute('data-dict-name');
         if (selectedDict === cur) return;
@@ -24,28 +25,16 @@ for (let i = 0; i < dicts.length; i++) {
             ar_en_style.disabled = true;
         }
 
+        // {{if not .RDMode}}
         let p = "";
         if (preQuery !== "") {
             p = `?w=${preQuery}&idx=${queryIdx}`;
         }
         document.title = `${selectedDictAr}${currWord !== "" ? ": " + currWord : ""}`;
         window.history.replaceState(null, '', `/${selectedDict}${p}`);
+        // {{end}}
 
-        if (currWord === "") { return };
-        console.log(`req: /content?dict=${selectedDict}&w=${currWord}`);
-        const r = await fetch(`/content?dict=${selectedDict}&w=${currWord}`).catch((err) =>
-            console.error(err)
-        );
-
-        if (r && r.ok) {
-            const h = await r.text();
-            contentHolder.innerHTML = h;
-        } else {
-            contentHolder.innerHTML =
-                `<div style="direction: ltr; text-align: center;
-                margin-top: 4rem; color: var(--alert);">
-                    Cound't fetch results. Is the server running?
-                </div>`;
-        }
+        if (currWord === "") return;
+        getResAndShow(currWord);
     }
 }

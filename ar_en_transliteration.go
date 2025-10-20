@@ -1,4 +1,8 @@
-package main
+package dict
+
+import (
+	"strings"
+)
 
 var harakaats = []rune{'a', 'u', 'i', 'F', 'N', 'K', '~', 'o'}
 
@@ -60,6 +64,7 @@ var uni2buck = func() map[rune]rune {
 	return r
 }()
 
+// not used
 func transliterate(s string) string {
 	r := []rune{}
 	for _, c := range s {
@@ -73,8 +78,9 @@ func transliterate(s string) string {
 	return string(r)
 }
 
-func transliterateRmHarakats(s string) string {
+func transliterateRmHarakats(s string) []string {
 	r := []rune{}
+	look := 0
 loop:
 	for _, c := range s {
 		v, ok := uni2buck[c]
@@ -85,13 +91,43 @@ loop:
 				}
 			}
 			r = append(r, v)
+		} else if c == 0x6CC {
+			// wired: ی this is either
+			// a ya or alif maksura
+			look++
+			r = append(r, c)
 		}
 		// this just essensially removes all the char other than arabic char
 		// else {
 		// 	r = append(r, c)
 		// }
 	}
-	return string(r)
+	str := string(r)
+	if look == 0 {
+		return []string{str}
+	}
+
+	wc := string(rune(0x6CC))
+	res := []string{}
+	for i := 0; i <= look; i++ {
+		t := strings.Replace(str, wc, "Y", i)
+		t = strings.ReplaceAll(t, wc, "y")
+		res = append(res, t)
+	}
+	return res
+}
+
+func runeReplace(s []rune, r, v rune, t int) {
+	rt := 0
+	for i := 0; i < len(s); i++ {
+		if s[i] == r {
+			s[i] = v
+			rt++
+		}
+		if rt == t {
+			break
+		}
+	}
 }
 
 // buck to ar

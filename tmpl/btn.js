@@ -34,9 +34,16 @@ function fontSizeDec() {
 }
 
 function scroolToTop() {
-    window.scrollTo({ top: 0, behavior: 'smooth' });
-    w.focus();
-    w.select();
+    if (readerMode) {
+        window.scrollTo({ top: 0, behavior: 'smooth' });
+    } else {
+        // {{if .RDMode}} this is for when just dict mode
+        window.scrollTo({ top: 0, behavior: 'smooth' });
+        // {{end}}
+        dict_container.scrollTo({ top: 0, behavior: 'smooth' });
+        w.focus();
+        w.select();
+    }
 }
 
 function resetFontSize() {
@@ -45,6 +52,14 @@ function resetFontSize() {
     document.body.style.fontSize = "";
     setNavHeight();
     resetFont.classList.add("hidden");
+}
+
+dict_container_tougle.onclick = () => {
+    dict_container.classList.add('hidden')
+    dict_container_tougle.classList.add('hidden')
+    document.body.style.overflow = "auto";
+    contentHolder.innerHTML = "";
+    readerMode = true;
 }
 
 plus.onclick = fontSizeInc;

@@ -27,7 +27,7 @@
         margin-right: auto;
         margin-top: 2rem;
         margin-bottom: 3rem;
-        padding: 1rem 0.2rem;
+        padding: 1rem 1rem;
         padding-top: 0;
     }
 
@@ -36,12 +36,8 @@
         margin-bottom: 1.3rem;
     }
 
-    .word {
+    #reader span {
         cursor: pointer;
-    }
-
-    .hidden {
-        display: none;
     }
 </style>
 {{end}}
@@ -51,7 +47,7 @@
     {{range .Peras}}
     <div class="pera">
         {{range .}}
-        <span onclick='s("{{.}}")'>{{.}}</span><!-- s alias to showWord. shorter name for space saving -->
+        <span onclick='console.log("fo")'>{{.}}</span><!-- s alias to showWord. shorter name for space saving -->
         {{end}}
     </div>
     {{end}}

@@ -34,7 +34,6 @@ for (let i = 0; i < dicts.length; i++) {
         window.history.replaceState(null, '', `/${selectedDict}${p}`);
         // {{end}}
 
-        if (currWord === "") return;
         getResAndShow(currWord);
     }
 }

@@ -45,12 +45,15 @@ func (d *Dictionary) FindWord(word string) []Entry_arEn {
 		return nil
 	}
 	res := []Entry_arEn{}
-	w := []rune(transliterateRmHarakats(word))
 
-	for i := 0; i < len(w); i++ {
-		for j := i + 1; j <= len(w); j++ {
-			c := d.dict(rSlice(w, 0, i), rSlice(w, i, j), rSlice(w, j, len(w)))
-			res = append(res, c...)
+	for _, q := range transliterateRmHarakats(word) {
+		w := []rune(q)
+
+		for i := 0; i < len(w); i++ {
+			for j := i + 1; j <= len(w); j++ {
+				c := d.dict(rSlice(w, 0, i), rSlice(w, i, j), rSlice(w, j, len(w)))
+				res = append(res, c...)
+			}
 		}
 	}
 	return res

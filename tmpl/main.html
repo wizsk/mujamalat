@@ -14,7 +14,7 @@
     {{end}}
 
     {{if .RDMode}}
-    <title>.RD.Title</title>
+    <title>{{.RD.Title}}</title>
     {{else}}
     <title>{{index .DictsMap .Curr}}{{if .Queries}}: {{index .Queries .Idx}}{{end}}</title>
     {{end}}
@@ -43,12 +43,47 @@
     </div>
 
     <div id="overlay">
-        <button class="btn" id="up">^</button>
-        <button class="btn change-dict-btn">ل</button>
-        <button class="btn" id="plus">١+</button>
-        <button class="btn" id="minus">١-</button>
-        <button class="btn" onclick="dict_container.classList.add('hidden')">×</button>
-        <button class="btn hidden" id="resetFont">م-</button>
+        <button class="btn svg-btn" id="up">
+            <svg xmlns="http://www.w3.org/2000/svg" fill="currentColor" class="bi bi-arrow-up-circle-fill"
+                viewBox="0 0 16 16">
+                <path
+                    d="M16 8A8 8 0 1 0 0 8a8 8 0 0 0 16 0m-7.5 3.5a.5.5 0 0 1-1 0V5.707L5.354 7.854a.5.5 0 1 1-.708-.708l3-3a.5.5 0 0 1 .708 0l3 3a.5.5 0 0 1-.708.708L8.5 5.707z" />
+            </svg>
+        </button>
+        <button class="btn svg-btn change-dict-btn {{if .RDMode}}hidden{{end}}">
+            <svg xmlns="http://www.w3.org/2000/svg" fill="currentColor" class="bi bi-filter-circle-fill"
+                viewBox="0 0 16 16">
+                <path
+                    d="M8 16A8 8 0 1 0 8 0a8 8 0 0 0 0 16M3.5 5h9a.5.5 0 0 1 0 1h-9a.5.5 0 0 1 0-1M5 8.5a.5.5 0 0 1 .5-.5h5a.5.5 0 0 1 0 1h-5a.5.5 0 0 1-.5-.5m2 3a.5.5 0 0 1 .5-.5h1a.5.5 0 0 1 0 1h-1a.5.5 0 0 1-.5-.5" />
+            </svg>
+        </button>
+        <button class="btn svg-btn" id="plus">
+            <svg xmlns="http://www.w3.org/2000/svg" fill="currentColor" class="bi bi-plus-circle-fill"
+                viewBox="0 0 16 16">
+                <path
+                    d="M16 8A8 8 0 1 1 0 8a8 8 0 0 1 16 0M8.5 4.5a.5.5 0 0 0-1 0v3h-3a.5.5 0 0 0 0 1h3v3a.5.5 0 0 0 1 0v-3h3a.5.5 0 0 0 0-1h-3z" />
+            </svg>
+        </button>
+        <button class="btn svg-btn" id="minus">
+            <svg xmlns="http://www.w3.org/2000/svg" fill="currentColor" class="bi bi-dash-circle-fill"
+                viewBox="0 0 16 16">
+                <path d="M16 8A8 8 0 1 1 0 8a8 8 0 0 1 16 0M4.5 7.5a.5.5 0 0 0 0 1h7a.5.5 0 0 0 0-1z" />
+            </svg>
+        </button>
+        <button class="btn svg-btn hidden" id="dict_container_tougle">
+            <svg xmlns="http://www.w3.org/2000/svg" fill="currentColor" class="bi bi-x-circle-fill" viewBox="0 0 16 16">
+                <path
+                    d="M16 8A8 8 0 1 1 0 8a8 8 0 0 1 16 0M5.354 4.646a.5.5 0 1 0-.708.708L7.293 8l-2.647 2.646a.5.5 0 0 0 .708.708L8 8.707l2.646 2.647a.5.5 0 0 0 .708-.708L8.707 8l2.647-2.646a.5.5 0 0 0-.708-.708L8 7.293z" />
+            </svg>
+        </button>
+        <button class="btn svg-btn hidden" id="resetFont">
+            <svg xmlns="http://www.w3.org/2000/svg" fill="currentColor" class="bi bi-0-circle-fill" viewBox="0 0 16 16">
+                <path
+                    d="M8 4.951c-1.008 0-1.629 1.09-1.629 2.895v.31c0 1.81.627 2.895 1.629 2.895s1.623-1.09 1.623-2.895v-.31c0-1.8-.621-2.895-1.623-2.895" />
+                <path
+                    d="M16 8A8 8 0 1 1 0 8a8 8 0 0 1 16 0m-8.012 4.158c1.858 0 2.96-1.582 2.96-3.99V7.84c0-2.426-1.079-3.996-2.936-3.996-1.864 0-2.965 1.588-2.965 3.996v.328c0 2.42 1.09 3.99 2.941 3.99" />
+            </svg>
+        </button>
     </div>
     <script>
         // {{template "main.js" .}}

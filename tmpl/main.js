@@ -1,5 +1,7 @@
 // don't remove this comment
 let selectedDict = "{{.Curr}}";
+// if false then the dictionary is open or reading :D
+let readerMode = "{{if .RDMode}}y{{end}}" === "y";
 let selectedDictAr = "{{index .DictsMap .Curr}}";
 const contentHolder = document.getElementById("content");
 const dicts = document.getElementsByClassName('sw-dict-item');
@@ -20,6 +22,7 @@ let isChangeDictShwoing = false;
 
 let resizeTimoutId;
 window.addEventListener("resize", () => {
+    if (readerMode) return;
     clearInterval(resizeTimoutId);
     resizeTimoutId = setTimeout(() => {
         console.log("resized");
@@ -53,16 +56,27 @@ document.addEventListener("DOMContentLoaded", () => {
 w.onfocus = () => showHideNav(true);
 
 let lastScrollTop = 0;
-let navHidden = true;
+let navHidden = false;
 window.addEventListener("scroll", function () {
     let currentScroll = window.pageYOffset || document.documentElement.scrollTop;
     showHideNav(currentScroll < lastScrollTop);
     lastScrollTop = currentScroll <= 0 ? 0 : currentScroll; // Prevent negative scroll values
 });
 
+// {{if .RDMode}}
+let lastScrollTopDict = 0;
+dict_container.addEventListener("scroll", function () {
+    let currentScroll = dict_container.scrollTop;
+    showHideNav(currentScroll < lastScrollTopDict);
+    lastScrollTopDict = currentScroll <= 0 ? 0 : currentScroll; // Prevent negative scroll values
+});
+// {{end}}
+
 form.onsubmit = (e) => {
     e.preventDefault();
+    // {{if not .RDMode}}
     window.location.href = `${window.location.pathname}?w=${w.value}&idx=${queryIdx}`;
+    // {{end}}
 }
 
 let searhInvId;
@@ -71,15 +85,9 @@ w.oninput = () => {
     searhInvId = setTimeout(async () => {
         const query = w.value.trim().replace(/(\s+)/, " ");
         if (query === preQuery) return;
-        if (query === "") {
-            preQuery = "";
-            return;
-        }
         preQuery = query;
-
         const queryArr = query.split(" ");
         queryIdx = queryArr.length - 1;
-
         const word = queryArr[queryIdx];
         currWord = word;
 
@@ -123,7 +131,7 @@ w.oninput = () => {
 
 async function getResAndShow(word) {
     if (!word || word === "")
-        contentHolder.innerHTML = "";
+        contentHolder.innerHTML = `{{template "not-found"}}`;
 
     console.log(`req: /content?dict=${selectedDict}&w=${word}`);
     const r = await fetch(`/content?dict=${selectedDict}&w=${word}`).catch((err) =>
@@ -134,11 +142,7 @@ async function getResAndShow(word) {
         const h = await r.text();
         contentHolder.innerHTML = h;
     } else {
-        contentHolder.innerHTML =
-            `<div style="direction: ltr; text-align: center;
-                margin-top: 4rem; color: var(--alert);">
-                    Cound't fetch results. Is the server running?
-                </div>`;
+        contentHolder.innerHTML = `{{template "server-issue"}}`;
     }
 }
 
@@ -165,22 +169,25 @@ async function changeQueryIdx(el, word, idx) {
 /**  @param {boolean} show */
 function showHideNav(show) {
     if (show) {
-        if (navHidden) return;
-        nav.style.transform = "";
-        overlay.style.transform = "";
-        navHidden = true;
-    } else {
         if (!navHidden) return;
-        const s = querySelector.classList.contains('hidden') ? getFullHeight(nav)
-            : getFullHeight(form) + getFullHeight(sw_dict);
-        nav.style.transform = `translateY(-${s}px)`;
-        overlay.style.transform = `translateY(100px)`;
+        if (!readerMode) nav.style.transform = "";
+        overlay.style.transform = "";
         navHidden = false;
+    } else {
+        if (navHidden) return;
+        if (!readerMode) {
+            const s = querySelector.classList.contains('hidden') ? getFullHeight(nav)
+                : getFullHeight(form) + getFullHeight(sw_dict);
+
+            nav.style.transform = `translateY(-${s}px)`;
+        }
+        overlay.style.transform = `translateY(180px)`;
+        navHidden = true;
     }
 }
 
 /** Set the div which will take space so, other elements don't do behind the nav */
-const setNavHeight = () => navSpace.style.height = `${nav.offsetHeight + 20}px`
+function setNavHeight() { navSpace.style.height = `${nav.offsetHeight + 20}px` }
 
 function getFullHeight(element) {
     const rect = element.getBoundingClientRect();
@@ -199,14 +206,25 @@ function getFullHeight(element) {
 }
 
 // {{if .RDMode}}
-function s(w) {
+const wordSpans = reader.querySelectorAll("span");
+for (let i = 0; i < wordSpans.length; i++) {
+    const w = wordSpans[i].innerText;
+    wordSpans[i].onclick = () => openDictionay(w);
+}
+
+function openDictionay(w) {
+    readerMode = false;
     console.log(w);
+    querySelector.innerHTML = "";
+    document.body.style.overflow = "hidden";
+    dict_container_tougle.classList.remove('hidden');
     preQuery = w;
     currWord = w;
     queryIdx = 0;
     input.value = w;
-    getResAndShow(w);
     dict_container.classList.remove("hidden");
     setNavHeight();
+    showHideNav(true);
+    getResAndShow(w);
 }
 // {{end}}

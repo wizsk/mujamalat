@@ -1,8 +1,11 @@
 package main
 
 import (
+	"bufio"
+	"bytes"
 	"database/sql"
 	"fmt"
+	"io"
 	"log"
 	"net/http"
 	"os"
@@ -101,27 +104,56 @@ func main() {
 		if word == "" {
 			return
 		}
+		del := r.FormValue("del") == "true"
 
 		entriesMtx.Lock()
 		defer entriesMtx.Unlock()
 
 		if _, ok := highlightedWMap[word]; ok {
-			return
+			if !del {
+				return
+			}
 		}
-		highlightedWMap[word] = struct{}{}
+
+		if del {
+			delete(highlightedWMap, word)
+		} else {
+			highlightedWMap[word] = struct{}{}
+		}
 
 		if mkHistDirAll(readerHistDir, w) {
 			return
 		}
 
 		le(copyFile(highlightedWFilePath, highlightedWFilePathOld))
-
-		f := CreateOrAppendToFile(highlightedWFilePath, w)
-		if f == nil {
-			return
+		if del {
+			f := lev(os.Open(highlightedWFilePath))
+			if f == nil {
+				return
+			}
+			s := bufio.NewScanner(f)
+			// this code is sus look into it
+			buf := make([]byte, lev(f.Stat()).Size())
+			b := bytes.NewBuffer(buf)
+			for s.Scan() {
+				if s.Text() != word {
+					b.Write(s.Bytes())
+					b.WriteByte('\n')
+				}
+			}
+			f.Close()
+			if f = lev(os.Create(highlightedWFilePath)); f != nil {
+				io.Copy(f, b)
+				f.Close()
+			}
+		} else {
+			f := CreateOrAppendToFile(highlightedWFilePath, w)
+			if f == nil {
+				return
+			}
+			f.WriteString(word + "\n")
+			f.Close()
 		}
-		f.WriteString(word + "\n")
-		f.Close()
 	})
 
 	http.HandleFunc("/rd/delete/", func(w http.ResponseWriter, r *http.Request) {

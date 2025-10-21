@@ -28,11 +28,19 @@ function openOpopup(e, w) {
 
     hightligt.onclick = async () => {
         closePopup();
-        e.target.classList.add("hi");
+        let del = "";
+        if (e.target.classList.contains("hi")) {
+            e.target.classList.remove("hi");
+            del = "&del=true"
+        } else {
+            e.target.classList.add("hi");
+        }
         const hiw = e.target.innerText;
-        const r = await fetch(`/rd/high?w=${hiw}`)
-            .catch(err => console.error(err))
-        if (!r.ok) alert(`Couldn't save highlight: ${hiw}`);
+        console.log(`/rd/high?w=${hiw}${del}`);
+        const r = await fetch(`/rd/high?w=${hiw}${del}`)
+            .catch(err => console.error(err));
+
+        if (!r.ok) alert(`Couldn't save/del highlight: ${hiw}`);
     }
 
     openDictBtn.onclick = () => {

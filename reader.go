@@ -106,7 +106,7 @@ func readerPage(t templateWraper, w http.ResponseWriter, r *http.Request) {
 		}
 
 		if d == "" {
-			http.Redirect(w, r, "somehing went wrong: 399",
+			http.Error(w, "somehing went wrong: 399",
 				http.StatusInternalServerError)
 			return
 		}
@@ -190,6 +190,7 @@ func readerPage(t templateWraper, w http.ResponseWriter, r *http.Request) {
 		if entries == nil {
 			return
 		}
+		lg.Printf("wrting new entry to: %s", sha)
 		entries.WriteString(sha)
 		entries.Write([]byte{':'})
 		entries.WriteString(pageName)

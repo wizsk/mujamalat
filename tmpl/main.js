@@ -161,7 +161,7 @@ function getFullHeight(element) {
 }
 
 // {{if .RDMode}}
-const wordSpans = reader.querySelectorAll("span");
+const wordSpans = document.getElementsByClassName("rWord");
 for (let i = 0; i < wordSpans.length; i++) {
     const w = wordSpans[i].innerText;
     wordSpans[i].onclick = () => openDictionay(w);

@@ -47,18 +47,12 @@
     {{range .Peras}}
     <div class="pera">
         {{range .}}
-        <span onclick='console.log("fo")'>{{.}}</span><!-- s alias to showWord. shorter name for space saving -->
+        <span class="rWord">{{.}}</span><!-- s alias to showWord. shorter name for space saving -->
         {{end}}
     </div>
     {{end}}
 </div>
 {{end}}
-
-<div id="font-size">
-    <button class="btn" id="color">s</button>
-    <button class="btn" id="plus">+</button>
-    <button class="btn" id="minus">-</button>
-</div>
 
 <script>
     // {{define "reader-js"}}

@@ -10,7 +10,7 @@ import (
 	"fmt"
 	"html/template"
 	"io"
-	"log"
+
 	"net/http"
 	"os"
 	"path/filepath"
@@ -84,7 +84,7 @@ func unzipAndWriteDb() string {
 	}
 	dbFilePath := filepath.Join(rDir, dbFileName)
 	if stat, err := os.Stat(dbFilePath); err == nil && stat.Size() == 134770688 {
-		log.Printf("DB found at: %s\n", dbFilePath)
+		lg.Printf("DB found at: %s\n", dbFilePath)
 		return dbFilePath
 	}
 
@@ -92,7 +92,7 @@ func unzipAndWriteDb() string {
 
 	r := ke(zip.NewReader(z, z.Size()))
 	if len(r.File) != 1 {
-		log.Fatalln("Expected 1 file insize the zip")
+		lg.Fatalln("Expected 1 file insize the zip")
 	}
 
 	data := ke(r.File[0].Open())

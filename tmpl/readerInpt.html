@@ -167,16 +167,20 @@
     {{end}}
 
     <script>
-
         const del = document.getElementsByClassName("del");
         for (let i = 0; i < del.length; i++) {
             del[i].onclick = (e) => {
                 let msg = "هل تريد أن تمسح: " + e.target.dataset.name.slice(0, 50).trim();
                 msg += e.target.dataset.name.length > 50 ? "...؟" : "؟";
                 const c = confirm(msg);
-                if (c) {
-                    console.log("deleted!");
-                }
+                if (!c) return;
+                fetch(e.target.dataset.link).then(async (r) => {
+                    if (r.ok) {
+                        hist.removeChild(e.target.parentElement)
+                    } else {
+                        alert("Coun't delete: ", await r.body.text());
+                    }
+                }).catch((err) => console.error(err))
             }
         }
         document.addEventListener('keydown', (e) => {

@@ -7,6 +7,7 @@ import (
 	"fmt"
 	"html/template"
 	"io"
+
 	"net/http"
 	"os"
 	"path/filepath"
@@ -23,13 +24,15 @@ var (
 	entriesMtx    = sync.RWMutex{}
 	readerHistDir = func() string {
 		n := ""
-		if h, err := os.UserHomeDir(); err == nil {
-			n = filepath.Join(h, ".dict_history")
+		if debug {
+			n = filepath.Join("tmp/", "perm_mujamalat_history")
+		} else if h, err := os.UserHomeDir(); err == nil {
+			n = filepath.Join(h, ".mujamalat_history")
 		} else {
-			n = "dict_history"
+			n = "mujamalat_history"
 		}
 		if _, err := os.Stat(n); err != nil {
-			if err = os.Mkdir(n, 0700); err != nil && !os.IsExist(err) {
+			if err = os.MkdirAll(n, 0700); err != nil && !os.IsExist(err) {
 				return ""
 			}
 		}
@@ -37,9 +40,14 @@ var (
 		return n
 	}()
 	readerTmpDir = func() string {
-		n := filepath.Join(os.TempDir(), "dict_history")
+		n := ""
+		if debug {
+			n = filepath.Join("tmp", "tmp_mujamalat_history")
+		} else {
+			n = filepath.Join(os.TempDir(), "mujamalat_history")
+		}
 		if _, err := os.Stat(n); err != nil {
-			if err = os.Mkdir(n, 0700); err != nil && !os.IsExist(err) {
+			if err = os.MkdirAll(n, 0700); err != nil && !os.IsExist(err) {
 				return ""
 			}
 		}
@@ -141,7 +149,7 @@ func readerPage(t templateWraper, w http.ResponseWriter, r *http.Request) {
 	defer entriesMtx.Unlock()
 
 	if _, err := os.Stat(d); err != nil && os.IsNotExist(err) {
-		if err = os.Mkdir(d, 0700); err != nil {
+		if err = os.MkdirAll(d, 0700); err != nil {
 			http.Error(w,
 				"sorry something went wrong: "+err.Error(),
 				http.StatusInternalServerError)
@@ -150,36 +158,13 @@ func readerPage(t templateWraper, w http.ResponseWriter, r *http.Request) {
 		}
 	}
 
-	entriesFile, err := os.Open(entriesFilePath)
-	modifyEntries := true
-	entriesDataLen := 0
-	if err != nil && !os.IsNotExist(err) {
-		http.Error(w, "sorry something went wrong! 1", http.StatusInternalServerError)
-		fmt.Printf("WARN: err: %v\n", err)
-		return
-	} else if !os.IsNotExist(err) {
-		entriesData, err := io.ReadAll(entriesFile)
-		if err != nil {
-			http.Error(w, "sorry something went wrong! 3", http.StatusInternalServerError)
-			fmt.Printf("WARN: err: %v\n", err)
-			return
-		}
-		entriesFile.Close()
-		entriesDataLen = len(entriesData)
-
-		pairs := bytes.Split(entriesData, []byte{'\n'})
-		for _, p := range pairs {
-			i := bytes.IndexByte(p, ':')
-			if i < 0 {
-				continue // bad
-			}
-			if bytes.Equal([]byte(sha), p[:i]) {
-				modifyEntries = false
-				break
-			}
-		}
+	entryFound, err := isSumInEntries(sha, entriesFilePath, false)
+	if err != nil {
+		e := fmt.Sprint("err:", err)
+		http.Error(w, e, http.StatusInternalServerError)
+		lg.Println(err)
 	}
-	if modifyEntries {
+	if !entryFound {
 		entries, err := os.OpenFile(entriesFilePath,
 			os.O_APPEND|os.O_CREATE|os.O_WRONLY, 0644)
 		if err != nil {
@@ -187,12 +172,10 @@ func readerPage(t templateWraper, w http.ResponseWriter, r *http.Request) {
 			fmt.Printf("WARN: err: %v\n", err)
 			return
 		}
-		if entriesDataLen > 0 {
-			entries.Write([]byte{'\n'})
-		}
 		entries.WriteString(sha)
 		entries.Write([]byte{':'})
 		entries.Write([]byte(pageName))
+		entries.Write([]byte{'\n'})
 		entries.Close()
 	}
 

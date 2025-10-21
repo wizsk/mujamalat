@@ -9,7 +9,7 @@ import (
 	"fmt"
 	"html/template"
 	"io"
-	"log"
+
 	"net/http"
 	"os"
 	"path/filepath"
@@ -72,18 +72,18 @@ Options:
 
 func unzipAndWriteDb() string {
 	dbDir := filepath.Join(rootDir, "./db")
-	log.Printf("Loading db dynamically from %q\n", dbDir)
+	lg.Printf("Loading db dynamically from %q\n", dbDir)
 	dbFilePath := filepath.Join(dbDir, dbFileName)
 
 	if stat, err := os.Stat(dbFilePath); err == nil && stat.Size() == 134770688 {
-		log.Println("DB was alreay written. skipping wrting again...")
+		lg.Println("DB was alreay written. skipping wrting again...")
 		return dbFilePath
 	}
 
 	r := ke(zip.OpenReader(filepath.Join(dbDir, dbFileZipName)))
 	defer r.Close()
 	if len(r.File) != 1 {
-		log.Fatalln("Expected 1 file insize the zip")
+		lg.Fatalln("Expected 1 file insize the zip")
 	}
 
 	data := ke(r.File[0].Open())

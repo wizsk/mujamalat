@@ -3,7 +3,7 @@ package main
 import (
 	"database/sql"
 	"io"
-	"log"
+
 	"strings"
 )
 
@@ -34,7 +34,7 @@ func lisanularab(db *sql.DB, word string, w io.Writer, tmpl templateWraper) {
 	t := TmplData{Query: word, Queries: strings.Split(word, " "), Curr: "lisanularab", Dicts: dicts, DictsMap: dictsMap}
 	if word == "" {
 		if err := (tmpl.ExecuteTemplate(w, mainTemplateName, &t)); err != nil {
-			log.Println("lisaularab: err:", err)
+			lg.Println("lisaularab: err:", err)
 		}
 		return
 	}

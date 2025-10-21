@@ -2,10 +2,11 @@ package main
 
 import (
 	"database/sql"
+	"fmt"
 	"log"
 	"net/http"
 	"os"
-	"regexp"
+	"path/filepath"
 	"strings"
 
 	_ "github.com/glebarez/go-sqlite"
@@ -50,16 +51,17 @@ var (
 		}
 		return m
 	}(dicts)
-	harakatRgx = regexp.MustCompile(`[ً-ُِّْٔٔۖۚۛ۝ٖۡۘۙۚۤۦۧ]`)
+
+	lg = log.New(os.Stderr, progName, log.LstdFlags|log.Lshortfile)
 )
 
 func main() {
 	if debug {
-		log.Println("---- RUNNING IN DEBUG MODE! ----")
+		lg.Println("---- RUNNING IN DEBUG MODE! ----")
 	}
 	parseFlags(os.Args)
 
-	log.Println("Initalizing...")
+	lg.Println("Initalizing...")
 	done := make(chan struct{}, 1)
 
 	var db *sql.DB
@@ -87,10 +89,35 @@ func main() {
 	<-done
 	<-done
 	<-done
-	log.Println("Initalizaion done")
+	lg.Println("Initalizaion done")
 
 	http.HandleFunc("/rd/", func(w http.ResponseWriter, r *http.Request) {
 		readerPage(tmpl, w, r)
+	})
+
+	http.HandleFunc("/rd/delete/", func(w http.ResponseWriter, r *http.Request) {
+		sha := strings.TrimPrefix(r.URL.Path, "/rd/delete/")
+		d := readerTmpDir
+		if r.FormValue("perm") == "true" {
+			d = readerHistDir
+		}
+		found, err := isSumInEntries(sha, filepath.Join(d, entriesFileName), true)
+		if err != nil {
+			http.Error(w, err.Error(), http.StatusInternalServerError)
+			lg.Println("while deleting:", err)
+			return
+		} else if !found {
+			http.Error(w, fmt.Sprintf("could not find: %q", sha), http.StatusBadRequest)
+			return
+		}
+
+		f := filepath.Join(d, sha)
+		if err = os.Remove(f); err != nil && !os.IsNotExist(err) {
+			http.Error(w, err.Error(), http.StatusInternalServerError)
+			lg.Printf("while deleting %q: %v", f, err)
+			return
+		}
+		fmt.Fprintf(w, "deleted: %q", sha)
 	})
 
 	// root
@@ -234,9 +261,9 @@ func main() {
 		port = findFreePort(portRangeStart, portrangeEnd)
 	}
 
-	log.Printf("--- serving at: http://localhost:%s ---\n", port)
+	lg.Printf("--- serving at: http://localhost:%s ---\n", port)
 	if l := localIp(); l != "localhost" {
-		log.Printf("--- serving at: http://%s:%s ---\n", l, port)
+		lg.Printf("--- serving at: http://%s:%s ---\n", l, port)
 	}
-	log.Fatal(http.ListenAndServe(":"+port, nil))
+	lg.Fatal(http.ListenAndServe(":"+port, nil))
 }

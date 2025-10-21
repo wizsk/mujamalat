@@ -5,7 +5,7 @@ import (
 	"fmt"
 	"html/template"
 	"io"
-	"log"
+
 	"net"
 	"net/http"
 	"os"
@@ -26,9 +26,9 @@ var tmplFuncs = template.FuncMap{
 func le(err error, comments ...string) bool {
 	if err != nil {
 		if len(comments) == 0 {
-			log.Println(err)
+			lg.Println(err)
 		} else {
-			log.Println(strings.Join(comments, ": ")+":", err)
+			lg.Println(strings.Join(comments, ": ")+":", err)
 		}
 		return true
 	}
@@ -52,7 +52,7 @@ func findFreePort(start, end int) string {
 		}
 	}
 
-	log.Printf("findFreePort: count not find a free port! from %d to %d\n",
+	lg.Printf("findFreePort: count not find a free port! from %d to %d\n",
 		start, end)
 	os.Exit(1)
 	return ""
@@ -81,9 +81,9 @@ func localIp() string {
 func lev[T any](v T, err error, comments ...string) T {
 	if err != nil {
 		if len(comments) == 0 {
-			log.Println(err)
+			lg.Println(err)
 		} else {
-			log.Println(strings.Join(comments, ": ")+":", err)
+			lg.Println(strings.Join(comments, ": ")+":", err)
 		}
 	}
 	return v

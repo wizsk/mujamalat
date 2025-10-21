@@ -17,6 +17,7 @@ const (
 	version            = "v2.0.0"
 	dbFileName         = "mujamalat.db"
 	mainTemplateName   = "main.html"
+	somethingWentWrong = "something-wrong"
 	genricTemplateName = "genric-dict"
 	portRangeStart     = 8080
 	portrangeEnd       = 8099
@@ -93,6 +94,34 @@ func main() {
 
 	http.HandleFunc("/rd/", func(w http.ResponseWriter, r *http.Request) {
 		readerPage(tmpl, w, r)
+	})
+
+	http.HandleFunc("/rd/high", func(w http.ResponseWriter, r *http.Request) {
+		word := keepOnlyArabic(r.FormValue("w"))
+		if word == "" {
+			return
+		}
+
+		entriesMtx.Lock()
+		defer entriesMtx.Unlock()
+
+		if _, ok := highlightedWMap[word]; ok {
+			return
+		}
+		highlightedWMap[word] = struct{}{}
+
+		if mkHistDirAll(readerHistDir, w) {
+			return
+		}
+
+		le(copyFile(highlightedWFilePath, highlightedWFilePathOld))
+
+		f := CreateOrAppendToFile(highlightedWFilePath, w)
+		if f == nil {
+			return
+		}
+		f.WriteString(word + "\n")
+		f.Close()
 	})
 
 	http.HandleFunc("/rd/delete/", func(w http.ResponseWriter, r *http.Request) {

@@ -20,8 +20,16 @@ const (
 )
 
 var (
-	entriesMtx    = sync.RWMutex{}
+	entriesMtx = sync.RWMutex{}
+
+	highlightedWFilePath                        = ""
+	highlightedWFilePathOld                     = ""
+	highlightedWMap         map[string]struct{} = nil
+
 	readerHistDir = func() string {
+		entriesMtx.Lock()
+		defer entriesMtx.Unlock()
+
 		n := ""
 		if debug {
 			n = filepath.Join("tmp/", "perm_mujamalat_history")
@@ -30,9 +38,24 @@ var (
 		} else {
 			n = "mujamalat_history"
 		}
+
 		if _, err := os.Stat(n); err != nil {
 			if err = os.MkdirAll(n, 0700); err != nil && !os.IsExist(err) {
-				return ""
+				lg.Fatalf("Could not create the hist file! %s", n)
+			}
+		}
+
+		highlightedWFilePath = filepath.Join(n, "highlighted")
+		highlightedWFilePathOld = highlightedWFilePath + ".old"
+
+		highlightedWMap = make(map[string]struct{})
+		if f, err := os.Open(highlightedWFilePath); err == nil {
+			s := bufio.NewScanner(f)
+			for s.Scan() {
+				l := strings.TrimSpace(s.Text())
+				if l != "" {
+					highlightedWMap[l] = struct{}{}
+				}
 			}
 		}
 		fmt.Printf("INFO: Permanent hist dir: %q\n", n)
@@ -90,18 +113,16 @@ func readerPage(t templateWraper, w http.ResponseWriter, r *http.Request) {
 
 		pageName, _ := isSumInEntries(h, filepath.Join(d, entriesFileName), false)
 		if pageName == "" {
-			http.Redirect(w, r,
-				fmt.Sprintf(`coun't not find %q: goto <a href="/rd/">reader page: /rd/</a>`, h),
-				http.StatusNotFound)
+			w.WriteHeader(http.StatusNotFound)
+			t.ExecuteTemplate(w, somethingWentWrong, &SomethingWentW{"Could not find page", "/rd/"})
 			return
 		}
 
 		fn := filepath.Join(d, h)
 		f, err := os.Open(fn)
 		if err != nil {
-			http.Redirect(w, r,
-				fmt.Sprintf(`coun't not find/open %q: goto <a href="/rd/">reader page: /rd/</a>`, h),
-				http.StatusMovedPermanently)
+			w.WriteHeader(http.StatusNotFound)
+			t.ExecuteTemplate(w, somethingWentWrong, &SomethingWentW{"Could not open/find page", "/rd/"})
 			lg.Printf("while opening %q: %s", fn, err)
 			return
 		}
@@ -153,14 +174,8 @@ func readerPage(t templateWraper, w http.ResponseWriter, r *http.Request) {
 	entriesMtx.Lock()
 	defer entriesMtx.Unlock()
 
-	if _, err := os.Stat(d); err != nil && os.IsNotExist(err) {
-		if err = os.MkdirAll(d, 0700); err != nil {
-			http.Error(w,
-				"sorry something went wrong: "+err.Error(),
-				http.StatusInternalServerError)
-			fmt.Printf("WARN: err: %v\n", err)
-			return
-		}
+	if mkHistDirAll(d, w) {
+		return
 	}
 
 	found, err := isSumInEntries(sha, entriesFilePath, false)
@@ -171,11 +186,8 @@ func readerPage(t templateWraper, w http.ResponseWriter, r *http.Request) {
 	}
 
 	if found == "" {
-		entries, err := os.OpenFile(entriesFilePath,
-			os.O_APPEND|os.O_CREATE|os.O_WRONLY, 0644)
-		if err != nil {
-			http.Error(w, "sorry something went wrong! 3", http.StatusInternalServerError)
-			fmt.Printf("WARN: err: %v\n", err)
+		entries := CreateOrAppendToFile(entriesFilePath, w)
+		if entries == nil {
 			return
 		}
 		entries.WriteString(sha)

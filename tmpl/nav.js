@@ -3,7 +3,6 @@ const selectedDictIdName = "sw-dict-item-selected";
 for (let i = 0; i < dicts.length; i++) {
     dicts[i].onclick = async (e) => {
         e.preventDefault();
-        console.log(e)
 
         const cur = e.target.getAttribute('data-dict-name');
         if (selectedDict === cur) return;
@@ -12,7 +11,6 @@ for (let i = 0; i < dicts.length; i++) {
         selectedDict = cur;
         selectedDictAr = e.target.getAttribute('data-dict-name-ar');
 
-        console.log("selected dict:", cur)
         if (cur === "ar_en") {
             ar_en_style.disabled = false;
             eng_style.disabled = true;

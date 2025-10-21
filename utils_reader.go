@@ -6,6 +6,7 @@ import (
 	"fmt"
 	"html"
 	"io"
+	"net/http"
 
 	"os"
 	"path/filepath"
@@ -121,4 +122,33 @@ func isSumInEntries(shaS, entriesFilePath string, del bool) (string, error) {
 
 func entriesShaMatch(sha, ed []byte) bool {
 	return bytes.Equal(sha, ed)
+}
+
+// if err then true
+func mkHistDirAll(d string, w http.ResponseWriter) bool {
+	if _, err := os.Stat(d); err != nil && os.IsNotExist(err) {
+		if err = os.MkdirAll(d, 0700); err != nil {
+			http.Error(w, "something sus!", http.StatusInternalServerError)
+			lg.Println(err)
+			return true
+		}
+	}
+	return false
+}
+
+// nil on err
+func CreateOrAppendToFile(f string, w http.ResponseWriter) *os.File {
+	r, err := os.OpenFile(f, os.O_APPEND|os.O_CREATE|os.O_WRONLY, 0644)
+	if err != nil {
+		http.Error(w, "something sus!", http.StatusInternalServerError)
+		lg.Println(err)
+		return nil
+	}
+	return r
+}
+
+// has to be called while lock mode!
+func inHighlight(w string) bool {
+	_, ok := highlightedWMap[keepOnlyArabic(w)]
+	return ok
 }

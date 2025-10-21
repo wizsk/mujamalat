@@ -1,6 +1,7 @@
 // don't remove this comment
 let selectedDict = "{{.Curr}}";
 // if false then the dictionary is open or reading :D
+let lastClikedWord = null;
 let readerMode = "{{if .RDMode}}y{{end}}" === "y";
 let selectedDictAr = "{{index .DictsMap .Curr}}";
 const contentHolder = document.getElementById("content");
@@ -14,7 +15,7 @@ let queryIdx = 0;
 try {
     queryIdx = parseInt("{{.Idx}}");
 } catch (er) {
-    console.log("warn:", er)
+    console.error(er)
     queryIdx = 0;
 }
 let isChangeDictShwoing = false;
@@ -26,6 +27,9 @@ window.addEventListener("resize", () => {
     resizeTimoutId = setTimeout(() => {
         navSpace.style.height = `${nav.offsetHeight + 20}px`;
         showHideNav(true);
+        // {{if .RDMode}}
+        setPopUpPos();
+        // {{end}}
     }, 100);
 });
 
@@ -60,6 +64,9 @@ window.addEventListener("scroll", function () {
     let currentScroll = window.pageYOffset || document.documentElement.scrollTop;
     showHideNav(currentScroll < lastScrollTop);
     lastScrollTop = currentScroll <= 0 ? 0 : currentScroll; // Prevent negative scroll values
+    // {{if .RDMode}}
+    closePopup();
+    // {{end}}
 });
 
 // {{if .RDMode}}
@@ -107,7 +114,6 @@ w.oninput = () => {
                 class="querySelector-item" id="${queryArr.length - 1 === i ? 'querySelector-item-selected' : ''}">
                 ${idx}${v}</button>`
             }
-            console.log(b)
             querySelector.innerHTML = b;
             querySelector.classList.remove('hidden');
         } else {
@@ -125,8 +131,11 @@ w.oninput = () => {
 }
 
 async function getResAndShow(word) {
-    if (!word || word === "")
+    if (!word || word === "") {
         contentHolder.innerHTML = `{{template "not-found"}}`;
+        return;
+    }
+
 
     contentHolder.innerHTML = `{{template "wait"}}`;
 
@@ -158,45 +167,3 @@ function getFullHeight(element) {
     const fullHeight = rect.height + marginTop + marginBottom + paddingTop + paddingBottom + borderTop + borderBottom;
     return fullHeight;
 }
-
-// {{if .RDMode}}
-const wordSpans = document.getElementsByClassName("rWord");
-for (let i = 0; i < wordSpans.length; i++) {
-    const w = wordSpans[i].innerText;
-    wordSpans[i].onclick = () => openDictionay(w);
-}
-
-function openDictionay(w) {
-    readerMode = false;
-    console.log(w);
-    querySelector.innerHTML = "";
-    document.body.style.overflow = "hidden";
-    dict_container_tougle.classList.remove('hidden');
-    preQuery = w;
-    currWord = w;
-    queryIdx = 0;
-    input.value = w;
-    dict_container.classList.remove("hidden");
-    setNavHeight();
-    showHideNav(true);
-    history.pushState({}, "", window.location.href);
-
-    getResAndShow(w);
-}
-
-
-// Handle browser back/forward
-window.addEventListener("popstate", (e) => {
-    closeDictContainer();
-});
-
-
-function closeDictContainer() {
-    dict_container.classList.add('hidden')
-    dict_container_tougle.classList.add('hidden')
-    document.body.style.overflow = "auto";
-    contentHolder.innerHTML = "";
-    readerMode = true;
-}
-
-// {{end}}

@@ -15,3 +15,48 @@
     انتظر...
 </div>
 {{end}}
+
+{{define "something-wrong"}}
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width,initial-scale=1">
+    <link rel="shortcut icon" href="/pub/fav.png" type="image/x-icon">
+    <title>Something went wrong</title>
+    <style>
+        body {
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            height: 100vh;
+            margin: 0;
+            text-align: center;
+            background: #f8f9fa;
+        }
+
+        p {
+            margin: 8px 0;
+            color: #555;
+        }
+
+        a {
+            color: #0066cc;
+            text-decoration: none;
+        }
+
+        a:hover {
+            text-decoration: underline;
+        }
+    </style>
+</head>
+
+<body>
+    {{if .Reason}}<h2>{{.Reason}}</h2>{{end}}
+    {{if .BackLink}}<a href="{{.BackLink}}">Go back home</a> {{end}}
+</body>
+
+</html>
+{{end}}

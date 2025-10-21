@@ -20,6 +20,7 @@ var tmplFuncs = template.FuncMap{
 	"add": func(a, b int) int { return a + b },
 	// "dec":   func(a, b int) int { return a - b },
 	"arnum": intToArnum,
+	"high":  inHighlight,
 }
 
 // log when error != nil and return true
@@ -189,4 +190,31 @@ func (s *servData) getQueries(w http.ResponseWriter, r *http.Request, curr strin
 		t.Idx = len(queries) - 1
 	}
 	return strings.ReplaceAll(queries[t.Idx], "_", " "), &t
+}
+
+func copyFile(src, dst string) error {
+	sourceFile, err := os.Open(src)
+	if err != nil {
+		return fmt.Errorf("could not open source file: %w", err)
+	}
+	defer sourceFile.Close()
+
+	destFile, err := os.Create(dst)
+	if err != nil {
+		return fmt.Errorf("could not create destination file: %w", err)
+	}
+	defer destFile.Close()
+
+	_, err = io.Copy(destFile, sourceFile)
+	if err != nil {
+		return fmt.Errorf("error while copying: %w", err)
+	}
+
+	// Flush data to disk
+	err = destFile.Sync()
+	if err != nil {
+		return fmt.Errorf("could not sync file: %w", err)
+	}
+
+	return nil
 }

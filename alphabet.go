@@ -132,3 +132,18 @@ loop:
 	}
 	return string(r)
 }
+
+func keepOnlyArabic(s string) string {
+	r := make([]rune, 0, len(s))
+	for _, v := range s {
+		switch v {
+		case FATHA, FATHATAN, DAMMA, DAMMATAN, KASRA, KASRATAN, SHADDA, SUKUN:
+			r = append(r, v)
+		default:
+			if _, ok := arabicAphabets[v]; ok {
+				r = append(r, v)
+			}
+		}
+	}
+	return string(r)
+}

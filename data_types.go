@@ -36,3 +36,8 @@ type ReaderData struct {
 	Title string
 	Peras [][]string
 }
+
+type SomethingWentW struct {
+	Reason   string
+	BackLink string
+}

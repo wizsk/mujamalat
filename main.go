@@ -91,7 +91,7 @@ func main() {
 	<-done
 	<-done
 	<-done
-	lg.Println("Initalizaion done")
+	fmt.Println("Initalizaion done")
 
 	http.HandleFunc("/rd/", func(w http.ResponseWriter, r *http.Request) {
 		readerPage(tmpl, w, r)
@@ -324,9 +324,9 @@ func main() {
 		port = findFreePort(portRangeStart, portrangeEnd)
 	}
 
-	lg.Printf("--- serving at: http://localhost:%s ---\n", port)
+	fmt.Printf("--- localnet:\thttp://localhost:%s\n", port)
 	if l := localIp(); l != "localhost" {
-		lg.Printf("--- serving at: http://%s:%s ---\n", l, port)
+		fmt.Printf("--- internet:\thttp://%s:%s\n", l, port)
 	}
 	lg.Fatal(http.ListenAndServe(":"+port, nil))
 }

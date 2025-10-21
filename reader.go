@@ -59,7 +59,7 @@ var (
 				}
 			}
 		}
-		fmt.Printf("INFO: Permanent hist dir: %q\n", n)
+		lg.Printf("INFO: Permanent hist dir: %q", n)
 		return n
 	}()
 	readerTmpDir = func() string {
@@ -74,7 +74,7 @@ var (
 				return ""
 			}
 		}
-		fmt.Printf("INFO: Temporary hist dir: %q\n", n)
+		lg.Printf("INFO: Temporary hist dir: %q", n)
 		return n
 	}()
 )

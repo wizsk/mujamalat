@@ -96,18 +96,23 @@ func main() {
 	})
 
 	http.HandleFunc("/rd/delete/", func(w http.ResponseWriter, r *http.Request) {
+		entriesMtx.Lock()
+		defer entriesMtx.Unlock()
+
 		sha := strings.TrimPrefix(r.URL.Path, "/rd/delete/")
 		d := readerTmpDir
 		if r.FormValue("perm") == "true" {
 			d = readerHistDir
 		}
+
 		found, err := isSumInEntries(sha, filepath.Join(d, entriesFileName), true)
 		if err != nil {
 			http.Error(w, err.Error(), http.StatusInternalServerError)
 			lg.Println("while deleting:", err)
 			return
-		} else if !found {
+		} else if found == "" {
 			http.Error(w, fmt.Sprintf("could not find: %q", sha), http.StatusBadRequest)
+			lg.Println("coundn't find for deleting:", sha)
 			return
 		}
 

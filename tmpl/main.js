@@ -22,11 +22,10 @@ let isChangeDictShwoing = false;
 
 let resizeTimoutId;
 window.addEventListener("resize", () => {
-    if (readerMode) return;
     clearInterval(resizeTimoutId);
     resizeTimoutId = setTimeout(() => {
-        console.log("resized");
         navSpace.style.height = `${nav.offsetHeight + 20}px`;
+        showHideNav(true);
     }, 100);
 });
 

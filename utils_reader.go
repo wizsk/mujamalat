@@ -58,53 +58,67 @@ func writeEntieslist(w io.Writer, title, dir, extArg string) {
 	}
 }
 
-func isSumInEntries(sha, entriesFilePath string, del bool) (bool, error) {
-	if sha == "" || entriesFilePath == "" {
-		return false, nil
+// call it in locked stage!
+// checks if the given sha is in entries.
+// if found returns the pageName otherwise "".
+// if del is true deletes the found entrey.
+//
+// wont error on fileNotExists
+func isSumInEntries(shaS, entriesFilePath string, del bool) (string, error) {
+	if shaS == "" || entriesFilePath == "" {
+		return "", nil
 	}
+
 	entriesFile, err := os.Open(entriesFilePath)
-	if err != nil && !os.IsNotExist(err) {
-		return false, err
-	} else if !os.IsNotExist(err) {
-		entriesData, err := io.ReadAll(entriesFile)
-		if err != nil {
-			return false, err
+	if err != nil {
+		if os.IsNotExist(err) {
+			return "", nil
 		}
-		entriesFile.Close()
+		return "", err
+	}
+	sha := []byte(shaS)
+	newe := [][]byte{}
+	found := ""
+	s := bufio.NewScanner(entriesFile)
+	for s.Scan() {
+		b := s.Bytes()
+		i := bytes.IndexByte(b, ':')
+		if i < 0 {
+			continue // bad entry
+		}
+		if entriesShaMatch(sha, b[:i]) {
+			found = string(b[i+1:])
+			if del {
+				continue
+			} else {
+				return found, nil
+			}
+		}
+		if del {
+			newe = append(newe, b)
+		}
+	}
+	entriesFile.Close()
 
-		found := false
-		newd := [][]byte{}
-		pairs := bytes.SplitSeq(entriesData, []byte{'\n'})
-		for p := range pairs {
-			i := bytes.IndexByte(p, ':')
-			if i < 0 {
-				continue // bad
-			}
-			if bytes.Equal([]byte(sha), p[:i]) {
-				found = true
-				if !del {
-					break
-				}
-			} else if del {
-				newd = append(newd, p)
-			}
-		}
-		if !del {
-			return found, nil
-		}
-
-		entriesFile, err = os.Create(entriesFilePath)
-		if err != nil {
-			return found, err
-		}
-		for _, n := range newd {
-			_, err = entriesFile.Write(n)
-			if err != nil {
-				break
-			}
-		}
-		entriesFile.Close()
+	entriesFile, err = os.Create(entriesFilePath)
+	if err != nil {
 		return found, err
 	}
-	return false, nil
+
+	for _, n := range newe {
+		_, err = entriesFile.Write(n)
+		if err != nil {
+			break
+		}
+		_, err = entriesFile.Write([]byte{'\n'})
+		if err != nil {
+			break
+		}
+	}
+
+	return found, entriesFile.Close()
+}
+
+func entriesShaMatch(sha, ed []byte) bool {
+	return bytes.Equal(sha, ed)
 }

@@ -2,7 +2,6 @@ package main
 
 import (
 	"bufio"
-	"bytes"
 	"crypto/sha256"
 	"fmt"
 	"html/template"
@@ -63,6 +62,7 @@ func readerPage(t templateWraper, w http.ResponseWriter, r *http.Request) {
 		defer entriesMtx.RUnlock()
 
 		h := strings.TrimPrefix(r.URL.Path, "/rd/")
+		// meaning the readerPage.
 		if h == "" {
 			var s strings.Builder
 			writeEntieslist(&s,
@@ -81,59 +81,63 @@ func readerPage(t templateWraper, w http.ResponseWriter, r *http.Request) {
 		if r.FormValue("perm") == "true" {
 			d = readerHistDir
 		}
+
 		if d == "" {
-			http.Redirect(w, r, "/rd/", http.StatusMovedPermanently)
+			http.Redirect(w, r, "somehing went wrong: 399",
+				http.StatusInternalServerError)
 			return
 		}
 
-		dirs, _ := os.ReadDir(d)
-		for _, dir := range dirs {
-			if dir.Name() == h {
-				f, err := os.Open(filepath.Join(d, dir.Name()))
-				if err != nil {
-					http.Redirect(w, r, "/rd/", http.StatusMovedPermanently)
-					return
-				}
-				defer f.Close()
-				io.Copy(w, f)
-				return
-			}
+		pageName, _ := isSumInEntries(h, filepath.Join(d, entriesFileName), false)
+		if pageName == "" {
+			http.Redirect(w, r,
+				fmt.Sprintf(`coun't not find %q: goto <a href="/rd/">reader page: /rd/</a>`, h),
+				http.StatusNotFound)
+			return
 		}
 
-		http.Redirect(w, r, "/rd/", http.StatusMovedPermanently)
+		fn := filepath.Join(d, h)
+		f, err := os.Open(fn)
+		if err != nil {
+			http.Redirect(w, r,
+				fmt.Sprintf(`coun't not find/open %q: goto <a href="/rd/">reader page: /rd/</a>`, h),
+				http.StatusMovedPermanently)
+			lg.Printf("while opening %q: %s", fn, err)
+			return
+		}
+
+		s := bufio.NewScanner(f)
+		peras := [][]string{}
+		for s.Scan() {
+			t := strings.TrimSpace(s.Text())
+			if t == "" {
+				continue
+			}
+			peras = append(peras, strings.Split(t, " "))
+		}
+		f.Close()
+
+		readerData := ReaderData{pageName, peras}
+		tm := TmplData{Curr: "ar_en", Dicts: dicts, DictsMap: dictsMap, RD: readerData, RDMode: true}
+		if err := t.ExecuteTemplate(w, mainTemplateName, &tm); debug && err != nil {
+			lg.Panic(err)
+		}
 		return
 	}
 
 	pageName := ""
 	sc := bufio.NewScanner(strings.NewReader(txt))
-	reader := [][]string{}
-	for f := true; sc.Scan(); {
-		// current pera
+	for sc.Scan() {
 		l := strings.TrimSpace(sc.Text())
 		if l == "" {
 			continue
 		}
-		// 1st line && found arabic line
-		if f {
-			if len(l) > pageNameMaxLen {
-				pageName = l[:pageNameMaxLen]
-			} else {
-				pageName = l
-			}
-			f = !f
+		if len(l) > pageNameMaxLen {
+			pageName = l[:pageNameMaxLen] + "..."
+		} else {
+			pageName = l
 		}
-
-		p := strings.Split(l, " ")
-		if len(p) > 0 {
-			reader = append(reader, p)
-		}
-	}
-
-	readerData := ReaderData{pageName, reader}
-	tm := TmplData{Curr: "ar_en", Dicts: dicts, DictsMap: dictsMap, RD: readerData, RDMode: true}
-	data := new(bytes.Buffer)
-	if err := t.ExecuteTemplate(data, mainTemplateName, &tm); debug && err != nil {
-		panic(err)
+		break
 	}
 
 	isSave := r.FormValue("save") == "on"
@@ -141,6 +145,7 @@ func readerPage(t templateWraper, w http.ResponseWriter, r *http.Request) {
 	if isSave && readerHistDir != "" {
 		d = readerHistDir
 	}
+
 	shaBytes := sha256.Sum256([]byte(txt))
 	sha := fmt.Sprintf("%x", shaBytes)
 
@@ -158,13 +163,14 @@ func readerPage(t templateWraper, w http.ResponseWriter, r *http.Request) {
 		}
 	}
 
-	entryFound, err := isSumInEntries(sha, entriesFilePath, false)
+	found, err := isSumInEntries(sha, entriesFilePath, false)
 	if err != nil {
 		e := fmt.Sprint("err:", err)
 		http.Error(w, e, http.StatusInternalServerError)
 		lg.Println(err)
 	}
-	if !entryFound {
+
+	if found == "" {
 		entries, err := os.OpenFile(entriesFilePath,
 			os.O_APPEND|os.O_CREATE|os.O_WRONLY, 0644)
 		if err != nil {
@@ -174,7 +180,7 @@ func readerPage(t templateWraper, w http.ResponseWriter, r *http.Request) {
 		}
 		entries.WriteString(sha)
 		entries.Write([]byte{':'})
-		entries.Write([]byte(pageName))
+		entries.WriteString(pageName)
 		entries.Write([]byte{'\n'})
 		entries.Close()
 	}
@@ -186,8 +192,12 @@ func readerPage(t templateWraper, w http.ResponseWriter, r *http.Request) {
 		fmt.Printf("WARN: err: %v\n", err)
 		return
 	}
-	io.Copy(file, data)
-	file.Close()
+	defer file.Close()
+	if _, err := io.WriteString(file, txt); err != nil {
+		http.Error(w, "coun't write to disk", http.StatusInternalServerError)
+		lg.Println("while writing to disk:", err)
+		return
+	}
 
 	l := "/rd/" + sha
 	if isSave {

@@ -2,10 +2,8 @@ package main
 
 import (
 	"bufio"
-	"bytes"
 	"database/sql"
 	"fmt"
-	"io"
 	"log"
 	"net/http"
 	"os"
@@ -132,18 +130,17 @@ func main() {
 				return
 			}
 			s := bufio.NewScanner(f)
-			// this code is sus look into it
-			buf := make([]byte, lev(f.Stat()).Size())
-			b := bytes.NewBuffer(buf)
+			b := strings.Builder{}
 			for s.Scan() {
-				if s.Text() != word {
-					b.Write(s.Bytes())
-					b.WriteByte('\n')
+				t := strings.TrimSpace(s.Text())
+				if t != "" && t != word {
+					b.WriteString(t)
+					b.WriteRune('\n')
 				}
 			}
 			f.Close()
 			if f = lev(os.Create(highlightedWFilePath)); f != nil {
-				io.Copy(f, b)
+				f.WriteString(b.String())
 				f.Close()
 			}
 		} else {

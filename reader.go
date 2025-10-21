@@ -2,6 +2,7 @@ package main
 
 import (
 	"bufio"
+	"bytes"
 	"crypto/sha256"
 	"fmt"
 	"html/template"
@@ -128,13 +129,24 @@ func readerPage(t templateWraper, w http.ResponseWriter, r *http.Request) {
 		}
 
 		s := bufio.NewScanner(f)
-		peras := [][]string{}
+		peras := [][]ReaderWord{}
 		for s.Scan() {
-			t := strings.TrimSpace(s.Text())
-			if t == "" {
+			t := bytes.TrimSpace(s.Bytes())
+			if len(t) == 0 {
 				continue
 			}
-			peras = append(peras, strings.Split(t, " "))
+			p := []ReaderWord{}
+			for b := range bytes.SplitSeq(t, []byte{' '}) {
+				w := string(b)
+				c := keepOnlyArabic(w)
+				_, contains := highlightedWMap[c]
+				p = append(p, ReaderWord{
+					Og:   w,
+					Oar:  c,
+					IsHi: contains,
+				})
+			}
+			peras = append(peras, p)
 		}
 		f.Close()
 

@@ -56,12 +56,26 @@
     }
 
     .clicked {
-        color: var(--accent);
+        background-color: var(--alert);
+        color: white;
     }
 
-    #higlight,
+    .hi {
+        background-color: var(--accent-dark);
+        color: var(--bg);
+    }
+
     #openDictBtn {
-        color: red;
+        color: dimgrey;
+        cursor: pointer;
+    }
+
+    .alert {
+        color: var(--alert);
+    }
+
+    #highlight {
+        cursor: pointer;
     }
 </style>
 {{end}}
@@ -71,16 +85,17 @@
     {{range .Peras}}
     <div class="pera">
         {{range .}}
-        <span class="rWord {{if high .}}hi{{end}}">{{.}}</span><!-- s alias to showWord. shorter name for space saving -->
+        <span data-oar="{{.Oar}}"
+            class="rWord {{if .IsHi}}hi{{end}}">{{.Og}}</span><!-- s alias to showWord. shorter name for space saving -->
         {{end}}
     </div>
     {{end}}
 </div>
 <div id="popup" class="hidden">
-    <button id="hightligt" class="svg-btn">
-        <svg xmlns="http://www.w3.org/2000/svg" fill="currentColor" viewBox="0 0 16 16">
+    <button id="highlight" class="svg-btn">
+        <svg xmlns="http://www.w3.org/2000/svg" fill="currentColor" class="bi bi-check-circle-fill" viewBox="0 0 16 16">
             <path
-                d="M16 8A8 8 0 1 1 0 8a8 8 0 0 1 16 0m-4.5 6.064-1.281-4.696A.5.5 0 0 0 9.736 9H6.264a.5.5 0 0 0-.483.368l-1.28 4.696A6.97 6.97 0 0 0 8 15c1.275 0 2.47-.34 3.5-.936m.873-.598a7 7 0 1 0-8.746 0l1.19-4.36a1.5 1.5 0 0 1 1.31-1.1l1.155-3.851c.213-.713 1.223-.713 1.436 0l1.156 3.851a1.5 1.5 0 0 1 1.31 1.1z" />
+                d="M16 8A8 8 0 1 1 0 8a8 8 0 0 1 16 0m-3.97-3.03a.75.75 0 0 0-1.08.022L7.477 9.417 5.384 7.323a.75.75 0 0 0-1.06 1.06L6.97 11.03a.75.75 0 0 0 1.079-.02l3.992-4.99a.75.75 0 0 0-.01-1.05z" />
         </svg>
     </button>
     <button id="openDictBtn" class="svg-btn">
@@ -91,154 +106,3 @@
     </button>
 </div>
 {{end}}
-
-<script>
-    // {{define "reader-js"}}
-    const nav = document.getElementById("font-size");
-    let lastScrollTop = 0;
-    let navHidden = false;
-    window.addEventListener("scroll", function () {
-        // this code is trash. I know. but, I'm on my freaking phone..
-        let currentScroll = window.pageYOffset || document.documentElement.scrollTop;
-        if (currentScroll < lastScrollTop) {
-            if (navHidden) {
-                nav.style.transform = "";
-                navHidden = !true;
-            }
-        } else {
-            if (!navHidden) {
-                nav.style.transform = `translateY(100px)`
-                navHidden = !false;
-            }
-        }
-        lastScrollTop = currentScroll <= 0 ? 0 : currentScroll; // Prevent negative scroll values
-    });
-    document.addEventListener('keydown', (e) => {
-        if (e.code === "Escape") {
-            if (document.activeElement === wordResInpt)
-                wordResInpt.blur();
-            else if (!wordTbl.classList.contains('hidden'))
-                window.history.back();
-            return;
-        }
-
-        // no composite key
-        if (/*e.shiftKey ||*/ e.ctrlKey || document.activeElement === wordResInpt) {
-            return;
-        }
-
-        const input = wordResInpt;
-        switch (e.code) {
-            case "KeyE":
-                e.preventDefault();
-                // closeWordTbl();
-                if (!wordTbl.classList.contains('hidden'))
-                    window.history.back();
-                break;
-
-            case "KeyS":
-                e.preventDefault();
-                input.focus();
-                input.setSelectionRange(input.value.length, input.value.length);
-                break;
-            case "KeyI":
-                e.preventDefault();
-                input.focus();
-                input.select();
-                break;
-
-            case "Equal":
-                e.preventDefault();
-                fontSizeInc();
-                break;
-            case "Minus":
-                e.preventDefault();
-                fontSizeDec();
-                break;
-
-            case "KeyT":
-                e.preventDefault();
-                changeColor();
-                break;
-
-        }
-
-    })
-
-    // latte, motcha
-    const colorClasses = [
-        'speia',
-        'mocha',
-        'latte',
-    ];
-
-    function changeColor() {
-        for (let i = 0; i < colorClasses.length; i++) {
-            const c = colorClasses[i]; // current
-            if (document.body.classList.contains(c)) {
-                const n = colorClasses[i + 1 < colorClasses.length ? i + 1 : 0]; // next
-                document.body.classList.remove(c);
-                document.body.classList.add(n);
-                color.innerText = n.toLowerCase().slice(0, 1);
-                break;
-            }
-        }
-    }
-
-    color.onclick = changeColor;
-
-    function closeWordTbl() {
-        if (wordTbl.classList.contains('hidden')) return;
-        wordTbl.classList.add('hidden');
-        document.body.style.overflow = 'auto';
-    }
-
-    function showWord(word, tabl) {
-        wordResInpt.value = word;
-        wordResTbl.innerHTML = tabl;
-
-        wordTbl.classList.remove('hidden');
-        document.body.style.overflow = 'hidden';
-
-        history.pushState({}, "", window.location.href)
-    }
-
-    // Handle browser back/forward
-    window.addEventListener("popstate", (e) => {
-        closeWordTbl();
-    });
-
-
-    let searhInvId;
-    const res = wordResTbl;
-    wordResInpt.oninput = () => {
-        clearInterval(searhInvId);
-        searhInvId = setTimeout(() => {
-            const words = wordResInpt.value.trim();
-            fetch(`/wr?w=${words}`).then(async (r) => {
-                if (r.ok) {
-                    res.innerHTML = await r.text();
-                }
-            }).catch((err) => {
-                res.innerText = "Cound't fetch results. Is the server running?";
-            })
-        }, 100);
-    }
-
-
-    const fontDiffCVal = 2.0;
-
-    function fontSizeInc() {
-        const s = parseFloat(window.getComputedStyle(document.body, null).getPropertyValue("font-size"))
-        document.body.style.fontSize = `${s + fontDiffCVal}px`;
-    }
-
-    function fontSizeDec() {
-        const s = parseFloat(window.getComputedStyle(document.body, null).getPropertyValue("font-size"))
-        document.body.style.fontSize = `${s - fontDiffCVal}px`;
-    }
-
-    plus.addEventListener("click", fontSizeInc)
-    minus.addEventListener("click", fontSizeDec)
-    // {{end}}
-</script>

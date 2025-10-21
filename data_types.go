@@ -34,7 +34,13 @@ type Dict struct {
 
 type ReaderData struct {
 	Title string
-	Peras [][]string
+	Peras [][]ReaderWord
+}
+
+type ReaderWord struct {
+	Og   string // origianl
+	Oar  string // only arabic
+	IsHi bool   // is heighlihted
 }
 
 type SomethingWentW struct {

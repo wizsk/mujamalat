@@ -1,23 +1,39 @@
 // don't remove
+const popup = document.getElementById("popup"); // for chrome
+const highlight = document.getElementById("highlight");
+const openDictBtn = document.getElementById("openDictBtn");
+
 const wordSpans = document.getElementsByClassName("rWord");
 for (let i = 0; i < wordSpans.length; i++) {
     const w = wordSpans[i].innerText;
-    wordSpans[i].onclick = (e) => openOpopup(e, w);
+    wordSpans[i].onclick = openPopup;
 }
-
 
 function closePopup() {
     if (!lastClikedWord) return;
     lastClikedWord.classList.remove("clicked");
     lastClikedWord = null;
     popup.classList.add('hidden');
-    hightligt.onclick = () => { };
+    highlight.onclick = () => { };
     openDictBtn.onclick = () => { };
+}
+
+async function addOrRmHiClass(word, add) {
+    for (let i = 0; i < wordSpans.length; i++) {
+        const w = wordSpans[i].dataset.oar;
+        if (w === word) {
+            if (add) {
+                wordSpans[i].classList.add("hi");
+            } else {
+                wordSpans[i].classList.remove("hi");
+            }
+        }
+    }
 }
 
 // let lastClikedWord = null;
 // ontop of the main file
-function openOpopup(e, w) {
+function openPopup(e) {
     if (lastClikedWord) {
         if (lastClikedWord == e.target) {
             closePopup();
@@ -26,26 +42,35 @@ function openOpopup(e, w) {
         lastClikedWord.classList.remove("clicked");
     }
 
-    hightligt.onclick = async () => {
+    const hWord = e.target.dataset.oar;
+    if (e.target.classList.contains("hi")) {
+        highlight.classList.add("alert");
+    } else {
+        highlight.classList.remove("alert");
+    }
+    highlight.onclick = async () => {
         closePopup();
+
         let del = "";
         if (e.target.classList.contains("hi")) {
             e.target.classList.remove("hi");
+            addOrRmHiClass(hWord, false);
             del = "&del=true"
         } else {
             e.target.classList.add("hi");
+            addOrRmHiClass(hWord, true);
         }
-        const hiw = e.target.innerText;
-        console.log(`/rd/high?w=${hiw}${del}`);
-        const r = await fetch(`/rd/high?w=${hiw}${del}`)
+
+        console.log(`/rd/high?w=${hWord}${del}`);
+        const r = await fetch(`/rd/high?w=${hWord}${del}`)
             .catch(err => console.error(err));
 
-        if (!r.ok) alert(`Couldn't save/del highlight: ${hiw}`);
+        if (!r.ok) alert(`Couldn't save/del highlight: ${hWord}`);
     }
 
     openDictBtn.onclick = () => {
-        openDictionay(w);
         closePopup()
+        openDictionay(hWord);
     }
 
     lastClikedWord = e.target;
@@ -78,7 +103,8 @@ function setPopUpPos() {
             left = 4;
         }
 
-        if (rect.bottom + (popupHeight + 4) > screenH) {
+        // avoid buttom nav
+        if (rect.bottom + (popupHeight + 4) + 100 > screenH) {
             top = rect.top + window.scrollY - 4 - popupHeight;
         }
 

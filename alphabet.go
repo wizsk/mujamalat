@@ -50,7 +50,7 @@ const (
 	NOON                 rune = '\u0646' // ن
 	HEH                  rune = '\u0647' // ه
 	WAW                  rune = '\u0648' // و
-	YEH                  rune = '\u06cc' // ی
+	YEH                  rune = '\u06cc' // یfasrsi yaaa
 	ARABICYEH            rune = '\u064a' // ي
 	ALEF_MAKSURA         rune = '\u0649' // ى
 	LAM_ALEF             rune = '\ufefb' // لا

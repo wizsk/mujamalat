@@ -169,12 +169,16 @@
     <script>
         const form = document.getElementById("form");
         const txt = document.getElementById("txt");
+        const hist = document.getElementById("hist");
+        const save = document.getElementById("save");
+
         form.onsubmit = (e) => {
             e.preventDefault();
             const val = txt.value.trim();
             if (val === "") return;
 
-            fetch('/rd/', {
+            const url = `/rd/?perm=${save.checked ? "true" : "false"}`;
+            fetch(url, {
                 method: "POST",
                 headers: { 'Content-Type': 'text/plain' },
                 body: val,

@@ -153,7 +153,7 @@ func (rd *readerConf) page(w http.ResponseWriter, r *http.Request) {
 		readerConf := ReaderData{pageName, peras}
 		tm := TmplData{Curr: "ar_en", Dicts: dicts, DictsMap: dictsMap, RD: readerConf, RDMode: true}
 		if err := t.ExecuteTemplate(w, mainTemplateName, &tm); debug && err != nil {
-			lg.Panic(err)
+			lg.Println(err)
 		}
 		return
 	}
@@ -166,9 +166,9 @@ func (rd *readerConf) post(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	isSave := r.FormValue("save") == "on"
+	isSave := r.FormValue("perm") == "true"
 	d := rd.tempDir
-	if isSave && rd.permDir != "" {
+	if isSave {
 		d = rd.permDir
 	}
 

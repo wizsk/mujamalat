@@ -1,10 +1,8 @@
 package main
 
-import "database/sql"
-
-type servData struct {
-	tmpl templateWraper
-	db   *sql.DB
+type globalConf struct {
+	port    string
+	verbose bool
 }
 
 type TmplData struct {

@@ -6,6 +6,7 @@ import (
 	"log"
 	"net/http"
 	"os"
+	"time"
 
 	_ "github.com/glebarez/go-sqlite"
 )
@@ -55,16 +56,19 @@ var (
 
 func main() {
 	if debug {
-		lg.Println("---- RUNNING IN DEBUG MODE! ----")
+		fmt.Println("---- RUNNING IN DEBUG MODE! ----")
 	}
-	parseFlags(os.Args)
 
-	lg.Println("Initalizing...")
+	gc := parseFlags()
+
+	fmt.Println("Initalizing...")
+	iStart := time.Now()
 	done := make(chan struct{}, 1)
 
 	var db *sql.DB
 	var arEnDict *Dictionary
 	var tmpl templateWraper
+	var rd *readerConf
 
 	go func() {
 		db = ke(sql.Open("sqlite", unzipAndWriteDb()))
@@ -79,6 +83,7 @@ func main() {
 
 	go func() {
 		tmpl = ke(openTmpl(debug))
+		rd = newReader(tmpl)
 		done <- struct{}{}
 	}()
 
@@ -86,9 +91,9 @@ func main() {
 	<-done
 	<-done
 	dc := dictConf{db: db, t: tmpl, arEnDict: arEnDict}
-	rd := readerConf{t: tmpl}
 
-	fmt.Println("Initalizaion done")
+	fmt.Println("Initalizaion done in:",
+		time.Since(iStart).String())
 
 	mux := http.NewServeMux()
 
@@ -107,17 +112,19 @@ func main() {
 	})
 
 	var mw http.Handler = mux
-	if debug {
+	if gc.verbose || debug {
 		mw = middleware(mux)
 	}
 
-	if port == "" {
-		port = findFreePort(portRangeStart, portrangeEnd)
+	if gc.port == "" {
+		gc.port = findFreePort(portRangeStart, portrangeEnd)
 	}
 
-	fmt.Printf("--- localnet:\thttp://localhost:%s\n", port)
+	fmt.Println()
+	fmt.Printf("-- localnet:\thttp://localhost:%s\n", gc.port)
 	if l := localIp(); l != "localhost" {
-		fmt.Printf("--- internet:\thttp://%s:%s\n", l, port)
+		fmt.Printf("-- internet:\thttp://%s:%s\n", l, gc.port)
 	}
-	lg.Fatal(http.ListenAndServe(":"+port, mw))
+	fmt.Println()
+	lg.Fatal(http.ListenAndServe(":"+gc.port, mw))
 }

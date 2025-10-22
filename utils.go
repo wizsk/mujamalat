@@ -1,7 +1,9 @@
 package main
 
 import (
+	"bytes"
 	_ "embed"
+	"flag"
 	"fmt"
 	"html/template"
 	"io"
@@ -15,11 +17,37 @@ import (
 	"time"
 )
 
+func parseFlags() globalConf {
+	conf := globalConf{}
+
+	if dynamicVersion {
+		flag.StringVar(&rootDir, "r", ".",
+			"root dir for where where the db and static data lives")
+	}
+
+	flag.StringVar(&conf.port, "p", "",
+		fmt.Sprintf("port number for the server (defaut: %d-%d)",
+			portRangeStart, portrangeEnd))
+
+	showVersion := flag.Bool("v", false, "print version information")
+	flag.BoolVar(&conf.verbose, "s", false, "show request logs [be verbose]")
+
+	os.Args[0] = progName
+
+	flag.Parse()
+
+	if *showVersion {
+		printVersion()
+		os.Exit(0)
+	}
+
+	return conf
+}
+
 var tmplFuncs = template.FuncMap{
 	"add": func(a, b int) int { return a + b },
 	// "dec":   func(a, b int) int { return a - b },
 	"arnum": intToArnum,
-	"high":  inHighlight,
 }
 
 // log when error != nil and return true
@@ -134,7 +162,13 @@ func printVersion() {
 	printVersionWritter(os.Stdout)
 }
 
-func printVersionWritter(w io.Writer) {
+var versionTxt []byte = nil
+
+func printVersionWritter(wm io.Writer) {
+	if versionTxt != nil {
+		wm.Write(versionTxt)
+	}
+	w := new(bytes.Buffer)
 	fmt.Fprintf(w, "%s: %s\n", progName, version)
 	fmt.Fprintf(w, "data: %s\n", dbType)
 	if buildTime != "" {
@@ -146,6 +180,8 @@ func printVersionWritter(w io.Writer) {
 	if gitCommit != "" {
 		fmt.Fprintf(w, "git commit: %s\n", gitCommit)
 	}
+	versionTxt = w.Bytes()
+	wm.Write(versionTxt)
 }
 
 func parseQuery(s string, clean func(string) string) []string {

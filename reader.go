@@ -18,77 +18,74 @@ const (
 	pageNameMaxLen     = 100
 	maxtReaderTextSize = 5 * 1024 * 1024 // limit: 5MB for example
 	entriesFileName    = "entries"
-)
-
-var (
-	entriesMtx = sync.RWMutex{}
-
-	highlightedWFilePath                        = ""
-	highlightedWFilePathOld                     = ""
-	highlightedWMap         map[string]struct{} = nil
-
-	readerHistDir = func() string {
-		entriesMtx.Lock()
-		defer entriesMtx.Unlock()
-
-		n := ""
-		if debug {
-			n = filepath.Join("tmp/", "perm_mujamalat_history")
-		} else if h, err := os.UserHomeDir(); err == nil {
-			n = filepath.Join(h, ".mujamalat_history")
-		} else {
-			n = "mujamalat_history"
-		}
-
-		if _, err := os.Stat(n); err != nil {
-			if err = os.MkdirAll(n, 0700); err != nil && !os.IsExist(err) {
-				lg.Fatalf("Could not create the hist file! %s", n)
-			}
-		}
-
-		highlightedWFilePath = filepath.Join(n, "highlighted")
-		highlightedWFilePathOld = highlightedWFilePath + ".old"
-
-		highlightedWMap = make(map[string]struct{})
-		if f, err := os.Open(highlightedWFilePath); err == nil {
-			s := bufio.NewScanner(f)
-			for s.Scan() {
-				l := strings.TrimSpace(s.Text())
-				if l != "" {
-					highlightedWMap[l] = struct{}{}
-				}
-			}
-		}
-		lg.Printf("INFO: Permanent hist dir: %q", n)
-		return n
-	}()
-	readerTmpDir = func() string {
-		n := ""
-		if debug {
-			n = filepath.Join("tmp", "tmp_mujamalat_history")
-		} else {
-			n = filepath.Join(os.TempDir(), "mujamalat_history")
-		}
-		if _, err := os.Stat(n); err != nil {
-			if err = os.MkdirAll(n, 0700); err != nil && !os.IsExist(err) {
-				return ""
-			}
-		}
-		lg.Printf("INFO: Temporary hist dir: %q", n)
-		return n
-	}()
+	highlightsFileName = "highlighted"
 )
 
 type readerConf struct {
-	t templateWraper
+	m            sync.RWMutex
+	t            templateWraper
+	permDir      string
+	tempDir      string
+	hFilePath    string
+	hFilePathOld string
+	hMap         map[string]struct{}
+}
+
+func newReader(t templateWraper) *readerConf {
+	rd := readerConf{}
+	n := ""
+	if debug {
+		n = filepath.Join("tmp", "perm_mujamalat_history")
+	} else if h, err := os.UserHomeDir(); err == nil {
+		n = filepath.Join(h, ".mujamalat_history")
+	} else {
+		n = "mujamalat_history"
+	}
+	rd.permDir = n
+
+	if _, err := os.Stat(n); err != nil {
+		if err = os.MkdirAll(n, 0700); err != nil && !os.IsExist(err) {
+			lg.Fatalf("Could not create the hist file! %s", n)
+		}
+	}
+
+	rd.hFilePath = filepath.Join(n, highlightsFileName)
+	rd.hFilePathOld = rd.hFilePath + ".old"
+
+	rd.hMap = make(map[string]struct{})
+	if f, err := os.Open(rd.hFilePath); err == nil {
+		s := bufio.NewScanner(f)
+		for s.Scan() {
+			l := strings.TrimSpace(s.Text())
+			if l != "" {
+				rd.hMap[l] = struct{}{}
+			}
+		}
+	}
+
+	n = ""
+	if debug {
+		n = filepath.Join("tmp", "tmp_mujamalat_history")
+	} else {
+		n = filepath.Join(os.TempDir(), "mujamalat_history")
+	}
+	rd.tempDir = n
+
+	if _, err := os.Stat(n); err != nil {
+		if err = os.MkdirAll(n, 0700); err != nil && !os.IsExist(err) {
+			lg.Fatalf("could not create %q: reason: %v", n, err)
+		}
+	}
+	rd.t = t
+	return &rd
 }
 
 func (rd *readerConf) page(w http.ResponseWriter, r *http.Request) {
 	t := rd.t
 	txt := strings.TrimSpace(r.FormValue("txt"))
 	if txt == "" {
-		entriesMtx.RLock()
-		defer entriesMtx.RUnlock()
+		rd.m.RLock()
+		defer rd.m.RUnlock()
 
 		h := strings.TrimPrefix(r.URL.Path, "/rd/")
 		// meaning the readerPage.
@@ -96,19 +93,19 @@ func (rd *readerConf) page(w http.ResponseWriter, r *http.Request) {
 			var s strings.Builder
 			writeEntieslist(&s,
 				`<div class="head">الملفات الدائمة</div>`,
-				readerHistDir, "?perm=true")
+				rd.permDir, "?perm=true")
 			writeEntieslist(&s,
 				`<div class="head">الملفات المؤقتة</div>`,
-				readerTmpDir, "")
+				rd.tempDir, "")
 			if err := t.ExecuteTemplate(w, "readerInpt.html",
 				template.HTML(s.String())); debug && err != nil {
 			}
 			return
 		}
 
-		d := readerTmpDir
+		d := rd.tempDir
 		if r.FormValue("perm") == "true" {
-			d = readerHistDir
+			d = rd.permDir
 		}
 
 		if d == "" {
@@ -144,7 +141,7 @@ func (rd *readerConf) page(w http.ResponseWriter, r *http.Request) {
 			for b := range bytes.SplitSeq(t, []byte{' '}) {
 				w := string(b)
 				c := keepOnlyArabic(w)
-				_, contains := highlightedWMap[c]
+				_, contains := rd.hMap[c]
 				p = append(p, ReaderWord{
 					Og:   w,
 					Oar:  c,
@@ -172,14 +169,14 @@ func (rd *readerConf) post(w http.ResponseWriter, r *http.Request) {
 	}
 
 	isSave := r.FormValue("save") == "on"
-	d := readerTmpDir
-	if isSave && readerHistDir != "" {
-		d = readerHistDir
+	d := rd.tempDir
+	if isSave && rd.permDir != "" {
+		d = rd.permDir
 	}
 
 	entriesFilePath := filepath.Join(d, entriesFileName)
-	entriesMtx.Lock()
-	defer entriesMtx.Unlock()
+	rd.m.Lock()
+	defer rd.m.Unlock()
 
 	if mkHistDirAll(d, w) {
 		return
@@ -222,5 +219,6 @@ func (rd *readerConf) post(w http.ResponseWriter, r *http.Request) {
 	if isSave {
 		l += "?perm=true"
 	}
+
 	http.Redirect(w, r, l, http.StatusMovedPermanently)
 }

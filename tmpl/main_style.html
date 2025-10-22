@@ -16,13 +16,39 @@
 		--border-radious: 4px;
 		--main-padding-x: 2rem;
 		/* light color ig */
-		--color: rgb(34, 34, 34);
+
+		/* instead of #222223 */
+		--color: #333333;
+		--bg: #fffaf3;
+		--highlight: #fff3a3;
+		--highlight2: #d9f7be;
+
+
+
+		/* gentle warm gray */
+		--muted: #a8a29e;
+
+
 		--color-highlight: #02647a;
-		--bg: rgb(255, 250, 243);
+
 		--accent: #337ab7;
 		--accent-dark: #286090;
 		--alert: #a94442;
+
 		--ar-en-tbl-bg: #3379b73d;
+
+		/* future dark mode! */
+		--bg-dark: #181a1b;
+		--color-dark: #eaeaea;
+
+		--bg: #fffaf3;
+		--color: #222223;
+		--accent: #3a6fa6;
+		--accent-dark: #285a8c;
+		--highlight: #fff3a3;
+		--alert: #a94442;
+		--muted: #6b6b6b;
+		--border: #e8e2d9;
 	}
 
 
@@ -181,23 +207,27 @@
 	}
 
 	.svg-btn {
-		color: var(--accent-dark);
+		background-color: var(--accent-dark);
+		color: #fff;
 		padding: 0;
 		width: 2.5rem;
 		height: 2.5rem;
-		border-radius: 50%;
-		border: 5px transparent;
+		border-radius: var(--border-radious);
+		border: none;
+		cursor: pointer;
+		display: flex;
+		align-items: center;
+		justify-content: center;
+		box-shadow: 0 2px 4px rgba(0, 0, 0, 0.15);
 	}
 
 	.svg-btn:hover {
-		color: var(--accent);
+		background-color: var(--accent);
 	}
 
 	.svg-btn svg {
-		width: inherit;
-		height: inherit;
-		border-radius: 100%;
-		background: var(--bg);
+		width: 2rem;
+		height: 2rem;
 	}
 
 	#overlay {
@@ -208,6 +238,9 @@
 		transition: all 0.3s ease;
 		transition-property: fill, color, transform;
 		cursor: default;
+		display: flex;
+		align-items: start;
+		gap: 0.8rem;
 	}
 
 	/* schortcut or instructions */

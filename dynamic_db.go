@@ -13,77 +13,35 @@ import (
 	"net/http"
 	"os"
 	"path/filepath"
-	"strconv"
 )
 
 const (
-	dbFileZipName = "mujamalat.zip"
-	dbType        = "external (dynamic)"
+	dbFileZipName  = "mujamalat.zip"
+	dbType         = "external (dynamic)"
+	dynamicVersion = true
 )
 
 var (
-	rootDir string = "."
-	port    string
+	rootDir string
 )
-
-func parseFlags(args []string) {
-	l := len(args)
-	for i := 1; i < l; i++ {
-		vi := i + 1 // next value index
-		switch args[i] {
-		case "-r", "--r", "--root-dir":
-			if vi >= l {
-				printUsages()
-			}
-			rootDir = args[vi]
-			i++
-		case "-p", "--p", "--port":
-			if vi >= l {
-				printUsages()
-			} else if _, err := strconv.Atoi(args[vi]); err != nil {
-				printUsages()
-			}
-			port = args[vi]
-			i++
-		case "-v", "--v", "--version":
-			printVersion()
-			os.Exit(0)
-		default:
-			printUsages()
-		}
-	}
-}
-
-func printUsages() {
-	fmt.Println(`Usage: ` + progName + ` [OPTIONS]...
-
-Options:
-  -r, --root-dir <directory>
-        Root directory where the server will look for db and static data. (default: ` + rootDir + `)
-
-  -p, --port <number>
-        The port where the uses. (default range: try PORT env or ` + fmt.Sprintf("%d-%d", portRangeStart, portrangeEnd) + `)
-  -v, --version
-        print version number
-
-`)
-	os.Exit(1)
-}
 
 func unzipAndWriteDb() string {
 	dbDir := filepath.Join(rootDir, "./db")
-	lg.Printf("Loading db dynamically from %q\n", dbDir)
+	fmt.Printf("Loading db dynamically from %q\n", dbDir)
 	dbFilePath := filepath.Join(dbDir, dbFileName)
 
-	if stat, err := os.Stat(dbFilePath); err == nil && stat.Size() == 134770688 {
-		lg.Println("DB was alreay written. skipping...")
+	if stat, err := os.Stat(dbFilePath); err == nil &&
+		stat.Size() == 134770688 {
+		fmt.Println("DB was alreay written. skipping...")
 		return dbFilePath
 	}
 
-	r := ke(zip.OpenReader(filepath.Join(dbDir, dbFileZipName)))
+	zipFilePath := filepath.Join(dbDir, dbFileZipName)
+	r := ke(zip.OpenReader(zipFilePath))
 	defer r.Close()
 	if len(r.File) != 1 {
-		lg.Fatalln("Expected 1 file insize the zip")
+		lg.Fatalf("Expected 1 file inside the zipped file: %s",
+			zipFilePath)
 	}
 
 	data := ke(r.File[0].Open())

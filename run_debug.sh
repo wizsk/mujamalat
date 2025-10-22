@@ -2,4 +2,4 @@
 
 set -ex
 
-go run -tags 'debug' .
+go run -tags 'debug' . $*

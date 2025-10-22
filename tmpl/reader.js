@@ -5,7 +5,6 @@ const openDictBtn = document.getElementById("openDictBtn");
 
 const wordSpans = document.getElementsByClassName("rWord");
 for (let i = 0; i < wordSpans.length; i++) {
-    const w = wordSpans[i].innerText;
     wordSpans[i].onclick = openPopup;
 }
 
@@ -52,20 +51,27 @@ function openPopup(e) {
         closePopup();
 
         let del = "";
-        if (e.target.classList.contains("hi")) {
-            e.target.classList.remove("hi");
-            addOrRmHiClass(hWord, false);
-            del = "&del=true"
-        } else {
-            e.target.classList.add("hi");
-            addOrRmHiClass(hWord, true);
-        }
+        if (e.target.classList.contains("hi")) del = "&del=true";
 
         console.log(`/rd/high?w=${hWord}${del}`);
-        const r = await fetch(`/rd/high?w=${hWord}${del}`, { method: "POST" })
-            .catch(err => console.error(err));
-
-        if (!r.ok) alert(`Couldn't save/del highlight: ${hWord}`);
+        fetch(`/rd/high?w=${hWord}${del}`, { method: "POST" })
+            .then((res) => {
+                if (res.status === 201) {
+                    if (del !== "") {
+                        e.target.classList.remove("hi");
+                        addOrRmHiClass(hWord, false);
+                    } else {
+                        e.target.classList.add("hi");
+                        addOrRmHiClass(hWord, true);
+                    }
+                } else {
+                    alert(`Couldn't save/del highlight: ${hWord}`);
+                }
+            })
+            .catch((err) => {
+                alert(`Couldn't save/del highlight: ${hWord}`);
+                console.error(err)
+            });
     }
 
     openDictBtn.onclick = () => {

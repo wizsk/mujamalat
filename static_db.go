@@ -14,11 +14,11 @@ import (
 	"net/http"
 	"os"
 	"path/filepath"
-	"strconv"
 )
 
 const (
-	dbType = "embeded"
+	dbType         = "embeded"
+	dynamicVersion = false
 )
 
 var (
@@ -33,31 +33,8 @@ var (
 )
 
 var (
-	port string
+	rootDir string // here for the flag parse
 )
-
-func parseFlags(args []string) {
-	l := len(args)
-	for i := 1; i < l; i++ {
-		vi := i + 1 // next value index
-		switch args[i] {
-		case "-p", "--p", "--port":
-			if vi >= l {
-				printUsages()
-			} else if _, err := strconv.Atoi(args[vi]); err != nil {
-				printUsages()
-			}
-			port = args[vi]
-			i++
-		case "-v", "--v", "--version":
-			printVersion()
-			os.Exit(0)
-
-		default:
-			printUsages()
-		}
-	}
-}
 
 func printUsages() {
 	fmt.Println(`Usage: ` + progName + ` [OPTIONS]...
@@ -84,7 +61,7 @@ func unzipAndWriteDb() string {
 	}
 	dbFilePath := filepath.Join(rDir, dbFileName)
 	if stat, err := os.Stat(dbFilePath); err == nil && stat.Size() == 134770688 {
-		lg.Printf("DB found at: %s\n", dbFilePath)
+		fmt.Printf("DB found at: %s\n", dbFilePath)
 		return dbFilePath
 	}
 

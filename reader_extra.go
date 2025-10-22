@@ -19,28 +19,29 @@ func (rd *readerConf) highlight(w http.ResponseWriter, r *http.Request) {
 	}
 	del := r.FormValue("del") == "true"
 
-	entriesMtx.Lock()
-	defer entriesMtx.Unlock()
+	rd.m.Lock()
+	defer rd.m.Unlock()
 
-	if _, ok := highlightedWMap[word]; ok {
+	if _, ok := rd.hMap[word]; ok {
 		if !del {
+			w.WriteHeader(http.StatusCreated)
 			return
 		}
 	}
 
 	if del {
-		delete(highlightedWMap, word)
+		delete(rd.hMap, word)
 	} else {
-		highlightedWMap[word] = struct{}{}
+		rd.hMap[word] = struct{}{}
 	}
 
-	if mkHistDirAll(readerHistDir, w) {
+	if mkHistDirAll(rd.permDir, w) {
 		return
 	}
 
-	le(copyFile(highlightedWFilePath, highlightedWFilePathOld))
+	le(copyFile(rd.hFilePath, rd.hFilePathOld))
 	if del {
-		f := lev(os.Open(highlightedWFilePath))
+		f := lev(os.Open(rd.hFilePath))
 		if f == nil {
 			return
 		}
@@ -54,28 +55,32 @@ func (rd *readerConf) highlight(w http.ResponseWriter, r *http.Request) {
 			}
 		}
 		f.Close()
-		if f = lev(os.Create(highlightedWFilePath)); f != nil {
-			f.WriteString(b.String())
-			f.Close()
-		}
-	} else {
-		f := CreateOrAppendToFile(highlightedWFilePath, w)
+
+		f = lev(os.Create(rd.hFilePath))
 		if f == nil {
-			return
+			return // err
+		}
+		f.WriteString(b.String())
+		f.Close()
+	} else {
+		f := CreateOrAppendToFile(rd.hFilePath, w)
+		if f == nil {
+			return // err
 		}
 		f.WriteString(word + "\n")
 		f.Close()
 	}
+	w.WriteHeader(http.StatusCreated)
 }
 
 func (rd *readerConf) deletePage(w http.ResponseWriter, r *http.Request) {
-	entriesMtx.Lock()
-	defer entriesMtx.Unlock()
+	rd.m.Lock()
+	defer rd.m.Unlock()
 
 	sha := strings.TrimPrefix(r.URL.Path, "/rd/delete/")
-	d := readerTmpDir
+	d := rd.tempDir
 	if r.FormValue("perm") == "true" {
-		d = readerHistDir
+		d = rd.permDir
 	}
 
 	found, err := isSumInEntries(sha, filepath.Join(d, entriesFileName), true)

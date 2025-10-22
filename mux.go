@@ -43,7 +43,7 @@ func middleware(next http.Handler) http.Handler {
 			rw.status = http.StatusOK
 		}
 
-		fmt.Printf("[REQ] %s | %15s | %6s | %3d | %16s | %10db | %q\n",
+		fmt.Printf("[REQ] %s | %18s | %6s | %3d | %16s | %10db | %q\n",
 			time.Now().Format("02/01/2006 - 03:04:05 PM"),
 			r.RemoteAddr,
 			r.Method,

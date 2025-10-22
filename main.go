@@ -51,7 +51,7 @@ var (
 		return m
 	}(dicts)
 
-	lg = log.New(os.Stderr, progName, log.LstdFlags|log.Lshortfile)
+	lg = log.New(os.Stderr, progName+": ", log.LstdFlags|log.Lshortfile)
 )
 
 func main() {

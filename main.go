@@ -13,7 +13,7 @@ import (
 
 const (
 	progName           = "mujamalat"
-	version            = "v2.0.0"
+	version            = "v3.0.0"
 	dbFileName         = "mujamalat.db"
 	mainTemplateName   = "main.html"
 	somethingWentWrong = "something-wrong"

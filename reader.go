@@ -5,8 +5,6 @@ import (
 	"bytes"
 	"fmt"
 	"html/template"
-	"io"
-
 	"net/http"
 	"os"
 	"path/filepath"
@@ -175,6 +173,7 @@ func (rd *readerConf) post(w http.ResponseWriter, r *http.Request) {
 	}
 
 	entriesFilePath := filepath.Join(d, entriesFileName)
+
 	rd.m.Lock()
 	defer rd.m.Unlock()
 
@@ -189,27 +188,32 @@ func (rd *readerConf) post(w http.ResponseWriter, r *http.Request) {
 		lg.Println(err)
 	}
 
-	if found == "" {
-		entries := CreateOrAppendToFile(entriesFilePath, w)
-		if entries == nil {
-			return
-		}
-		entries.WriteString(sha)
-		entries.Write([]byte{':'})
-		entries.WriteString(pageName)
-		entries.Write([]byte{'\n'})
-		entries.Close()
+	if found != "" {
+		w.WriteHeader(http.StatusCreated)
+		return
+	}
+
+	entries := CreateOrAppendToFile(entriesFilePath, w)
+	if entries == nil {
+		return
+	}
+	defer entries.Close()
+	if _, err := entries.WriteString(sha + ":" + pageName + "\n"); err != nil {
+		http.Error(w, "coun't write to disk", http.StatusInternalServerError)
+		lg.Println("while writing to disk:", err)
+		return
 	}
 
 	f := filepath.Join(d, sha)
 	file, err := os.Create(f)
 	if err != nil {
 		http.Error(w, "sorry something went wrong! 2", http.StatusInternalServerError)
-		fmt.Printf("WARN: err: %v\n", err)
+		lg.Printf("err: %v\n", err)
 		return
 	}
 	defer file.Close()
-	if _, err := io.WriteString(file, txt); err != nil {
+
+	if _, err := file.WriteString(txt); err != nil {
 		http.Error(w, "coun't write to disk", http.StatusInternalServerError)
 		lg.Println("while writing to disk:", err)
 		return

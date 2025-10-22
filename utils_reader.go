@@ -78,7 +78,8 @@ func isSumInEntries(sha, entriesFilePath string, del bool) (string, error) {
 		}
 		return "", err
 	}
-	newe := []string{}
+
+	sb := strings.Builder{}
 	found := ""
 	s := bufio.NewScanner(entriesFile)
 	for s.Scan() {
@@ -96,7 +97,8 @@ func isSumInEntries(sha, entriesFilePath string, del bool) (string, error) {
 			}
 		}
 		if del {
-			newe = append(newe, b)
+			sb.WriteString(b)
+			sb.WriteByte('\n')
 		}
 	}
 	entriesFile.Close()
@@ -110,7 +112,10 @@ func isSumInEntries(sha, entriesFilePath string, del bool) (string, error) {
 		return found, err
 	}
 
-	entriesFile.WriteString(strings.Join(newe, "\n"))
+	_, err = entriesFile.WriteString(sb.String())
+	if err != nil {
+		return found, err
+	}
 	return found, entriesFile.Close()
 }
 

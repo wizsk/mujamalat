@@ -56,7 +56,7 @@ function openPopup(e) {
         console.log(`/rd/high?w=${hWord}${del}`);
         fetch(`/rd/high?w=${hWord}${del}`, { method: "POST" })
             .then((res) => {
-                if (res.status === 201) {
+                if (res.status === 202) {
                     if (del !== "") {
                         e.target.classList.remove("hi");
                         addOrRmHiClass(hWord, false);

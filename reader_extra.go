@@ -24,7 +24,7 @@ func (rd *readerConf) highlight(w http.ResponseWriter, r *http.Request) {
 
 	if _, ok := rd.hMap[word]; ok {
 		if !del {
-			w.WriteHeader(http.StatusCreated)
+			w.WriteHeader(http.StatusAccepted)
 			return
 		}
 	}
@@ -70,14 +70,18 @@ func (rd *readerConf) highlight(w http.ResponseWriter, r *http.Request) {
 		f.WriteString(word + "\n")
 		f.Close()
 	}
-	w.WriteHeader(http.StatusCreated)
+	w.WriteHeader(http.StatusAccepted)
 }
 
 func (rd *readerConf) deletePage(w http.ResponseWriter, r *http.Request) {
 	rd.m.Lock()
 	defer rd.m.Unlock()
 
-	sha := strings.TrimPrefix(r.URL.Path, "/rd/delete/")
+	sha := strings.TrimSpace(strings.TrimPrefix(r.URL.Path, "/rd/delete/"))
+	if sha == "" {
+		return
+	}
+
 	d := rd.tempDir
 	if r.FormValue("perm") == "true" {
 		d = rd.permDir
@@ -100,6 +104,7 @@ func (rd *readerConf) deletePage(w http.ResponseWriter, r *http.Request) {
 		lg.Printf("while deleting %q: %v", f, err)
 		return
 	}
+	w.WriteHeader(http.StatusAccepted)
 	fmt.Fprintf(w, "deleted: %q", sha)
 }
 

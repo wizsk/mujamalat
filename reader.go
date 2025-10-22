@@ -79,7 +79,12 @@ var (
 	}()
 )
 
-func readerPage(t templateWraper, w http.ResponseWriter, r *http.Request) {
+type readerConf struct {
+	t templateWraper
+}
+
+func (rd *readerConf) page(w http.ResponseWriter, r *http.Request) {
+	t := rd.t
 	txt := strings.TrimSpace(r.FormValue("txt"))
 	if txt == "" {
 		entriesMtx.RLock()
@@ -150,14 +155,18 @@ func readerPage(t templateWraper, w http.ResponseWriter, r *http.Request) {
 		}
 		f.Close()
 
-		readerData := ReaderData{pageName, peras}
-		tm := TmplData{Curr: "ar_en", Dicts: dicts, DictsMap: dictsMap, RD: readerData, RDMode: true}
+		readerConf := ReaderData{pageName, peras}
+		tm := TmplData{Curr: "ar_en", Dicts: dicts, DictsMap: dictsMap, RD: readerConf, RDMode: true}
 		if err := t.ExecuteTemplate(w, mainTemplateName, &tm); debug && err != nil {
 			lg.Panic(err)
 		}
 		return
 	}
 
+}
+
+func (rd *readerConf) post(w http.ResponseWriter, r *http.Request) {
+	txt := strings.TrimSpace(r.PostFormValue("txt"))
 	pageName := ""
 	sc := bufio.NewScanner(strings.NewReader(txt))
 	for sc.Scan() {
@@ -202,7 +211,6 @@ func readerPage(t templateWraper, w http.ResponseWriter, r *http.Request) {
 		if entries == nil {
 			return
 		}
-		lg.Printf("wrting new entry to: %s", sha)
 		entries.WriteString(sha)
 		entries.Write([]byte{':'})
 		entries.WriteString(pageName)

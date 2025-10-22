@@ -174,7 +174,7 @@
                 msg += e.target.dataset.name.length > 50 ? "...؟" : "؟";
                 const c = confirm(msg);
                 if (!c) return;
-                fetch(e.target.dataset.link).then(async (r) => {
+                fetch(e.target.dataset.link, { method: "POST" }).then(async (r) => {
                     if (r.ok) {
                         hist.removeChild(e.target.parentElement)
                     } else {

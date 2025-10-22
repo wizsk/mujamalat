@@ -7,6 +7,7 @@ import (
 	"html"
 	"io"
 	"net/http"
+	"strings"
 
 	"os"
 	"path/filepath"
@@ -65,8 +66,8 @@ func writeEntieslist(w io.Writer, title, dir, extArg string) {
 // if del is true deletes the found entrey.
 //
 // wont error on fileNotExists
-func isSumInEntries(shaS, entriesFilePath string, del bool) (string, error) {
-	if shaS == "" || entriesFilePath == "" {
+func isSumInEntries(sha, entriesFilePath string, del bool) (string, error) {
+	if sha == "" || entriesFilePath == "" {
 		return "", nil
 	}
 
@@ -77,20 +78,19 @@ func isSumInEntries(shaS, entriesFilePath string, del bool) (string, error) {
 		}
 		return "", err
 	}
-	sha := []byte(shaS)
-	newe := [][]byte{}
+	newe := []string{}
 	found := ""
 	s := bufio.NewScanner(entriesFile)
 	for s.Scan() {
-		b := s.Bytes()
-		i := bytes.IndexByte(b, ':')
+		b := s.Text()
+		i := strings.IndexByte(b, ':')
 		if i < 0 {
 			continue // bad entry
 		}
-		if entriesShaMatch(sha, b[:i]) {
-			found = string(b[i+1:])
+		if sha == b[:i] {
+			found = b[i+1:]
 			if del {
-				continue
+				continue // continue collecting
 			} else {
 				return found, nil
 			}
@@ -101,27 +101,17 @@ func isSumInEntries(shaS, entriesFilePath string, del bool) (string, error) {
 	}
 	entriesFile.Close()
 
+	if !del {
+		return "", nil
+	}
+
 	entriesFile, err = os.Create(entriesFilePath)
 	if err != nil {
 		return found, err
 	}
 
-	for _, n := range newe {
-		_, err = entriesFile.Write(n)
-		if err != nil {
-			break
-		}
-		_, err = entriesFile.Write([]byte{'\n'})
-		if err != nil {
-			break
-		}
-	}
-
+	entriesFile.WriteString(strings.Join(newe, "\n"))
 	return found, entriesFile.Close()
-}
-
-func entriesShaMatch(sha, ed []byte) bool {
-	return bytes.Equal(sha, ed)
 }
 
 // if err then true

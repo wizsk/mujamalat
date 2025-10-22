@@ -1,14 +1,11 @@
 package main
 
 import (
-	"bufio"
 	"database/sql"
 	"fmt"
 	"log"
 	"net/http"
 	"os"
-	"path/filepath"
-	"strings"
 
 	_ "github.com/glebarez/go-sqlite"
 )
@@ -39,7 +36,6 @@ var (
 		{"هانز وير", hanswehrName},
 		{"لينليكسكون", lanelexconName},
 		{"المعاصرة", "mujamul_muashiroh"}, // using the shorter name
-		// {"معجم اللغة العربية المعاصرة", "mujamul_muashiroh"},
 		{"معجم الوسيط", "mujamul_wasith"},
 		{"معجم المحيط", "mujamul_muhith"},
 		{"مختار الصحاح", "mujamul_shihah"},
@@ -69,7 +65,6 @@ func main() {
 	var db *sql.DB
 	var arEnDict *Dictionary
 	var tmpl templateWraper
-	sv := servData{db: db}
 
 	go func() {
 		db = ke(sql.Open("sqlite", unzipAndWriteDb()))
@@ -84,241 +79,34 @@ func main() {
 
 	go func() {
 		tmpl = ke(openTmpl(debug))
-		sv.tmpl = tmpl
 		done <- struct{}{}
 	}()
 
 	<-done
 	<-done
 	<-done
+	dc := dictConf{db: db, t: tmpl, arEnDict: arEnDict}
+	rd := readerConf{t: tmpl}
+
 	fmt.Println("Initalizaion done")
 
-	http.HandleFunc("/rd/", func(w http.ResponseWriter, r *http.Request) {
-		readerPage(tmpl, w, r)
-	})
+	mux := http.NewServeMux()
 
-	http.HandleFunc("/rd/high", func(w http.ResponseWriter, r *http.Request) {
-		word := keepOnlyArabic(r.FormValue("w"))
-		if word == "" {
-			return
-		}
-		del := r.FormValue("del") == "true"
+	mux.HandleFunc("/", dc.mainPage)
+	mux.HandleFunc("/content", dc.api)
 
-		entriesMtx.Lock()
-		defer entriesMtx.Unlock()
+	mux.HandleFunc("POST /rd/", rd.post)
+	mux.HandleFunc("GET /rd/", rd.page)
+	mux.HandleFunc("POST /rd/high", rd.highlight)
+	mux.HandleFunc("POST /rd/delete/", rd.deletePage)
 
-		if _, ok := highlightedWMap[word]; ok {
-			if !del {
-				return
-			}
-		}
+	mux.Handle("/pub/", servePubData())
 
-		if del {
-			delete(highlightedWMap, word)
-		} else {
-			highlightedWMap[word] = struct{}{}
-		}
-
-		if mkHistDirAll(readerHistDir, w) {
-			return
-		}
-
-		le(copyFile(highlightedWFilePath, highlightedWFilePathOld))
-		if del {
-			f := lev(os.Open(highlightedWFilePath))
-			if f == nil {
-				return
-			}
-			s := bufio.NewScanner(f)
-			b := strings.Builder{}
-			for s.Scan() {
-				t := strings.TrimSpace(s.Text())
-				if t != "" && t != word {
-					b.WriteString(t)
-					b.WriteRune('\n')
-				}
-			}
-			f.Close()
-			if f = lev(os.Create(highlightedWFilePath)); f != nil {
-				f.WriteString(b.String())
-				f.Close()
-			}
-		} else {
-			f := CreateOrAppendToFile(highlightedWFilePath, w)
-			if f == nil {
-				return
-			}
-			f.WriteString(word + "\n")
-			f.Close()
-		}
-	})
-
-	http.HandleFunc("/rd/delete/", func(w http.ResponseWriter, r *http.Request) {
-		entriesMtx.Lock()
-		defer entriesMtx.Unlock()
-
-		sha := strings.TrimPrefix(r.URL.Path, "/rd/delete/")
-		d := readerTmpDir
-		if r.FormValue("perm") == "true" {
-			d = readerHistDir
-		}
-
-		found, err := isSumInEntries(sha, filepath.Join(d, entriesFileName), true)
-		if err != nil {
-			http.Error(w, err.Error(), http.StatusInternalServerError)
-			lg.Println("while deleting:", err)
-			return
-		} else if found == "" {
-			http.Error(w, fmt.Sprintf("could not find: %q", sha), http.StatusBadRequest)
-			lg.Println("coundn't find for deleting:", sha)
-			return
-		}
-
-		f := filepath.Join(d, sha)
-		if err = os.Remove(f); err != nil && !os.IsNotExist(err) {
-			http.Error(w, err.Error(), http.StatusInternalServerError)
-			lg.Printf("while deleting %q: %v", f, err)
-			return
-		}
-		fmt.Fprintf(w, "deleted: %q", sha)
-	})
-
-	// root
-	http.HandleFunc("/", func(w http.ResponseWriter, r *http.Request) {
-		switch r.URL.Path {
-		case "/mujamul_ghoni":
-			q, t := sv.getQueries(w, r, "mujamul_ghoni")
-			if q != "" {
-				t.Mujamul_ghoni = mujamul_ghoniEntry(db, q)
-				le(tmpl.ExecuteTemplate(w, mainTemplateName, t))
-			}
-
-		case "/mujamul_muashiroh":
-			q, t := sv.getQueries(w, r, "mujamul_muashiroh")
-			if q != "" {
-				t.Mujamul_muashiroh = mujamul_muashirohEntry(db, q)
-				le(tmpl.ExecuteTemplate(w, mainTemplateName, t))
-			}
-
-		case "/mujamul_wasith":
-			q, t := sv.getQueries(w, r, "mujamul_wasith")
-			if q != "" {
-				t.Mujamul_wasith = mujamul_wasithEnty(db, q)
-				le(tmpl.ExecuteTemplate(w, mainTemplateName, t))
-			}
-
-		case "/mujamul_muhith":
-			q, t := sv.getQueries(w, r, "mujamul_muhith")
-			if q != "" {
-				t.Mujamul_muhith = mujamul_muhithEntry(db, q)
-				le(tmpl.ExecuteTemplate(w, mainTemplateName, t))
-			}
-
-		case "/mujamul_shihah":
-			q, t := sv.getQueries(w, r, "mujamul_shihah")
-			if q != "" {
-				t.Mujamul_shihah = mujamul_shihahEntry(db, q)
-				le(tmpl.ExecuteTemplate(w, mainTemplateName, t))
-			}
-
-		case "/lisanularab":
-			q, t := sv.getQueries(w, r, "lisanularab")
-			if q != "" {
-				t.Lisanularab = lisanularabEntry(db, q)
-				le(tmpl.ExecuteTemplate(w, mainTemplateName, t))
-			}
-
-		case "/hanswehr":
-			q, t := sv.getQueries(w, r, "hanswehr")
-			if q != "" {
-				t.Hanswehr = hanswehrEntry(db, q)
-				le(tmpl.ExecuteTemplate(w, mainTemplateName, t))
-			}
-
-		case "/lanelexcon":
-			q, t := sv.getQueries(w, r, "lanelexcon")
-			if q != "" {
-				t.Lanelexcon = lanelexconEntry(db, q)
-				le(tmpl.ExecuteTemplate(w, mainTemplateName, t))
-			}
-
-		case "/ar_en":
-			q, t := sv.getQueries(w, r, "ar_en")
-			if q != "" {
-				t.ArEn = arEnDict.FindWord(q)
-				le(tmpl.ExecuteTemplate(w, mainTemplateName, t))
-			}
-			// old way show all at once. keeping code just incase
-			// word := harakatRgx.ReplaceAllString(r.FormValue("w"), "")
-			// arEn(arEnDict, word, w, tmpl)
-		default:
-			http.Redirect(w, r, "/"+dicts[0].En, http.StatusMovedPermanently)
-			return
-		}
-	})
-
-	http.HandleFunc("/content", func(w http.ResponseWriter, r *http.Request) {
-		d := r.FormValue("dict")
-		word := strings.TrimSpace(r.FormValue("w"))
-		if d == hanswehrName {
-			word = strings.ReplaceAll(rmHarakats(word), "_", " ")
-		} else {
-			word = strings.ReplaceAll(rmNonAr(word), "_", " ")
-		}
-
-		if word == "" {
-			le(tmpl.ExecuteTemplate(w, genricTemplateName, nil))
-			return
-		}
-
-		switch d {
-		case "mujamul_ghoni":
-			en := mujamul_ghoniEntry(db, word)
-			le(tmpl.ExecuteTemplate(w, genricTemplateName, &en))
-
-		case "mujamul_muashiroh":
-			en := mujamul_muashirohEntry(db, word)
-			le(tmpl.ExecuteTemplate(w, genricTemplateName, &en))
-
-		case "mujamul_wasith":
-			en := mujamul_wasithEnty(db, word)
-			le(tmpl.ExecuteTemplate(w, genricTemplateName, &en))
-
-		case "mujamul_muhith":
-			en := mujamul_muhithEntry(db, word)
-			le(tmpl.ExecuteTemplate(w, genricTemplateName, &en))
-
-		case "mujamul_shihah":
-			en := mujamul_shihahEntry(db, word)
-			le(tmpl.ExecuteTemplate(w, genricTemplateName, &en))
-
-		case "lisanularab":
-			en := lisanularabEntry(db, word)
-			le(tmpl.ExecuteTemplate(w, genricTemplateName, &en))
-
-		case "hanswehr":
-			en := hanswehrEntry(db, word)
-			le(tmpl.ExecuteTemplate(w, genricTemplateName, &en))
-
-		case "lanelexcon":
-			en := lanelexconEntry(db, word)
-			le(tmpl.ExecuteTemplate(w, genricTemplateName, &en))
-
-		case "ar_en":
-			en := arEnEntry(arEnDict, word)
-			le(tmpl.ExecuteTemplate(w, "ar_en", &en))
-
-		default:
-			http.Error(w, "Stupid request", http.StatusNotFound)
-		}
-	})
-
-	// my dicrecotry name and the path are the same lol
-	http.Handle("/pub/", servePubData())
-
-	http.HandleFunc("/version", func(w http.ResponseWriter, r *http.Request) {
+	mux.HandleFunc("/version", func(w http.ResponseWriter, r *http.Request) {
 		printVersionWritter(w)
 	})
+
+	mw := middleware(mux)
 
 	if port == "" {
 		port = findFreePort(portRangeStart, portrangeEnd)
@@ -328,5 +116,5 @@ func main() {
 	if l := localIp(); l != "localhost" {
 		fmt.Printf("--- internet:\thttp://%s:%s\n", l, port)
 	}
-	lg.Fatal(http.ListenAndServe(":"+port, nil))
+	lg.Fatal(http.ListenAndServe(":"+port, mw))
 }

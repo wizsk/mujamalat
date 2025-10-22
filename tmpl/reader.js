@@ -62,7 +62,7 @@ function openPopup(e) {
         }
 
         console.log(`/rd/high?w=${hWord}${del}`);
-        const r = await fetch(`/rd/high?w=${hWord}${del}`)
+        const r = await fetch(`/rd/high?w=${hWord}${del}`, { method: "POST" })
             .catch(err => console.error(err));
 
         if (!r.ok) alert(`Couldn't save/del highlight: ${hWord}`);

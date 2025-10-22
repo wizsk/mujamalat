@@ -188,19 +188,13 @@ func (rd *readerConf) post(w http.ResponseWriter, r *http.Request) {
 		lg.Println(err)
 	}
 
+	url := "/rd/" + sha
+	if isSave {
+		url += "?perm=true"
+	}
+	// exisits in the entris so skip writing
 	if found != "" {
-		w.WriteHeader(http.StatusCreated)
-		return
-	}
-
-	entries := CreateOrAppendToFile(entriesFilePath, w)
-	if entries == nil {
-		return
-	}
-	defer entries.Close()
-	if _, err := entries.WriteString(sha + ":" + pageName + "\n"); err != nil {
-		http.Error(w, "coun't write to disk", http.StatusInternalServerError)
-		lg.Println("while writing to disk:", err)
+		http.Redirect(w, r, url, http.StatusMovedPermanently)
 		return
 	}
 
@@ -219,10 +213,17 @@ func (rd *readerConf) post(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	l := "/rd/" + sha
-	if isSave {
-		l += "?perm=true"
+	// after successful write to file insert into entries
+	entries := CreateOrAppendToFile(entriesFilePath, w)
+	if entries == nil {
+		return
+	}
+	defer entries.Close()
+	if _, err := entries.WriteString(sha + ":" + pageName + "\n"); err != nil {
+		http.Error(w, "coun't write to disk", http.StatusInternalServerError)
+		lg.Println("while writing to disk:", err)
+		return
 	}
 
-	http.Redirect(w, r, l, http.StatusMovedPermanently)
+	http.Redirect(w, r, url, http.StatusMovedPermanently)
 }

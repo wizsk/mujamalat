@@ -143,7 +143,7 @@
 </head>
 
 <body>
-    <form action="/rd/" method="post" id="form">
+    <form id="form">
         <textarea name="txt" id="txt" autofocus rows="8" cols="25"></textarea>
         <div>
             <input type="checkbox" name="save" id="save">
@@ -167,6 +167,28 @@
     {{end}}
 
     <script>
+        const form = document.getElementById("form");
+        const txt = document.getElementById("txt");
+        form.onsubmit = (e) => {
+            e.preventDefault();
+            const val = txt.value.trim();
+            if (val === "") return;
+            console.log(val.length);
+            fetch('/rd/', {
+                method: "POST",
+                headers: { 'Content-Type': 'text/plain' },
+                body: val,
+            }).then((res) => {
+                if (res.ok && res.redirected) {
+                    console.log("success;")
+                    console.log(res);
+                } else {
+                    console.log("on no failed")
+                }
+            }).catch(e => console.error(e));
+
+        }
+
         const del = document.getElementsByClassName("del");
         for (let i = 0; i < del.length; i++) {
             del[i].onclick = (e) => {
@@ -174,13 +196,18 @@
                 msg += e.target.dataset.name.length > 50 ? "...؟" : "؟";
                 const c = confirm(msg);
                 if (!c) return;
-                fetch(e.target.dataset.link, { method: "POST" }).then(async (r) => {
-                    if (r.ok) {
-                        hist.removeChild(e.target.parentElement)
-                    } else {
-                        alert("Coun't delete: ", await r.body.text());
-                    }
-                }).catch((err) => console.error(err))
+                fetch(e.target.dataset.link, { method: "POST" })
+                    .then(async (r) => {
+                        if (r.ok) {
+                            hist.removeChild(e.target.parentElement)
+                        } else {
+                            alert("Coun't delete: ", await r.body.text());
+                        }
+                    })
+                    .catch((err) => {
+                        alert("Coun't delete");
+                        console.error(err);
+                    });
             }
         }
         document.addEventListener('keydown', (e) => {

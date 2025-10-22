@@ -3,7 +3,6 @@ package main
 import (
 	"bufio"
 	"bytes"
-	"crypto/sha256"
 	"fmt"
 	"html/template"
 	"io"
@@ -16,8 +15,9 @@ import (
 )
 
 const (
-	pageNameMaxLen  = 250
-	entriesFileName = "entries"
+	pageNameMaxLen     = 100
+	maxtReaderTextSize = 5 * 1024 * 1024 // limit: 5MB for example
+	entriesFileName    = "entries"
 )
 
 var (
@@ -166,20 +166,9 @@ func (rd *readerConf) page(w http.ResponseWriter, r *http.Request) {
 }
 
 func (rd *readerConf) post(w http.ResponseWriter, r *http.Request) {
-	txt := strings.TrimSpace(r.PostFormValue("txt"))
-	pageName := ""
-	sc := bufio.NewScanner(strings.NewReader(txt))
-	for sc.Scan() {
-		l := strings.TrimSpace(sc.Text())
-		if l == "" {
-			continue
-		}
-		if len(l) > pageNameMaxLen {
-			pageName = l[:pageNameMaxLen] + "..."
-		} else {
-			pageName = l
-		}
-		break
+	sha, pageName, txt := rd.validatePostAnd(w, r)
+	if sha == "" || pageName == "" || txt == "" {
+		return
 	}
 
 	isSave := r.FormValue("save") == "on"
@@ -187,9 +176,6 @@ func (rd *readerConf) post(w http.ResponseWriter, r *http.Request) {
 	if isSave && readerHistDir != "" {
 		d = readerHistDir
 	}
-
-	shaBytes := sha256.Sum256([]byte(txt))
-	sha := fmt.Sprintf("%x", shaBytes)
 
 	entriesFilePath := filepath.Join(d, entriesFileName)
 	entriesMtx.Lock()

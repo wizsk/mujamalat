@@ -2,7 +2,10 @@ package main
 
 import (
 	"bufio"
+	"bytes"
+	"crypto/sha256"
 	"fmt"
+	"io"
 	"net/http"
 	"os"
 	"path/filepath"
@@ -93,4 +96,53 @@ func (rd *readerConf) deletePage(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 	fmt.Fprintf(w, "deleted: %q", sha)
+}
+
+func (rc *readerConf) validatePostAnd(w http.ResponseWriter, r *http.Request) (sha, pageName, txt string) {
+	ct := r.Header.Get("Content-Type")
+	if ct != "text/plain" {
+		http.Error(w, "Invalid content type. Expected text/plain", http.StatusUnsupportedMediaType)
+		return
+	}
+
+	if r.ContentLength > maxtReaderTextSize {
+		http.Error(w, "Payload too large", http.StatusRequestEntityTooLarge)
+		return
+	}
+
+	data, err := io.ReadAll(io.LimitReader(r.Body, maxtReaderTextSize)) // prevent abuse
+	if err != nil {
+		http.Error(w, "Error reading body", http.StatusBadRequest)
+		return
+	}
+	r.Body.Close()
+
+	data = bytes.TrimSpace(data)
+	if len(data) == 0 {
+		return
+	}
+
+	sha = fmt.Sprintf("%x", sha256.Sum256(data))
+	pageName = rc.postPageName(data)
+	txt = string(data)
+	return
+}
+
+func (rc *readerConf) postPageName(data []byte) string {
+	pageName := ""
+	sc := bufio.NewScanner(bytes.NewReader(data))
+	for sc.Scan() {
+		l := bytes.TrimSpace(sc.Bytes())
+		if len(l) > 0 {
+			l := string(l)
+			if len(l) > pageNameMaxLen {
+				pageName = l[:pageNameMaxLen] + "..."
+			} else {
+				pageName = l
+			}
+			break
+		}
+	}
+
+	return pageName
 }

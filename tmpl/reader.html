@@ -26,9 +26,8 @@
         margin-left: auto;
         margin-right: auto;
         margin-top: 2rem;
-        margin-bottom: 3rem;
         padding: 1rem 1rem;
-        padding-top: 0;
+        margin-bottom: 8rem;
     }
 
     .pera {
@@ -69,7 +68,69 @@
         height: 1.4rem;
         width: 1.4rem;
     }
+
+    /* reader menu style */
+    #readerMenu {
+        position: absolute;
+        top: 0;
+        left: 0;
+        height: 100vh;
+        width: 100vw;
+        overflow-y: auto;
+        z-index: 1;
+        backdrop-filter: blur(2px);
+        background-color: rgba(0, 0, 0, 0.5);
+        padding-top: 6rem;
+    }
+
+    #readerMenu aside {
+        margin-top: 2rem;
+        max-width: var(--max-width);
+        background-color: var(--bg);
+        margin: 5% auto;
+        padding: 20px;
+        border-radius: var(--border-radious);
+        width: 80%;
+        max-width: 400px;
+        box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
+
+    }
+
+    #readerMenu button {
+        display: block;
+        margin-left: auto;
+        margin-right: auto;
+        margin-top: 3rem;
+    }
+
+    #readerMenu a {
+        display: block;
+        text-decoration: none;
+        color: inherit;
+        margin: 1rem 0;
+    }
+
+    #vewing-mode {
+        font-family: inherit;
+        font-size: inherit;
+        padding: .2rem .5rem;
+        border-radius: var(--border-radious);
+        background-color: var(--bg);
+        color: #000;
+        border: 1px solid var(--muted);
+    }
 </style>
+
+<style id="poem">
+    .pera:nth-of-type(2n+1) {
+        text-indent: 0;
+    }
+
+    .pera:nth-of-type(2n) {
+        text-indent: 3rem;
+    }
+</style>
+<script>document.getElementById("poem").disabled = true;</script>
 {{end}}
 
 {{define "reader"}}
@@ -83,6 +144,25 @@
     </div>
     {{end}}
 </div>
+
+<div class="hidden" id="readerMenu">
+    <aside>
+        <h3>خيارات</h3>
+        <div>
+            <label for="vewing-mode">وضع المشاهدة:</label>
+            <select id="vewing-mode">
+                <option value="normal">عادي</option>
+                <option value="poem">قصيدة</option>
+            </select>
+        </div>
+
+        <h3>روابط</h3>
+        <a href="/rd/">- انتقل إلى القارئ</a>
+        <a href="/"> - انتقل إلى القواميس</a>
+        <button class="btn" onclick="window.history.back()">اغلق</button>
+    </aside>
+</div>
+
 <div id="popup" class="hidden">
     <button id="highlight" class="svg-btn">
         <svg xmlns="http://www.w3.org/2000/svg" fill="currentColor" viewBox="0 0 16 16">

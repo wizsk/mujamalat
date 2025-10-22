@@ -2,10 +2,15 @@
 const popup = document.getElementById("popup"); // for chrome
 const highlight = document.getElementById("highlight");
 const openDictBtn = document.getElementById("openDictBtn");
-
+const readerMenu = document.getElementById("readerMenu");
+const readerMenuBtn = document.getElementById("readerMenuBtn");
 const wordSpans = document.getElementsByClassName("rWord");
+const vewingMode = document.getElementById("vewing-mode");
+const poemStyle = document.getElementById("poem");
+
 for (let i = 0; i < wordSpans.length; i++) {
-    wordSpans[i].onclick = openPopup;
+    if (wordSpans[i].dataset.oar !== "")
+        wordSpans[i].onclick = openPopup;
 }
 
 function closePopup() {
@@ -141,8 +146,37 @@ function openDictionay(w) {
 
 // Handle browser back/forward
 window.addEventListener("popstate", (e) => {
-    closeDictContainer();
+    if (readerMenuOpen) {
+        readerMenu.classList.add("hidden");
+        readerMenuOpen = false;
+    }
+    else
+        closeDictContainer();
 });
+
+let readerMenuOpen = false;
+readerMenuBtn.onclick = () => {
+    if (readerMenu.classList.toggle("hidden")) {
+        document.body.style.overflow = "auto"
+    }
+    else {
+        readerMenuOpen = true;
+        document.body.style.overflow = "hidden"
+        history.pushState({}, "", window.location.href);
+    }
+}
+
+vewingMode.onchange = (e) => {
+    const val = e.target.value;
+    switch (val) {
+        case "normal":
+            poemStyle.disabled = true;
+            break;
+        case "poem":
+            poemStyle.disabled = false;
+            break;
+    }
+}
 
 
 function closeDictContainer() {

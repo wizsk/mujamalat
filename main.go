@@ -106,7 +106,10 @@ func main() {
 		printVersionWritter(w)
 	})
 
-	mw := middleware(mux)
+	var mw http.Handler = mux
+	if debug {
+		mw = middleware(mux)
+	}
 
 	if port == "" {
 		port = findFreePort(portRangeStart, portrangeEnd)

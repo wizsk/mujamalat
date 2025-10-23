@@ -9,6 +9,7 @@ const wordSpans = document.getElementsByClassName("rWord");
 const vewingMode = document.getElementById("vewing-mode");
 const textAlign = document.getElementById("text-align");
 const poemStyle = document.getElementById("poem");
+const fontSelector = document.getElementById("font-selector");
 
 for (let i = 0; i < wordSpans.length; i++) {
     if (wordSpans[i].dataset.oar !== "")
@@ -175,6 +176,24 @@ readerMenuBtn.onclick = () => {
 }
 
 
+fontSelector.onchange = (e) => {
+    const val = e.target.value;
+    if (val === "font") {
+        reader.style.fontFamily = "";
+        setPopUpPos();
+        window.localStorage.removeItem(getFontSelectorLSN());
+        return;
+    }
+    reader.style.fontFamily = val;
+    setPopUpPos();
+    window.localStorage.setItem(getFontSelectorLSN(), val);
+}
+
+/** LSN = local storage name */
+function getFontSelectorLSN() {
+    return `${window.location.pathname}-seleted-font`
+}
+
 vewingMode.onchange = (e) => {
     const val = e.target.value;
     switch (val) {
@@ -219,13 +238,22 @@ function getTextAlignLSN() {
 }
 
 document.addEventListener('DOMContentLoaded', () => {
+    const font = window.localStorage.getItem(getFontSelectorLSN());
+    if (font) {
+        reader.style.fontFamily = font;
+        fontSelector.value = font;
+    }
+
     if (window.localStorage.getItem(getVewingModeLSN()) === "poem") {
         poemStyle.disabled = false;
         vewingMode.value = "poem";
-    } else if (window.localStorage.getItem(getTextAlignLSN()) === "justify") {
+    }
+
+    if (window.localStorage.getItem(getTextAlignLSN()) === "justify") {
         reader.classList.add(textJustifyClassName);
         textAlign.value = "justify";
     }
+
 });
 
 const readerMenuAnkers = document.getElementsByClassName("readerMenuAnker");

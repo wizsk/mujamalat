@@ -38,7 +38,7 @@
         margin-bottom: 1.3rem;
     }
 
-    #reader span {
+    .rWord {
         cursor: pointer;
         transition: background-color 100ms ease-in-out;
     }
@@ -165,6 +165,15 @@
     <aside>
         <h3>خيارات</h3>
         <hr>
+
+        <div class="select-container">
+            <label for="font-selector">اختر الخط:</label>
+            <select id="font-selector">
+                <option value="font">كتاب</option>
+                <option value="uthman">عثمان</option>
+            </select>
+        </div>
+
         <div class="select-container">
             <label for="vewing-mode">وضع المشاهدة:</label>
             <select id="vewing-mode">
@@ -184,6 +193,7 @@
         <div class="sep"></div>
         <h3>روابط</h3>
         <hr>
+
         <a class="readerMenuAnker" href="/rd/">- انتقل إلى مدخل القارئ</a>
         <a class="readerMenuAnker" href="/"> - انتقل إلى القواميس</a>
         <button class="btn" onclick="window.history.back()">اغلق</button>

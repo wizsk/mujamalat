@@ -35,16 +35,22 @@ for (let i = 0; i < dicts.length; i++) {
     }
 }
 
-
-/**  @param {boolean} show */
-function showHideNav(show) {
+/**
+ *
+ * @param {boolean} show
+ * @param {boolean|null} force
+ * @returns
+ */
+function showHideNav(show, force) {
     if (show) {
-        if (!navHidden) return;
+        if (!navHidden && !force) return;
+
         if (!readerMode) nav.style.transform = "";
         overlay.style.transform = "";
         navHidden = false;
     } else {
-        if (navHidden) return;
+        if (navHidden && !force) return;
+
         if (!readerMode) {
             const s = querySelector.classList.contains('hidden') ? getFullHeight(nav)
                 : getFullHeight(form) + getFullHeight(sw_dict);

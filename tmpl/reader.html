@@ -79,40 +79,27 @@
         left: 0;
         height: 100vh;
         width: 100vw;
-        overflow-y: auto;
+        overflow-y: scroll;
         z-index: 1;
         backdrop-filter: blur(2px);
         background-color: rgba(0, 0, 0, 0.5);
-        padding-top: 6rem;
     }
 
     #readerMenu aside {
-        margin-top: 2rem;
         max-width: var(--max-width);
         background-color: var(--bg);
-        margin: 2% auto;
+        margin: 4% auto;
         padding: 20px;
         border-radius: var(--border-radious);
         width: 80%;
         max-width: 400px;
         box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
-
-    }
-
-    @media (min-width: 768px) {
-        #readerMenu {
-            padding-top: 0;
-        }
-
-        /* #readerMenu aside {
-            margin: 1rem auto;
-        } */
+        /* margin-top: 6rem; */
     }
 
     #readerMenu h3 {
         margin: 0.5rem 0;
     }
-
 
     #readerMenu .sep {
         margin: 2rem 0;

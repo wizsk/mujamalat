@@ -140,8 +140,8 @@ function openDictionay(w) {
     queryIdx = 0;
     input.value = w;
     dict_container.classList.remove("hidden");
+    showHideNav(true, true);
     setNavHeight();
-    showHideNav(true);
     history.pushState({}, "", window.location.href);
 
     getResAndShow(w);
@@ -180,10 +180,12 @@ vewingMode.onchange = (e) => {
     switch (val) {
         case "normal":
             poemStyle.disabled = true;
+            setPopUpPos();
             window.localStorage.removeItem(getVewingModeLSN());
             break;
         case "poem":
             poemStyle.disabled = false;
+            setPopUpPos();
             window.localStorage.setItem(getVewingModeLSN(), val);
             break;
     }
@@ -200,10 +202,12 @@ textAlign.onchange = (e) => {
     switch (val) {
         case "right":
             reader.classList.remove(textJustifyClassName);
+            setPopUpPos();
             window.localStorage.removeItem(getTextAlignLSN());
             break;
         case "justify":
             reader.classList.add(textJustifyClassName);
+            setPopUpPos();
             window.localStorage.setItem(getTextAlignLSN(), val);
             break;
     }

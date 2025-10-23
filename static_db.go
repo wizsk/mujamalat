@@ -60,7 +60,7 @@ func unzipAndWriteDb() string {
 		d = os.TempDir()
 	}
 	dbFilePath := filepath.Join(rDir, dbFileName)
-	if stat, err := os.Stat(dbFilePath); err == nil && stat.Size() == 134770688 {
+	if stat, err := os.Stat(dbFilePath); err == nil && stat.Size() == dbSize {
 		fmt.Printf("DB found at: %s\n", dbFilePath)
 		return dbFilePath
 	}

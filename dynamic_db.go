@@ -31,7 +31,7 @@ func unzipAndWriteDb() string {
 	dbFilePath := filepath.Join(dbDir, dbFileName)
 
 	if stat, err := os.Stat(dbFilePath); err == nil &&
-		stat.Size() == 134770688 {
+		stat.Size() == dbSize {
 		fmt.Println("DB was alreay written. skipping...")
 		return dbFilePath
 	}

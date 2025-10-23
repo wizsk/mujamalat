@@ -15,6 +15,7 @@ const (
 	progName           = "mujamalat"
 	version            = "v3.0.0"
 	dbFileName         = "mujamalat.db"
+	dbSize             = 146018304
 	mainTemplateName   = "main.html"
 	somethingWentWrong = "something-wrong"
 	genricTemplateName = "genric-dict"
@@ -36,11 +37,11 @@ var (
 		{"معجم الغني", "mujamul_ghoni"},
 		{"هانز وير", hanswehrName},
 		{"لينليكسكون", lanelexconName},
+		{"لسان العرب", lisanularabName},
 		{"المعاصرة", "mujamul_muashiroh"}, // using the shorter name
 		{"معجم الوسيط", "mujamul_wasith"},
 		{"معجم المحيط", "mujamul_muhith"},
 		{"مختار الصحاح", "mujamul_shihah"},
-		{"لسان العرب", lisanularabName},
 	}
 
 	dictsMap map[string]string = func(ds []Dict) map[string]string {

@@ -2,14 +2,15 @@ package main
 
 import (
 	"database/sql"
+	"html/template"
 	"io"
 
 	"strings"
 )
 
 type Entry_lisanularab struct {
-	Word    string `json:"word"`
-	Meaning string `json:"meaning"`
+	Word    string        `json:"word"`
+	Meaning template.HTML `json:"meaning"`
 }
 
 func lisanularabEntry(db *sql.DB, word string) []Entry_lisanularab {
@@ -19,9 +20,9 @@ func lisanularabEntry(db *sql.DB, word string) []Entry_lisanularab {
 	en := []Entry_lisanularab{}
 	for r.Next() {
 		e := Entry_lisanularab{}
-		// meanings := ""
-		le(r.Scan(&e.Meaning, &e.Word))
-		// e.Meanings = strings.Split(meanings, "|")
+		meaning := ""
+		le(r.Scan(&meaning, &e.Word))
+		e.Meaning = template.HTML(strings.ReplaceAll(meaning, "|", "<br>"))
 
 		en = append(en, e)
 	}

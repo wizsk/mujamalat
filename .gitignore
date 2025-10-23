@@ -1,4 +1,4 @@
 build
-mujamalat.db
+*.db
 mujamalat
 tmp

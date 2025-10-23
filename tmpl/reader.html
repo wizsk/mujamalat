@@ -22,12 +22,15 @@
     #reader {
         max-width: 35em;
         text-align: right;
-        direction: rtl;
         margin-left: auto;
         margin-right: auto;
         margin-top: 2rem;
         padding: 1rem 1rem;
         margin-bottom: 8rem;
+    }
+
+    .text-justify {
+        text-align: justify !important;
     }
 
     .pera {
@@ -71,7 +74,7 @@
 
     /* reader menu style */
     #readerMenu {
-        position: absolute;
+        position: fixed;
         top: 0;
         left: 0;
         height: 100vh;
@@ -87,13 +90,32 @@
         margin-top: 2rem;
         max-width: var(--max-width);
         background-color: var(--bg);
-        margin: 5% auto;
+        margin: 2% auto;
         padding: 20px;
         border-radius: var(--border-radious);
         width: 80%;
         max-width: 400px;
         box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
 
+    }
+
+    @media (min-width: 768px) {
+        #readerMenu {
+            padding-top: 0;
+        }
+
+        /* #readerMenu aside {
+            margin: 1rem auto;
+        } */
+    }
+
+    #readerMenu h3 {
+        margin: 0.5rem 0;
+    }
+
+
+    #readerMenu .sep {
+        margin: 2rem 0;
     }
 
     #readerMenu button {
@@ -110,14 +132,21 @@
         margin: 1rem 0;
     }
 
-    #vewing-mode {
+    #readerMenu .select-container {
+        display: flex;
+        align-items: center;
+        gap: 1rem;
+        margin: 1rem 0;
+    }
+
+    #readerMenu select {
         font-family: inherit;
         font-size: inherit;
-        padding: .2rem .5rem;
+        padding: .1rem .5rem;
         border-radius: var(--border-radious);
         background-color: var(--bg);
         color: #000;
-        border: 1px solid var(--muted);
+        border: 1px solid #ccc;
     }
 </style>
 
@@ -148,7 +177,8 @@
 <div class="hidden" id="readerMenu">
     <aside>
         <h3>خيارات</h3>
-        <div>
+        <hr>
+        <div class="select-container">
             <label for="vewing-mode">وضع المشاهدة:</label>
             <select id="vewing-mode">
                 <option value="normal">عادي</option>
@@ -156,9 +186,19 @@
             </select>
         </div>
 
+        <div class="select-container">
+            <label for="text-align">محاذاة النص:</label>
+            <select id="text-align">
+                <option value="right">لليمين</option>
+                <option value="justify">التبرير</option>
+            </select>
+        </div>
+
+        <div class="sep"></div>
         <h3>روابط</h3>
-        <a href="/rd/">- انتقل إلى القارئ</a>
-        <a href="/"> - انتقل إلى القواميس</a>
+        <hr>
+        <a class="readerMenuAnker" href="/rd/">- انتقل إلى مدخل القارئ</a>
+        <a class="readerMenuAnker" href="/"> - انتقل إلى القواميس</a>
         <button class="btn" onclick="window.history.back()">اغلق</button>
     </aside>
 </div>

@@ -1,11 +1,13 @@
 // don't remove
-const popup = document.getElementById("popup"); // for chrome
+const reader = document.getElementById("reader");
+const popup = document.getElementById("popup");
 const highlight = document.getElementById("highlight");
 const openDictBtn = document.getElementById("openDictBtn");
 const readerMenu = document.getElementById("readerMenu");
 const readerMenuBtn = document.getElementById("readerMenuBtn");
 const wordSpans = document.getElementsByClassName("rWord");
 const vewingMode = document.getElementById("vewing-mode");
+const textAlign = document.getElementById("text-align");
 const poemStyle = document.getElementById("poem");
 
 for (let i = 0; i < wordSpans.length; i++) {
@@ -126,7 +128,9 @@ function setPopUpPos() {
 }
 
 
+let dictContainerOpen = false;
 function openDictionay(w) {
+    dictContainerOpen = true;
     readerMode = false;
     querySelector.innerHTML = "";
     document.body.style.overflow = "hidden";
@@ -148,41 +152,84 @@ function openDictionay(w) {
 window.addEventListener("popstate", (e) => {
     if (readerMenuOpen) {
         readerMenu.classList.add("hidden");
+        document.body.style.overflow = "auto"
+        readerMenuBtn.disabled = false;
         readerMenuOpen = false;
+    } else if (dictContainerOpen) {
+        dictContainerOpen = false;
+        dict_container.classList.add('hidden')
+        dict_container_tougle.classList.add('hidden')
+        document.body.style.overflow = "auto";
+        contentHolder.innerHTML = "";
+        readerMode = true;
     }
-    else
-        closeDictContainer();
 });
 
 let readerMenuOpen = false;
 readerMenuBtn.onclick = () => {
-    if (readerMenu.classList.toggle("hidden")) {
-        document.body.style.overflow = "auto"
-    }
-    else {
-        readerMenuOpen = true;
-        document.body.style.overflow = "hidden"
-        history.pushState({}, "", window.location.href);
-    }
+    readerMenu.classList.remove("hidden");
+    readerMenuBtn.disabled = true;
+    readerMenuOpen = true;
+    document.body.style.overflow = "hidden"
+    history.pushState({}, "", window.location.href);
 }
+
 
 vewingMode.onchange = (e) => {
     const val = e.target.value;
     switch (val) {
         case "normal":
             poemStyle.disabled = true;
+            window.localStorage.removeItem(getVewingModeLSN());
             break;
         case "poem":
             poemStyle.disabled = false;
+            window.localStorage.setItem(getVewingModeLSN(), val);
             break;
     }
 }
 
-
-function closeDictContainer() {
-    dict_container.classList.add('hidden')
-    dict_container_tougle.classList.add('hidden')
-    document.body.style.overflow = "auto";
-    contentHolder.innerHTML = "";
-    readerMode = true;
+/** LSN = local storage name */
+function getVewingModeLSN() {
+    return `${window.location.pathname}-vewingMode`
 }
+
+const textJustifyClassName = 'text-justify';
+textAlign.onchange = (e) => {
+    const val = e.target.value;
+    switch (val) {
+        case "right":
+            reader.classList.remove(textJustifyClassName);
+            window.localStorage.removeItem(getTextAlignLSN());
+            break;
+        case "justify":
+            reader.classList.add(textJustifyClassName);
+            window.localStorage.setItem(getTextAlignLSN(), val);
+            break;
+    }
+}
+
+/** LSN = local storage name */
+function getTextAlignLSN() {
+    return `${window.location.pathname}-textAlign`
+}
+
+document.addEventListener('DOMContentLoaded', () => {
+    if (window.localStorage.getItem(getVewingModeLSN()) === "poem") {
+        poemStyle.disabled = false;
+        vewingMode.value = "poem";
+    } else if (window.localStorage.getItem(getTextAlignLSN()) === "justify") {
+        reader.classList.add(textJustifyClassName);
+        textAlign.value = "justify";
+    }
+});
+
+const readerMenuAnkers = document.getElementsByClassName("readerMenuAnker");
+for (let i = 0; i < readerMenuAnkers.length; i++) {
+    readerMenuAnkers[i].addEventListener('click', (e) => {
+        e.preventDefault();
+        window.history.back();
+        window.location.href = e.target.href;
+    });
+}
+

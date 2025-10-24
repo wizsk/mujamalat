@@ -134,7 +134,8 @@
 
         h3 {
             margin: 0 0.5rem;
-            text-align: center2;
+            user-select: non;
+            cursor: pointer;
         }
 
         hr {
@@ -144,6 +145,15 @@
 
         .dash {
             padding-right: 0.2rem;
+        }
+
+        #hist-items {
+            display: flex;
+            flex-direction: column;
+        }
+
+        .flex-rev {
+            flex-direction: column-reverse !important;
         }
 
         .hist-item-div:nth-child(2n) {
@@ -209,20 +219,22 @@
 
     {{if .}}
     <main id="hist">
-        <h3>قائمة النص</h3>
+        <h3 id="hist-title">قائمة النص</h3>
         <hr>
-        {{range .}}
-        <div class="hist-item-div">
-            <span class="dash">-</span>
-            <a class="hist-item" href="/rd/{{.Sha}}">{{.Name}}</a>
-            <button class="del" data-link="/rd/delete/{{.Sha}}" data-name="{{.Name}}">
-                <svg xmlns="http://www.w3.org/2000/svg" fill="currentColor" viewBox="0 0 16 16">
-                    <path
-                        d="M6.5 1h3a.5.5 0 0 1 .5.5v1H6v-1a.5.5 0 0 1 .5-.5M11 2.5v-1A1.5 1.5 0 0 0 9.5 0h-3A1.5 1.5 0 0 0 5 1.5v1H1.5a.5.5 0 0 0 0 1h.538l.853 10.66A2 2 0 0 0 4.885 16h6.23a2 2 0 0 0 1.994-1.84l.853-10.66h.538a.5.5 0 0 0 0-1zm1.958 1-.846 10.58a1 1 0 0 1-.997.92h-6.23a1 1 0 0 1-.997-.92L3.042 3.5zm-7.487 1a.5.5 0 0 1 .528.47l.5 8.5a.5.5 0 0 1-.998.06L5 5.03a.5.5 0 0 1 .47-.53Zm5.058 0a.5.5 0 0 1 .47.53l-.5 8.5a.5.5 0 1 1-.998-.06l.5-8.5a.5.5 0 0 1 .528-.47M8 4.5a.5.5 0 0 1 .5.5v8.5a.5.5 0 0 1-1 0V5a.5.5 0 0 1 .5-.5" />
-                </svg>
-            </button>
+        <div id="hist-items">
+            {{range .}}
+            <div class="hist-item-div">
+                <span class="dash">-</span>
+                <a class="hist-item" href="/rd/{{.Sha}}">{{.Name}}</a>
+                <button class="del" data-link="/rd/delete/{{.Sha}}" data-name="{{.Name}}">
+                    <svg xmlns="http://www.w3.org/2000/svg" fill="currentColor" viewBox="0 0 16 16">
+                        <path
+                            d="M6.5 1h3a.5.5 0 0 1 .5.5v1H6v-1a.5.5 0 0 1 .5-.5M11 2.5v-1A1.5 1.5 0 0 0 9.5 0h-3A1.5 1.5 0 0 0 5 1.5v1H1.5a.5.5 0 0 0 0 1h.538l.853 10.66A2 2 0 0 0 4.885 16h6.23a2 2 0 0 0 1.994-1.84l.853-10.66h.538a.5.5 0 0 0 0-1zm1.958 1-.846 10.58a1 1 0 0 1-.997.92h-6.23a1 1 0 0 1-.997-.92L3.042 3.5zm-7.487 1a.5.5 0 0 1 .528.47l.5 8.5a.5.5 0 0 1-.998.06L5 5.03a.5.5 0 0 1 .47-.53Zm5.058 0a.5.5 0 0 1 .47.53l-.5 8.5a.5.5 0 1 1-.998-.06l.5-8.5a.5.5 0 0 1 .528-.47M8 4.5a.5.5 0 0 1 .5.5v8.5a.5.5 0 0 1-1 0V5a.5.5 0 0 1 .5-.5" />
+                    </svg>
+                </button>
+            </div>
+            {{end}}
         </div>
-        {{end}}
     </main>
     {{end}}
 
@@ -231,6 +243,8 @@
         const txt = document.getElementById("txt");
         const hist = document.getElementById("hist");
         const save = document.getElementById("save");
+        const histTitle = document.getElementById("hist-title");
+        const histItems = document.getElementById("hist-items");
 
         form.onsubmit = (e) => {
             e.preventDefault();
@@ -252,24 +266,62 @@
 
         }
 
+        const histSortLSK = "hist-sort-items-key";
+        const histTitleNorm = " (من جديد إلى قديم)";
+        const histTitleRev = " (من قديم إلى جديد)";
+        document.addEventListener("DOMContentLoaded", (e) => {
+            if (histTitle) {
+                const val = window.localStorage.getItem(histSortLSK);
+                histItmsRev(val, false);
+            }
+        })
+
+        if (histTitle) {
+            histTitle.onclick = () =>
+                histItmsRev(!histItems.classList.contains("flex-rev"), true);
+        }
+
+        let hisTitleTxt = null;
+        function histItmsRev(rev, save) {
+            if (!hisTitleTxt) hisTitleTxt = histTitle.innerText;
+            if (rev) {
+                histItems.classList.add("flex-rev");
+                histTitle.innerText =
+                    hisTitleTxt + histTitleRev;
+                if (save)
+                    window.localStorage.setItem(histSortLSK, "flex-rev");
+            } else {
+                histItems.classList.remove("flex-rev");
+                histTitle.innerText =
+                    hisTitleTxt + histTitleNorm;
+                if (save)
+                    window.localStorage.removeItem(histSortLSK);
+            }
+        }
+
         const del = document.getElementsByClassName("del");
         for (let i = 0; i < del.length; i++) {
             del[i].onclick = (e) => {
-                name = del[i].dataset.name.length > 50 ? "...؟" : "؟";
-                let msg = "هل تريد أن تمسح: " + del[i].dataset.name.slice(0, 50).trim();
-                msg += del[i].dataset.name.length > 50 ? "...؟" : "؟";
-                const c = confirm(msg);
+                const pName = del[i].dataset.name.slice(0, 50) +
+                    (del[i].dataset.name.length > 50 ? "..." : "");
+
+                console.log(pName);
+                const c = confirm("هل تريد أن تمسح: " + pName + "؟");
                 if (!c) return;
                 fetch(del[i].dataset.link, { method: "POST" })
                     .then(async (r) => {
                         if (r.ok && r.status === 202) {
-                            hist.removeChild(del[i].parentElement)
+                            histItems.removeChild(del[i].parentElement)
+                            if (histItems.childElementCount === 0) {
+                                hist.style.display = "none";
+                            }
                         } else {
-                            alert("Coun't delete: " + msg);
+                            console.log(r)
+                            alert("Coun't delete: " + pName);
                         }
                     })
                     .catch((err) => {
-                        alert("Coun't delete: " + msg);
+                        alert("Coun't delete: " + pName);
                         console.error(err);
                     });
             }

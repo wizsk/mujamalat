@@ -4,6 +4,7 @@ import (
 	"bufio"
 	"bytes"
 	"net/http"
+	"slices"
 	"strings"
 
 	"os"
@@ -16,7 +17,8 @@ type EntryInfo struct {
 }
 
 func (rd *readerConf) getEntieslist() ([]EntryInfo, error) {
-	file, err := os.Open(filepath.Join(rd.permDir, entriesFileName))
+	fileName := filepath.Join(rd.permDir, entriesFileName)
+	file, err := os.Open(fileName)
 	if err != nil {
 		if os.IsNotExist(err) {
 			return nil, nil
@@ -31,7 +33,7 @@ func (rd *readerConf) getEntieslist() ([]EntryInfo, error) {
 	for i := 0; s.Scan(); i++ {
 		b := bytes.SplitN(s.Bytes(), []byte{':'}, 2)
 		if len(b) != 2 {
-			lg.Printf("Warn: malformed data:%s:%d: %s", file, i, s.Text())
+			lg.Printf("Warn: malformed data:%s:%d: %s", fileName, i, s.Text())
 			continue
 		}
 		entries = append(entries, EntryInfo{
@@ -40,6 +42,7 @@ func (rd *readerConf) getEntieslist() ([]EntryInfo, error) {
 		})
 	}
 
+	slices.Reverse(entries)
 	return entries, nil
 }
 

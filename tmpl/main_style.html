@@ -49,6 +49,13 @@
 		margin: 0 auto;
 		background-color: var(--bg);
 	}
+
+	@media (max-width: 768px) {
+		body {
+			--font-size: 1.2em;
+			font-size: var(--font-size);
+		}
+	}
 </style>
 {{end}}
 
@@ -333,11 +340,6 @@
 	}
 
 	@media (max-width: 768px) {
-		body {
-			--font-size: 1.2em;
-			font-size: var(--font-size);
-		}
-
 		#change-dict {
 			align-items: start;
 		}

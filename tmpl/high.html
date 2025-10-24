@@ -27,10 +27,19 @@
             width: 100%;
         }
 
+        .dash {
+            padding-right: 0.4rem;
+        }
+
         .word {
+            padding: 0.4rem 0;
             display: flex;
             align-items: center;
             gap: 1rem;
+        }
+
+        .word:nth-child(2n) {
+            background-color: #cccccc1c;
         }
 
 
@@ -69,7 +78,7 @@
     <div id="word-list">
         {{range .Words}}
         <div class="word">
-            <span>-</span>
+            <span class="dash">-</span>
             <span>{{.}}</span>
             <button data-word="{{.}}" class="del">
                 <svg xmlns="http://www.w3.org/2000/svg" fill="currentColor" viewBox="0 0 16 16">

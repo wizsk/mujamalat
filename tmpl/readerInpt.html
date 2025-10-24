@@ -82,6 +82,18 @@
             font-size: inherit;
         }
 
+        .links {
+            display: block;
+            color: inherit;
+            width: fit-content;
+            margin: 1rem auto;
+            text-decoration: none;
+        }
+
+        .links:first-child {
+            margin-top: 2rem;
+        }
+
 
         #hist {
             margin: 3rem 1rem;
@@ -117,6 +129,25 @@
             align-items: center;
             justify-items: start;
             gap: 5px;
+            margin: 0.5rem 0;
+        }
+
+        h3 {
+            margin: 0 0.5rem;
+            text-align: center2;
+        }
+
+        hr {
+            border: none;
+            border-top: 1px solid #ccc;
+        }
+
+        .dash {
+            padding-right: 0.2rem;
+        }
+
+        .hist-item-div:nth-child(2n) {
+            background-color: #cccccc1c;
         }
 
         .del {
@@ -131,13 +162,30 @@
             cursor: pointer;
         }
 
-        #goToDict {
-            margin-top: 2rem;
-            display: block;
-            color: inherit;
-            width: fit-content;
-            margin-left: auto;
+        .del {
+            all: unset;
+            user-select: none;
+            cursor: pointer;
+            background-color: none;
+            color: var(--alert);
+            padding: 0;
+            --btn-wh: 2.2rem;
+            width: var(--btn-wh);
+            height: var(--btn-wh);
+            border-radius: var(--border-radious);
+            border: none;
+            cursor: pointer;
+            display: flex;
+            align-items: center;
+            justify-content: center;
             margin-right: auto;
+            /* box-shadow: 0 2px 4px rgba(0, 0, 0, 0.15); */
+        }
+
+        .del svg {
+            --svg-wh: 1.4rem;
+            width: var(--svg-wh);
+            height: var(--svg-wh);
         }
     </style>
 </head>
@@ -146,23 +194,35 @@
     <form id="form">
         <textarea name="txt" id="txt" autofocus rows="8" cols="25"></textarea>
         <div>
-            <input type="checkbox" name="save" id="save">
-            <label for="save">حفظ إلى السجل</label>
-        </div>
-        <div>
             <button style="margin-left: .5rem;" class="btn" id="submit" type="submit">اذهب</button>
             <button style="margin-right: .5rem;" class="btn btn-red" onclick="txt.value = ''; txt.focus()"
                 type="button">مسح</button>
         </div>
     </form>
 
-    <a href="/" id="goToDict">
-        انتقل إلى القاموس
+    <a href="/rd/highlist/" class="links">
+        اذهب إلى قائمة الكلمات المميزة
+    </a>
+    <a href="/" class="links">
+        اذهب إلى القواميس
     </a>
 
     {{if .}}
     <main id="hist">
-        {{.}}
+        <h3>قائمة النص</h3>
+        <hr>
+        {{range .}}
+        <div class="hist-item-div">
+            <span class="dash">-</span>
+            <a class="hist-item" href="/rd/{{.Sha}}">{{.Name}}</a>
+            <button class="del" data-link="/rd/delete/{{.Sha}}" data-name="{{.Name}}">
+                <svg xmlns="http://www.w3.org/2000/svg" fill="currentColor" viewBox="0 0 16 16">
+                    <path
+                        d="M6.5 1h3a.5.5 0 0 1 .5.5v1H6v-1a.5.5 0 0 1 .5-.5M11 2.5v-1A1.5 1.5 0 0 0 9.5 0h-3A1.5 1.5 0 0 0 5 1.5v1H1.5a.5.5 0 0 0 0 1h.538l.853 10.66A2 2 0 0 0 4.885 16h6.23a2 2 0 0 0 1.994-1.84l.853-10.66h.538a.5.5 0 0 0 0-1zm1.958 1-.846 10.58a1 1 0 0 1-.997.92h-6.23a1 1 0 0 1-.997-.92L3.042 3.5zm-7.487 1a.5.5 0 0 1 .528.47l.5 8.5a.5.5 0 0 1-.998.06L5 5.03a.5.5 0 0 1 .47-.53Zm5.058 0a.5.5 0 0 1 .47.53l-.5 8.5a.5.5 0 1 1-.998-.06l.5-8.5a.5.5 0 0 1 .528-.47M8 4.5a.5.5 0 0 1 .5.5v8.5a.5.5 0 0 1-1 0V5a.5.5 0 0 1 .5-.5" />
+                </svg>
+            </button>
+        </div>
+        {{end}}
     </main>
     {{end}}
 
@@ -177,7 +237,7 @@
             const val = txt.value.trim();
             if (val === "") return;
 
-            const url = `/rd/?perm=${save.checked ? "true" : "false"}`;
+            const url = '/rd/';
             fetch(url, {
                 method: "POST",
                 headers: { 'Content-Type': 'text/plain' },
@@ -195,25 +255,26 @@
         const del = document.getElementsByClassName("del");
         for (let i = 0; i < del.length; i++) {
             del[i].onclick = (e) => {
-                let msg = "هل تريد أن تمسح: " + e.target.dataset.name.slice(0, 50).trim();
-                name = e.target.dataset.name.length > 50 ? "...؟" : "؟";
-                msg += name;
+                name = del[i].dataset.name.length > 50 ? "...؟" : "؟";
+                let msg = "هل تريد أن تمسح: " + del[i].dataset.name.slice(0, 50).trim();
+                msg += del[i].dataset.name.length > 50 ? "...؟" : "؟";
                 const c = confirm(msg);
                 if (!c) return;
-                fetch(e.target.dataset.link, { method: "POST" })
+                fetch(del[i].dataset.link, { method: "POST" })
                     .then(async (r) => {
                         if (r.ok && r.status === 202) {
-                            hist.removeChild(e.target.parentElement)
+                            hist.removeChild(del[i].parentElement)
                         } else {
-                            alert("Coun't delete: " + name);
+                            alert("Coun't delete: " + msg);
                         }
                     })
                     .catch((err) => {
-                        alert("Coun't delete: " + name);
+                        alert("Coun't delete: " + msg);
                         console.error(err);
                     });
             }
         }
+
         document.addEventListener('keydown', (e) => {
             if ((e.ctrlKey || e.shiftKey) && e.code == "Enter") {
                 e.preventDefault();

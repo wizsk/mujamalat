@@ -3,9 +3,6 @@ package main
 import (
 	"bufio"
 	"bytes"
-	"fmt"
-	"html"
-	"io"
 	"net/http"
 	"strings"
 
@@ -18,46 +15,32 @@ type EntryInfo struct {
 	Name string
 }
 
-func writeEntieslist(w io.Writer, title, dir, extArg string) {
-	if dir == "" {
-		return
-	}
-
-	file, err := os.Open(filepath.Join(dir, entriesFileName))
+func (rd *readerConf) getEntieslist() ([]EntryInfo, error) {
+	file, err := os.Open(filepath.Join(rd.permDir, entriesFileName))
 	if err != nil {
-		return
+		if os.IsNotExist(err) {
+			return nil, nil
+		}
+		return nil, err
 	}
+	defer file.Close()
 
 	s := bufio.NewScanner(file)
-	var files []EntryInfo
+	var entries []EntryInfo
 
-	for s.Scan() {
+	for i := 0; s.Scan(); i++ {
 		b := bytes.SplitN(s.Bytes(), []byte{':'}, 2)
 		if len(b) != 2 {
-			lg.Println("Warn: malformed data:", s.Text())
+			lg.Printf("Warn: malformed data:%s:%d: %s", file, i, s.Text())
 			continue
 		}
-		files = append(files, EntryInfo{
+		entries = append(entries, EntryInfo{
 			Sha:  string(b[0]),
 			Name: string(b[1]),
 		})
 	}
-	if len(files) == 0 {
-		return
-	}
 
-	fmt.Fprintln(w, title)
-	const txt = `<div class="hist-item-div">
-	- <button class="del" data-link="/rd/delete/%s%s" data-name=%q>[مسح]</button>
-	<a class="hist-item" href="/rd/%s%s">%s</a>
-	</div>`
-	for i := len(files) - 1; i >= 0; i-- {
-		fmt.Fprintf(
-			w,
-			txt,
-			files[i].Sha, extArg, files[i].Name,
-			files[i].Sha, extArg, html.EscapeString(files[i].Name))
-	}
+	return entries, nil
 }
 
 // call it in locked stage!

@@ -4,7 +4,6 @@ import (
 	"bufio"
 	"bytes"
 	"fmt"
-	"html/template"
 	"net/http"
 	"os"
 	"path/filepath"
@@ -20,17 +19,16 @@ const (
 )
 
 type readerConf struct {
-	m            sync.RWMutex
-	t            templateWraper
-	permDir      string
-	tempDir      string
-	hFilePath    string
-	hFilePathOld string
-	hMap         map[string]struct{}
+	m         sync.RWMutex
+	t         templateWraper
+	permDir   string
+	hFilePath string
+	hMap      map[string]struct{}
 }
 
 func newReader(t templateWraper) *readerConf {
-	rd := readerConf{}
+	rd := readerConf{t: t}
+
 	n := ""
 	if debug {
 		n = filepath.Join("tmp", "perm_mujamalat_history")
@@ -48,7 +46,12 @@ func newReader(t templateWraper) *readerConf {
 	}
 
 	rd.hFilePath = filepath.Join(n, highlightsFileName)
-	rd.hFilePathOld = rd.hFilePath + ".old"
+	hFilePathOld := rd.hFilePath + ".old"
+
+	if err := copyFile(rd.hFilePath, hFilePathOld); err != nil {
+		lg.Fatal("while backing up highlight file:", err)
+	}
+	fmt.Printf("highlight history file backedup to %q\n", hFilePathOld)
 
 	rd.hMap = make(map[string]struct{})
 	if f, err := os.Open(rd.hFilePath); err == nil {
@@ -61,103 +64,75 @@ func newReader(t templateWraper) *readerConf {
 		}
 	}
 
-	n = ""
-	if debug {
-		n = filepath.Join("tmp", "tmp_mujamalat_history")
-	} else {
-		n = filepath.Join(os.TempDir(), "mujamalat_history")
-	}
-	rd.tempDir = n
-
-	if _, err := os.Stat(n); err != nil {
-		if err = os.MkdirAll(n, 0700); err != nil && !os.IsExist(err) {
-			lg.Fatalf("could not create %q: reason: %v", n, err)
-		}
-	}
-	rd.t = t
 	return &rd
 }
 
 func (rd *readerConf) page(w http.ResponseWriter, r *http.Request) {
 	t := rd.t
-	txt := strings.TrimSpace(r.FormValue("txt"))
-	if txt == "" {
-		rd.m.RLock()
-		defer rd.m.RUnlock()
+	rd.m.RLock()
+	defer rd.m.RUnlock()
 
-		h := strings.TrimPrefix(r.URL.Path, "/rd/")
+	h := strings.TrimPrefix(r.URL.Path, "/rd/")
+	if h == "" {
 		// meaning the readerPage.
-		if h == "" {
-			var s strings.Builder
-			writeEntieslist(&s,
-				`<div class="head">الملفات الدائمة</div>`,
-				rd.permDir, "?perm=true")
-			writeEntieslist(&s,
-				`<div class="head">الملفات المؤقتة</div>`,
-				rd.tempDir, "")
-			if err := t.ExecuteTemplate(w, "readerInpt.html",
-				template.HTML(s.String())); debug && err != nil {
-			}
-			return
-		}
-
-		d := rd.tempDir
-		if r.FormValue("perm") == "true" {
-			d = rd.permDir
-		}
-
-		if d == "" {
-			http.Error(w, "somehing went wrong: 399",
-				http.StatusInternalServerError)
-			return
-		}
-
-		pageName, _ := isSumInEntries(h, filepath.Join(d, entriesFileName), false)
-		if pageName == "" {
-			w.WriteHeader(http.StatusNotFound)
-			t.ExecuteTemplate(w, somethingWentWrong, &SomethingWentW{"Could not find page", "/rd/"})
-			return
-		}
-
-		fn := filepath.Join(d, h)
-		f, err := os.Open(fn)
+		entries, err := rd.getEntieslist()
 		if err != nil {
-			w.WriteHeader(http.StatusNotFound)
-			t.ExecuteTemplate(w, somethingWentWrong, &SomethingWentW{"Could not open/find page", "/rd/"})
-			lg.Printf("while opening %q: %s", fn, err)
+			t.ExecuteTemplate(w, somethingWentWrong, &SomethingWentW{"Something went wrong", ""})
+			lg.Panicln("err:", err)
 			return
 		}
-
-		s := bufio.NewScanner(f)
-		peras := [][]ReaderWord{}
-		for s.Scan() {
-			t := bytes.TrimSpace(s.Bytes())
-			if len(t) == 0 {
-				continue
-			}
-			p := []ReaderWord{}
-			for b := range bytes.SplitSeq(t, []byte{' '}) {
-				w := string(b)
-				c := keepOnlyArabic(w)
-				_, contains := rd.hMap[c]
-				p = append(p, ReaderWord{
-					Og:   w,
-					Oar:  c,
-					IsHi: contains,
-				})
-			}
-			peras = append(peras, p)
-		}
-		f.Close()
-
-		readerConf := ReaderData{pageName, peras}
-		tm := TmplData{Curr: "ar_en", Dicts: dicts, DictsMap: dictsMap, RD: readerConf, RDMode: true}
-		if err := t.ExecuteTemplate(w, mainTemplateName, &tm); debug && err != nil {
-			lg.Println(err)
+		err = t.ExecuteTemplate(w, "readerInpt.html", entries)
+		if debug && err != nil {
+			lg.Panicln(err)
 		}
 		return
 	}
 
+	// serve the saved file
+	d := rd.permDir
+	pageName, _ := isSumInEntries(h, filepath.Join(d, entriesFileName), false)
+	if pageName == "" {
+		w.WriteHeader(http.StatusNotFound)
+		t.ExecuteTemplate(w, somethingWentWrong, &SomethingWentW{"Could not find page", "/rd/"})
+		return
+	}
+
+	fn := filepath.Join(d, h)
+	f, err := os.Open(fn)
+	if err != nil {
+		w.WriteHeader(http.StatusNotFound)
+		t.ExecuteTemplate(w, somethingWentWrong, &SomethingWentW{"Could not open/find page", "/rd/"})
+		lg.Printf("while opening %q: %s", fn, err)
+		return
+	}
+
+	s := bufio.NewScanner(f)
+	peras := [][]ReaderWord{}
+	for s.Scan() {
+		t := bytes.TrimSpace(s.Bytes())
+		if len(t) == 0 {
+			continue
+		}
+		p := []ReaderWord{}
+		for b := range bytes.SplitSeq(t, []byte{' '}) {
+			w := string(b)
+			c := keepOnlyArabic(w)
+			_, contains := rd.hMap[c]
+			p = append(p, ReaderWord{
+				Og:   w,
+				Oar:  c,
+				IsHi: contains,
+			})
+		}
+		peras = append(peras, p)
+	}
+	f.Close()
+
+	readerConf := ReaderData{pageName, peras}
+	tm := TmplData{Curr: "ar_en", Dicts: dicts, DictsMap: dictsMap, RD: readerConf, RDMode: true}
+	if err := t.ExecuteTemplate(w, mainTemplateName, &tm); debug && err != nil {
+		lg.Println(err)
+	}
 }
 
 func (rd *readerConf) post(w http.ResponseWriter, r *http.Request) {
@@ -166,12 +141,7 @@ func (rd *readerConf) post(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	isSave := r.FormValue("perm") == "true"
-	d := rd.tempDir
-	if isSave {
-		d = rd.permDir
-	}
-
+	d := rd.permDir
 	entriesFilePath := filepath.Join(d, entriesFileName)
 
 	rd.m.Lock()
@@ -183,15 +153,10 @@ func (rd *readerConf) post(w http.ResponseWriter, r *http.Request) {
 
 	found, err := isSumInEntries(sha, entriesFilePath, false)
 	if err != nil {
-		e := fmt.Sprint("err:", err)
-		http.Error(w, e, http.StatusInternalServerError)
 		lg.Println(err)
 	}
 
 	url := "/rd/" + sha
-	if isSave {
-		url += "?perm=true"
-	}
 	// exisits in the entris so skip writing
 	if found != "" {
 		http.Redirect(w, r, url, http.StatusMovedPermanently)

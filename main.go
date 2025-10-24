@@ -12,15 +12,16 @@ import (
 )
 
 const (
-	progName           = "mujamalat"
-	version            = "v3.0.0"
-	dbFileName         = "mujamalat.db"
-	dbSize             = 146018304
-	mainTemplateName   = "main.html"
-	somethingWentWrong = "something-wrong"
-	genricTemplateName = "genric-dict"
-	portRangeStart     = 8080
-	portrangeEnd       = 8099
+	progName               = "mujamalat"
+	version                = "v3.0.0"
+	dbFileName             = "mujamalat.db"
+	dbSize                 = 146018304
+	mainTemplateName       = "main.html"
+	somethingWentWrong     = "something-wrong"
+	genricTemplateName     = "genric-dict"
+	highLightsTemplateName = "high.html"
+	portRangeStart         = 8080
+	portrangeEnd           = 8099
 
 	// dict names
 	lisanularabName = "lisanularab"
@@ -104,6 +105,7 @@ func main() {
 	mux.HandleFunc("POST /rd/", rd.post)
 	mux.HandleFunc("GET /rd/", rd.page)
 	mux.HandleFunc("POST /rd/high", rd.highlight)
+	mux.HandleFunc("GET /rd/highlist/", rd.highlightList)
 	mux.HandleFunc("POST /rd/delete/", rd.deletePage)
 
 	mux.Handle("/pub/", servePubData())

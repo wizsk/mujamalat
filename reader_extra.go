@@ -12,6 +12,30 @@ import (
 	"strings"
 )
 
+type HighLightData struct {
+	Words []string
+}
+
+func (rd *readerConf) highlightList(w http.ResponseWriter, r *http.Request) {
+	rd.m.RLock()
+	defer rd.m.RUnlock()
+	hi, err := os.Open(rd.hFilePath)
+
+	if err != nil && !os.IsNotExist(err) {
+		http.Error(w, "some went wrong", http.StatusInternalServerError)
+		lg.Panicf("while reading %q: %s", rd.hFilePath, err)
+		return
+	}
+	defer hi.Close()
+
+	s := bufio.NewScanner(hi)
+	hd := HighLightData{}
+	for s.Scan() {
+		hd.Words = append(hd.Words, s.Text())
+	}
+	le(rd.t.ExecuteTemplate(w, highLightsTemplateName, &hd))
+}
+
 func (rd *readerConf) highlight(w http.ResponseWriter, r *http.Request) {
 	word := keepOnlyArabic(r.FormValue("w"))
 	if word == "" {
@@ -39,7 +63,6 @@ func (rd *readerConf) highlight(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	le(copyFile(rd.hFilePath, rd.hFilePathOld))
 	if del {
 		f := lev(os.Open(rd.hFilePath))
 		if f == nil {
@@ -79,13 +102,11 @@ func (rd *readerConf) deletePage(w http.ResponseWriter, r *http.Request) {
 
 	sha := strings.TrimSpace(strings.TrimPrefix(r.URL.Path, "/rd/delete/"))
 	if sha == "" {
+		http.NotFound(w, r)
 		return
 	}
 
-	d := rd.tempDir
-	if r.FormValue("perm") == "true" {
-		d = rd.permDir
-	}
+	d := rd.permDir
 
 	found, err := isSumInEntries(sha, filepath.Join(d, entriesFileName), true)
 	if err != nil {

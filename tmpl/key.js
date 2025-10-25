@@ -57,7 +57,9 @@ document.addEventListener('keydown', (e) => {
         return;
     }
 
-    if (document.activeElement === w) return;
+    if (document.activeElement === w ||
+        (updateWordInpt && document.activeElement === updateWordInpt))
+        return;
 
     if (e.code && /^Digit[1-9]$/.test(e.code)) {
         const i = parseInt(e.code.at(5)) - 1;
@@ -143,8 +145,8 @@ document.addEventListener('keydown', (e) => {
 })
 
 
-/** 
- * @param {boolean} next if true then goes to the next query otherwise preveious 
+/**
+ * @param {boolean} next if true then goes to the next query otherwise preveious
  * @param {string}  className classname for the buttons
  * @param {string}  id is the button wich is selected for now
  */

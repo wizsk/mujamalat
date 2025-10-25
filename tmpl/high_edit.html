@@ -1,0 +1,177 @@
+<style>
+    #update-word-container {
+        position: fixed;
+        top: 0;
+        left: 0;
+        height: 100vh;
+        width: 100vw;
+        display: flex;
+        /* align-items: center; */
+        justify-content: center;
+        z-index: 1;
+    }
+
+    #update-word-inner-container {
+        background-color: var(--bg);
+        padding: 2rem 1.2rem;
+        border-radius: var(--border-radious);
+        margin-top: 5rem;
+        width: 80%;
+        max-width: 400px;
+        height: fit-content;
+    }
+
+    #update-word-inpt {
+        width: 90%;
+        display: block;
+        margin: 1rem auto;
+    }
+
+    #update-word-checkbox-conatiner {
+        text-align: center;
+        margin: 1.4rem 0;
+        user-select: none;
+    }
+
+    #update-word-checkbox-conatiner label,
+    #update-word-checkbox-conatiner input {
+        cursor: pointer;
+    }
+
+    #update-word-btn-container {
+        display: flex;
+        align-items: center;
+        margin-top: 2rem;
+        gap: 1rem;
+    }
+
+    #delete-word {
+        background-color: var(--alert);
+    }
+
+    #update-word-cancel-btn {
+        margin-right: auto;
+    }
+</style>
+
+<div id="update-word-container" class="overlay-bg hidden">
+    <div id="update-word-inner-container">
+        <div>
+            الكلمة الأصلية:
+            <span id="original-word">عمل</span>
+        </div>
+        <input type="text" id="update-word-inpt" class="input-style">
+        <div id="update-word-checkbox-conatiner">
+            <input type="checkbox" name="update-word-checkbox" id="update-word-checkbox">
+            <label for="update-word-checkbox">إن تحتوي</label>
+        </div>
+        <div id="update-word-btn-container">
+            <button class="btn" id="update-word-btn">موافق</button>
+            <button class="btn" id="delete-word">امسح</button>
+            <button class="btn" id="update-word-cancel-btn">إلغاء</button>
+        </div>
+    </div>
+</div>
+
+<script>
+    const updateWordContainer = document.getElementById("update-word-container");
+    const originalWord = document.getElementById("original-word");
+    const updateWordInpt = document.getElementById("update-word-inpt");
+    const updateWordCheckbox = document.getElementById("update-word-checkbox");
+    const updateWordBtn = document.getElementById("update-word-btn");
+    const deleteWordBtn = document.getElementById("delete-word");
+    const updateWordCancelBtn = document.getElementById("update-word-cancel-btn");
+
+    var isUpdateHighWordPopupOpen = false;
+
+    /**
+     * @param {String} word
+     * @param {String} cw  contains word
+     * @param {Boolean} update
+     * @param {Function} callback
+     * @param {Function} closeCallBack
+     */
+    function openUpdateHighWordPopup(word, cw, update, callback, deleteCallback, closeCallBack) {
+        if (!word || typeof word !== "string") {
+            console.error(`envalid arg to openUpdateHighWrodPopup(word) "${word}":`, word);
+            return;
+        }
+
+        const cwOK = cw && cw !== "";
+        if (cwOK) word = cw;
+        isUpdateHighWordPopupOpen = true;
+        document.body.style.overflow = "hidden";
+        if (update) deleteWordBtn.style.display = "";
+        updateWordCheckbox.checked = cwOK;
+        originalWord.innerText = word;
+        updateWordInpt.value = word;
+        updateWordContainer.classList.remove("hidden");
+        updateWordInpt.focus();
+        updateWordInpt.setSelectionRange(updateWordInpt.value.length, updateWordInpt.value.length);
+
+        updateWordCancelBtn.onclick = () => {
+            updateWordContainer.classList.add("hidden");
+            deleteWordBtn.style.display = "none";
+            document.body.style.overflow = "";
+            isUpdateHighWordPopupOpen = false;
+            updateWordCheckbox.checked = false;
+            originalWord.innerText = "";
+            updateWordInpt.value = "";
+            if (closeCallBack) closeCallBack();
+        }
+
+        const submit = () => {
+            // get the value
+            const nWord = updateWordInpt.value.trim();
+            const checked = updateWordCheckbox.checked;
+            // now reset the variables
+            updateWordCancelBtn.click();
+            if (!nWord || nWord === "" || nWord === word && update) return;
+
+            let url = '/rd/high';
+            if (update)
+                url = `${url}?w=${word}&uw=${nWord}&up=true`;
+            else
+                url = `${url}?w=${nWord}&add=true`;
+
+            if (checked) url += "&contains=true"
+
+            console.log('fetch:', url);
+            fetch(url, { method: "POST" }).then((r) => {
+                if (r.status === 202) {
+                    if (callback) callback(word, nWord, cwOK, checked);
+                    return;
+                }
+                alert("could not save highlight");
+            }).catch((err) => {
+                console.log(err);
+                alert("could not save highlight");
+            })
+        }
+
+        updateWordBtn.onclick = submit;
+        deleteWordBtn.onclick = () => {
+            let url = `/rd/high?w=${word}&del=true`
+            if (cwOK) url += "&contains=true"
+
+            updateWordCancelBtn.click();
+            console.log('fetch:', url);
+            fetch(url, { method: "POST" }).then((r) => {
+                if (r.status === 202) {
+                    if (deleteCallback) deleteCallback(word, cwOK);
+                    return;
+                }
+                alert("could not save highlight");
+            }).catch((err) => {
+                console.log(err);
+                alert("could not save highlight");
+            })
+        }
+        updateWordInpt.onkeypress = (e) => {
+            if (e.key === "Enter" || (e.code && e.code === "Enter")) {
+                submit();
+            }
+        }
+    }
+
+</script>

@@ -23,7 +23,8 @@ type readerConf struct {
 	t         templateWraper
 	permDir   string
 	hFilePath string
-	hMap      map[string]struct{}
+	hMap      map[string]bool
+	hContains []string
 }
 
 func newReader(t templateWraper) *readerConf {
@@ -53,13 +54,21 @@ func newReader(t templateWraper) *readerConf {
 	}
 	fmt.Printf("highlight history file backedup to %q\n", hFilePathOld)
 
-	rd.hMap = make(map[string]struct{})
+	rd.hMap = make(map[string]bool)
 	if f, err := os.Open(rd.hFilePath); err == nil {
 		s := bufio.NewScanner(f)
 		for s.Scan() {
 			l := strings.TrimSpace(s.Text())
 			if l != "" {
-				rd.hMap[l] = struct{}{}
+				if strings.HasSuffix(l, "|c") {
+					w := l[:len(l)-2]
+					if w != "" {
+						rd.hContains = append(rd.hContains, w)
+						rd.hMap[w] = true
+						continue
+					}
+				}
+				rd.hMap[l] = false
 			}
 		}
 	}
@@ -117,11 +126,23 @@ func (rd *readerConf) page(w http.ResponseWriter, r *http.Request) {
 		for b := range bytes.SplitSeq(t, []byte{' '}) {
 			w := string(b)
 			c := keepOnlyArabic(w)
-			_, contains := rd.hMap[c]
+			cw := ""
+			contains, found := rd.hMap[c]
+			if contains {
+				cw = c
+			} else if !found {
+				for i := 0; i < len(rd.hContains); i++ {
+					if strings.Contains(c, rd.hContains[i]) {
+						cw = rd.hContains[i]
+						break
+					}
+				}
+			}
 			p = append(p, ReaderWord{
 				Og:   w,
 				Oar:  c,
-				IsHi: contains,
+				IsHi: found || cw != "",
+				Cw:   cw,
 			})
 		}
 		peras = append(peras, p)

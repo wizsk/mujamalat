@@ -39,58 +39,143 @@ func (rd *readerConf) highlightList(w http.ResponseWriter, r *http.Request) {
 func (rd *readerConf) highlight(w http.ResponseWriter, r *http.Request) {
 	word := keepOnlyArabic(r.FormValue("w"))
 	if word == "" {
+		http.Error(w, "bad request", http.StatusBadRequest)
 		return
 	}
+
+	add := r.FormValue("add") == "true"
 	del := r.FormValue("del") == "true"
+	up := r.FormValue("up") == "true"
+	contains := r.FormValue("contains") == "true"
+
+	if !(add || del || up) {
+		http.Error(w, "bad request", http.StatusBadRequest)
+		return
+	}
+
+	upWord := keepOnlyArabic(r.FormValue("uw"))
+	if up && upWord == "" {
+		http.Error(w, "bad request", http.StatusBadRequest)
+		return
+	}
 
 	rd.m.Lock()
 	defer rd.m.Unlock()
 
-	if _, ok := rd.hMap[word]; ok {
-		if !del {
+	preContains, ok := rd.hMap[word]
+	if ok && preContains == contains {
+		if !del && !up {
 			w.WriteHeader(http.StatusAccepted)
 			return
 		}
+	} else if del {
+		w.WriteHeader(http.StatusAccepted)
+		return
+	} else if up {
+		if c, ok := rd.hMap[upWord]; ok && c == contains {
+			w.WriteHeader(http.StatusAccepted)
+			return
+		}
+	} else if ok && add && preContains != contains {
+		up = true
+		upWord = word
+		add = false
 	}
 
 	if del {
+		fmt.Println("deleting", word)
 		delete(rd.hMap, word)
-	} else {
-		rd.hMap[word] = struct{}{}
+		if preContains {
+			for i := 0; i < len(rd.hContains); i++ {
+				if rd.hContains[i] == word {
+					// move everything
+					for i++; i < len(rd.hContains); i++ {
+						rd.hContains[i-1] = rd.hContains[i]
+					}
+					rd.hContains = rd.hContains[:i-1]
+					break
+				}
+			}
+		}
+
+	} else if add {
+		rd.hMap[word] = contains
+		if contains {
+			rd.hContains = append(rd.hContains, word)
+		}
+	} else if up {
+		delete(rd.hMap, word)
+		rd.hMap[upWord] = contains
+		if contains {
+			// jodi age theke na thake tahole kn dekmu
+			if preContains {
+				for i := 0; i < len(rd.hContains); i++ {
+					if rd.hContains[i] == word {
+						rd.hContains[i] = upWord
+						break
+					}
+				}
+			} else {
+				rd.hContains = append(rd.hContains, word)
+			}
+		}
 	}
 
 	if mkHistDirAll(rd.permDir, w) {
 		return
 	}
 
-	if del {
+	if del || up {
 		f := lev(os.Open(rd.hFilePath))
 		if f == nil {
 			return
 		}
 		s := bufio.NewScanner(f)
 		b := strings.Builder{}
+
 		for s.Scan() {
 			t := strings.TrimSpace(s.Text())
-			if t != "" && t != word {
+			if t == "" {
+				continue
+			}
+
+			if strings.Contains(t, word) {
+				if up {
+					b.WriteString(upWord)
+					if contains {
+						b.WriteString("|c")
+					}
+					b.WriteRune('\n')
+				}
+			} else {
 				b.WriteString(t)
 				b.WriteRune('\n')
 			}
 		}
 		f.Close()
 
-		f = lev(os.Create(rd.hFilePath))
+		tmpFile := rd.hFilePath + ".tmp"
+		f = lev(os.Create(tmpFile))
 		if f == nil {
 			return // err
 		}
 		f.WriteString(b.String())
 		f.Close()
+		if err := os.Rename(tmpFile, rd.hFilePath); err != nil {
+			http.Error(w, "server err", http.StatusInternalServerError)
+			lg.Println(err)
+			return
+		}
 	} else {
 		f := CreateOrAppendToFile(rd.hFilePath, w)
 		if f == nil {
 			return // err
 		}
-		f.WriteString(word + "\n")
+		f.WriteString(word)
+		if contains {
+			f.WriteString("|c")
+		}
+		f.WriteString("\n")
 		f.Close()
 	}
 	w.WriteHeader(http.StatusAccepted)

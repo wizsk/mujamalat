@@ -133,6 +133,7 @@ loop:
 	return string(r)
 }
 
+// keep arabic letters and harakat
 func keepOnlyArabic(s string) string {
 	r := make([]rune, 0, len(s))
 	for _, v := range s {

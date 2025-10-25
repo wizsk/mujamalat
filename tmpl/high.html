@@ -96,7 +96,8 @@
         const del = document.getElementsByClassName("del");
         for (let i = 0; i < del.length; i++) {
             del[i].onclick = (e) => {
-                const hWord = del[i].dataset.word;
+                const btn = del[i];
+                const hWord = btn.dataset.word;
                 if (!hWord) {
                     alert("Something is worng with the word");
                     return;
@@ -111,7 +112,7 @@
                 fetch(li, { method: "POST" })
                     .then((res) => {
                         if (res.status === 202) {
-                            wordList.removeChild(e.target.parentElement);
+                            wordList.removeChild(btn.parentElement);
                         } else {
                             alert(`Couldn't del highlight: ${hWord}`);
                         }

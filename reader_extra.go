@@ -165,11 +165,11 @@ func (rc *readerConf) postPageName(data []byte) string {
 	for sc.Scan() {
 		l := bytes.TrimSpace(sc.Bytes())
 		if len(l) > 0 {
-			l := string(l)
+			l := []rune(string(l))
 			if len(l) > pageNameMaxLen {
-				pageName = string([]rune(l)[:pageNameMaxLen]) + "..."
+				pageName = string(l[:pageNameMaxLen]) + "..."
 			} else {
-				pageName = l
+				pageName = string(l)
 			}
 			break
 		}

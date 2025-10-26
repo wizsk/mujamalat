@@ -38,6 +38,8 @@ async function addOrRmHiClass(word, add, contains) {
     }
 }
 
+
+var isUpdateHighWordPopupOpenPresedBack = false;
 // let lastClikedWord = null;
 // ontop of the main file
 function openPopup(e) {
@@ -89,7 +91,16 @@ function openPopup(e) {
                         e.classList.remove("hi");
                 });
             },
-            () => window.history.back());
+            () => {
+                if (!isUpdateHighWordPopupOpenPresedBack) {
+                    console.log("after cancel going back")
+                    window.history.back();
+                } else {
+                    console.log("reseing to false: isUpdateHighWordPopupOpenPresedBack")
+                    isUpdateHighWordPopupOpenPresedBack = false;
+                }
+            }
+        );
     }
 
     openDictBtn.onclick = () => {
@@ -174,6 +185,7 @@ window.addEventListener("popstate", (e) => {
         contentHolder.innerHTML = "";
         readerMode = true;
     } else if (isUpdateHighWordPopupOpen) {
+        isUpdateHighWordPopupOpenPresedBack = true;
         if (updateWordCancelBtn) updateWordCancelBtn.click();
     }
 });

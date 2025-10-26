@@ -41,6 +41,7 @@
     #update-word-btn-container {
         display: flex;
         align-items: center;
+        justify-content: center;
         margin-top: 2rem;
         gap: 1rem;
     }
@@ -50,7 +51,8 @@
     }
 
     #update-word-cancel-btn {
-        margin-right: auto;
+        background-color: var(--muted);
+        /* margin-right: auto; */
     }
 </style>
 
@@ -67,7 +69,7 @@
         </div>
         <div id="update-word-btn-container">
             <button class="btn" id="update-word-btn">موافق</button>
-            <button class="btn" id="delete-word">امسح</button>
+            <button class="btn" id="delete-word" style="display: none;">امسح</button>
             <button class="btn" id="update-word-cancel-btn">إلغاء</button>
         </div>
     </div>

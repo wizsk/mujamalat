@@ -1,0 +1,56 @@
+<!DOCTYPE html>
+<html lang="ar">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <link rel="shortcut icon" href="/pub/fav.png" type="image/x-icon">
+
+    <title>Login</title>
+    {{template "common-css"}}
+    <style>
+        body {
+            display: flex;
+            height: 100vh;
+            width: 100vw;
+            justify-content: center;
+        }
+
+        #login-container {
+            margin-top: 4rem;
+            width: 90%;
+            max-width: 500px;
+            display: flex;
+            align-items: center;
+            /* justify-content: center; */
+            flex-direction: column;
+        }
+
+        #password,
+        #submit {
+            display: block;
+            margin: 1rem auto;
+        }
+
+        #password {
+            width: 90%;
+        }
+
+        #submit {
+            margin-top: 2rem;
+        }
+    </style>
+</head>
+
+<body>
+    <div id="login-container">
+        <h2>تسجيل الدخول</h2>
+        <form action="/auth" method="POST">
+            <input id="password" name="password" type="password" class="input-style"
+            placeholder="كلمة المرور" required autofocus>
+            <button id="submit" type="submit" class="btn">دخول</button>
+        </form>
+    </div>
+</body>
+
+</html>

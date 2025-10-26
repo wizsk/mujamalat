@@ -20,6 +20,7 @@ const (
 	somethingWentWrong     = "something-wrong"
 	genricTemplateName     = "genric-dict"
 	highLightsTemplateName = "high.html"
+	loginTemplateName      = "login.html"
 	portRangeStart         = 8080
 	portrangeEnd           = 8099
 
@@ -93,6 +94,11 @@ func main() {
 	<-done
 	<-done
 	dc := dictConf{db: db, t: tmpl, arEnDict: arEnDict}
+	if gc.pass != "" {
+		fmt.Println("Password set:", gc.pass)
+		loadSessions(rd.permDir, gc.pass, tmpl)
+		startCleanupTicker()
+	}
 
 	fmt.Println("Initalizaion done in:",
 		time.Since(iStart).String())
@@ -115,8 +121,14 @@ func main() {
 	})
 
 	var mw http.Handler = mux
+
+	if gc.pass != "" {
+		mux.HandleFunc("/auth", authHandler)
+		mw = sequreMiddleware(mw)
+	}
+
 	if gc.verbose || debug {
-		mw = middleware(mux)
+		mw = middleware(mw)
 	}
 
 	if gc.port == "" {

@@ -17,7 +17,7 @@ import (
 	"time"
 )
 
-func parseFlags() globalConf {
+func parseFlags() *globalConf {
 	conf := globalConf{}
 
 	if dynamicVersion {
@@ -28,6 +28,9 @@ func parseFlags() globalConf {
 	flag.StringVar(&conf.port, "p", "",
 		fmt.Sprintf("port number for the server (defaut: %d-%d)",
 			portRangeStart, portrangeEnd))
+
+	flag.StringVar(&conf.pass, "pass", "",
+		"password for the acceess to the server (default: none)")
 
 	showVersion := flag.Bool("v", false, "print version information")
 	flag.BoolVar(&conf.verbose, "s", false, "show request logs [be verbose]")
@@ -41,7 +44,7 @@ func parseFlags() globalConf {
 		os.Exit(0)
 	}
 
-	return conf
+	return &conf
 }
 
 var tmplFuncs = template.FuncMap{

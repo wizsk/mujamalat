@@ -86,9 +86,10 @@
 
     /**
      * @param {String} word
-     * @param {String} cw  contains word
-     * @param {Boolean} update
+     * @param {String} cw - contains word
+     * @param {Boolean} update - if true means it's alreay highlighted
      * @param {Function} callback
+     * @param {Function} deleteCallback
      * @param {Function} closeCallBack
      */
     function openUpdateHighWordPopup(word, cw, update, callback, deleteCallback, closeCallBack) {
@@ -106,8 +107,12 @@
         originalWord.innerText = word;
         updateWordInpt.value = word;
         updateWordContainer.classList.remove("hidden");
-        updateWordInpt.focus();
-        updateWordInpt.setSelectionRange(updateWordInpt.value.length, updateWordInpt.value.length);
+        updateWordContainer.onload = () => console.log("loaded")
+        // wait for the ui to load otherwise mobile browser jumps
+        setTimeout(() => {
+            updateWordInpt.focus();
+            updateWordInpt.setSelectionRange(updateWordInpt.value.length, updateWordInpt.value.length);
+        }, 100)
 
         updateWordCancelBtn.onclick = () => {
             updateWordContainer.classList.add("hidden");
@@ -126,7 +131,7 @@
             const checked = updateWordCheckbox.checked;
             // now reset the variables
             updateWordCancelBtn.click();
-            if (!nWord || nWord === "" || nWord === word && update) return;
+            if (!nWord || nWord === "" || nWord === word && checked === cwOK && update) return;
 
             let url = '/rd/high';
             if (update)
@@ -153,6 +158,8 @@
         deleteWordBtn.onclick = () => {
             let url = `/rd/high?w=${word}&del=true`
             if (cwOK) url += "&contains=true"
+            const y = confirm(`هل تريد أن تسمح: ${word}`);
+            if (!y) return;
 
             updateWordCancelBtn.click();
             console.log('fetch:', url);

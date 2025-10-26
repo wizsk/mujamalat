@@ -13,7 +13,7 @@ import (
 )
 
 type HighLightData struct {
-	Words []string
+	Words []ReaderWord
 }
 
 func (rd *readerConf) highlightList(w http.ResponseWriter, r *http.Request) {
@@ -31,7 +31,18 @@ func (rd *readerConf) highlightList(w http.ResponseWriter, r *http.Request) {
 	s := bufio.NewScanner(hi)
 	hd := HighLightData{}
 	for s.Scan() {
-		hd.Words = append(hd.Words, s.Text())
+		l := bytes.TrimSpace(s.Bytes())
+		cw := ""
+		if bytes.HasSuffix(l, []byte("|c")) {
+			l = l[:len(l)-len("|c")]
+			cw = string(l)
+		}
+		if len(l) > 0 {
+			hd.Words = append(hd.Words, ReaderWord{
+				Oar: string(l),
+				Cw:  cw,
+			})
+		}
 	}
 	le(rd.t.ExecuteTemplate(w, highLightsTemplateName, &hd))
 }
@@ -68,7 +79,7 @@ func (rd *readerConf) highlight(w http.ResponseWriter, r *http.Request) {
 			w.WriteHeader(http.StatusAccepted)
 			return
 		}
-	} else if del {
+	} else if del && !ok {
 		w.WriteHeader(http.StatusAccepted)
 		return
 	} else if up {

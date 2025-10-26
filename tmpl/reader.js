@@ -63,7 +63,9 @@ function openPopup(e) {
         openUpdateHighWordPopup(hWord, cw, update,
             (oWord, nWord, oContains, contains) => {
                 wordSpans.forEach((e) => {
-                    if (oContains && e.dataset.cw === oWord) {
+                    if (oContains && e.dataset.cw === oWord ||
+                        !oContains && e.dataset.oar === oWord
+                    ) {
                         e.dataset.cw = "";
                         e.classList.remove("hi");
                     }

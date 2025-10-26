@@ -27,11 +27,18 @@ type readerConf struct {
 	hContains []string
 }
 
-func newReader(t templateWraper) *readerConf {
+func newReader(onlyPaths bool, t templateWraper, tmpMode bool) *readerConf {
 	rd := readerConf{t: t}
 
 	n := ""
-	if debug {
+	var err error
+
+	if tmpMode {
+		if n, err = os.MkdirTemp(os.TempDir(), progName+"-*"); err != nil {
+			lg.Fatal("Cound not create tmp dir:", err)
+		}
+		fmt.Println("INFO: tmp dir created:", n)
+	} else if debug {
 		n = filepath.Join("tmp", "perm_mujamalat_history")
 	} else if h, err := os.UserHomeDir(); err == nil {
 		n = filepath.Join(h, ".mujamalat_history")
@@ -47,12 +54,15 @@ func newReader(t templateWraper) *readerConf {
 	}
 
 	rd.hFilePath = filepath.Join(n, highlightsFileName)
+	if onlyPaths {
+		return &rd
+	}
+
 	hFilePathOld := rd.hFilePath + ".old"
 
-	if err := copyFile(rd.hFilePath, hFilePathOld); err != nil {
-		lg.Fatal("while backing up highlight file:", err)
+	if err := copyFile(rd.hFilePath, hFilePathOld); err == nil {
+		fmt.Printf("highlight history file backedup to %q\n", hFilePathOld)
 	}
-	fmt.Printf("highlight history file backedup to %q\n", hFilePathOld)
 
 	rd.hMap = make(map[string]bool)
 	if f, err := os.Open(rd.hFilePath); err == nil {

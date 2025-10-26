@@ -1,11 +1,15 @@
 package main
 
 import (
+	"context"
 	"database/sql"
 	"fmt"
 	"log"
 	"net/http"
 	"os"
+	"os/signal"
+	"path/filepath"
+	"syscall"
 	"time"
 
 	_ "github.com/glebarez/go-sqlite"
@@ -64,6 +68,18 @@ func main() {
 
 	gc := parseFlags()
 
+	if gc.deleteSessions {
+		rd := newReader(true, nil, gc.tmpMode)
+		fn := filepath.Join(rd.permDir, sessionFileName)
+		err := os.Remove(fn)
+		if err != nil && !os.IsNotExist(err) {
+			fmt.Printf("while deleting %s:\nerr: %s", fn, err)
+			os.Exit(1)
+		}
+		fmt.Printf("Deleted %s\n", fn)
+		os.Exit(0)
+	}
+
 	fmt.Println("Initalizing...")
 	iStart := time.Now()
 	done := make(chan struct{}, 1)
@@ -86,7 +102,7 @@ func main() {
 
 	go func() {
 		tmpl = ke(openTmpl(debug))
-		rd = newReader(tmpl)
+		rd = newReader(false, tmpl, gc.tmpMode)
 		done <- struct{}{}
 	}()
 
@@ -94,6 +110,7 @@ func main() {
 	<-done
 	<-done
 	dc := dictConf{db: db, t: tmpl, arEnDict: arEnDict}
+
 	if gc.pass != "" {
 		fmt.Println("Password set:", gc.pass)
 		loadSessions(rd.permDir, gc.pass, tmpl)
@@ -141,5 +158,38 @@ func main() {
 		fmt.Printf("-- internet:\thttp://%s:%s\n", l, gc.port)
 	}
 	fmt.Println()
-	lg.Fatal(http.ListenAndServe(":"+gc.port, mw))
+
+	server := &http.Server{
+		Addr:    ":" + gc.port,
+		Handler: mw,
+	}
+
+	serveErr := make(chan error)
+	go func(err chan<- error) {
+		err <- server.ListenAndServe()
+	}(serveErr)
+
+	var err error
+	sig := make(chan os.Signal, 1)
+	signal.Notify(sig, syscall.SIGINT, syscall.SIGTERM)
+	select {
+	case err = <-serveErr:
+	case <-sig:
+	}
+
+	fmt.Println()
+	if err != nil {
+		fmt.Println("while serving err:", err)
+	} else {
+		fmt.Println("Shuttingdown http server")
+		server.Shutdown(context.Background())
+	}
+
+	fmt.Println("Closing db")
+	db.Close()
+	if gc.tmpMode {
+		fmt.Println("Deleting:", rd.permDir)
+		os.RemoveAll(rd.permDir)
+	}
+	os.Exit(0)
 }

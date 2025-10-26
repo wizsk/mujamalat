@@ -7,7 +7,6 @@ import (
 	"fmt"
 	"html/template"
 	"io"
-
 	"net"
 	"os"
 	"runtime"
@@ -16,6 +15,14 @@ import (
 	"strings"
 	"time"
 )
+
+type globalConf struct {
+	port           string
+	verbose        bool
+	pass           string
+	tmpMode        bool
+	deleteSessions bool
+}
 
 func parseFlags() *globalConf {
 	conf := globalConf{}
@@ -32,12 +39,23 @@ func parseFlags() *globalConf {
 	flag.StringVar(&conf.pass, "pass", "",
 		"password for the acceess to the server (default: none)")
 
+	flag.BoolVar(&conf.deleteSessions, "del-sessions", false,
+		"delete session datas (aka cookies)")
+
+	flag.BoolVar(&conf.tmpMode, "tmp", false,
+		"tempurary mode. creates a directory in to os's tmp and deletes it on close")
+
 	showVersion := flag.Bool("v", false, "print version information")
 	flag.BoolVar(&conf.verbose, "s", false, "show request logs [be verbose]")
 
 	os.Args[0] = progName
 
 	flag.Parse()
+
+	if conf.tmpMode && conf.deleteSessions {
+		fmt.Println("Can not have both tmpurary mode and delete session datas")
+		os.Exit(1)
+	}
 
 	if *showVersion {
 		printVersion()

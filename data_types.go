@@ -1,11 +1,5 @@
 package main
 
-type globalConf struct {
-	port    string
-	verbose bool
-	pass    string
-}
-
 type TmplData struct {
 	Query             string
 	Queries           []string

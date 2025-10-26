@@ -19,7 +19,7 @@ const (
 	progName               = "mujamalat"
 	version                = "v3.0.0"
 	dbFileName             = "mujamalat.db"
-	dbSize                 = 146018304
+	dbSize                 = 152141824
 	mainTemplateName       = "main.html"
 	somethingWentWrong     = "something-wrong"
 	genricTemplateName     = "genric-dict"
@@ -90,7 +90,8 @@ func main() {
 	var rd *readerConf
 
 	go func() {
-		db = ke(sql.Open("sqlite", unzipAndWriteDb()))
+		db = ke(sql.Open("sqlite",
+			"file:"+unzipAndWriteDb()+"?mode=ro&_query_only=1&cache=shared"))
 		done <- struct{}{}
 	}()
 	defer db.Close()

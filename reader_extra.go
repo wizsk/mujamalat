@@ -94,7 +94,6 @@ func (rd *readerConf) highlight(w http.ResponseWriter, r *http.Request) {
 	}
 
 	if del {
-		fmt.Println("deleting", word)
 		delete(rd.hMap, word)
 		if preContains {
 			for i := 0; i < len(rd.hContains); i++ {

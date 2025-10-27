@@ -236,17 +236,3 @@ func sequreMiddleware(next http.Handler) http.Handler {
 		}
 	})
 }
-
-// example
-func _main() {
-	loadSessions("", "", nil) // will fial
-	startCleanupTicker()
-
-	mux := http.NewServeMux()
-	mux.HandleFunc("/auth", authHandler)
-	// mux.HandleFunc("/", homeHandler)
-	mux.HandleFunc("/logout", logoutHandler)
-
-	fmt.Println("Server running on http://localhost:8080")
-	http.ListenAndServe(":8080", mux)
-}

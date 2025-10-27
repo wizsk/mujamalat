@@ -52,6 +52,7 @@ func parseFlags() *globalConf {
 		"tempurary mode. creates a directory in to os's tmp and deletes it on close")
 
 	showVersion := flag.Bool("v", false, "print version information")
+
 	flag.BoolVar(&conf.verbose, "s", false, "show request logs [be verbose]")
 
 	os.Args[0] = progName
@@ -66,6 +67,13 @@ func parseFlags() *globalConf {
 	if conf.tmpMode && conf.deleteSessions {
 		fmt.Println("Can not have both tmpurary mode and delete session datas")
 		os.Exit(1)
+	}
+
+	if conf.port != "" {
+		if val, err := strconv.ParseUint(conf.port, 10, 16); err != nil || val == 0 || val >= 65535 {
+			fmt.Printf("FETAL: '%s' Not a valid port nubmer\n", conf.port)
+			os.Exit(1)
+		}
 	}
 
 	if *showVersion {

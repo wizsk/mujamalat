@@ -185,6 +185,10 @@ func logout(sessionID string) {
 }
 
 func authHandler(w http.ResponseWriter, r *http.Request) {
+	if isAuthenticated(r) {
+		http.Redirect(w, r, "/", http.StatusSeeOther)
+	}
+
 	if r.Method == http.MethodGet {
 		if err := sessionStore.t.ExecuteTemplate(w, loginTemplateName, nil); debug && err != nil {
 			lg.Println(err)

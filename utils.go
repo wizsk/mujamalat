@@ -10,6 +10,7 @@ import (
 	"net"
 	"os"
 	"runtime"
+	rDebug "runtime/debug"
 	"slices"
 	"strconv"
 	"strings"
@@ -20,6 +21,7 @@ type globalConf struct {
 	port           string
 	verbose        bool
 	pass           string
+	permDir        string
 	tmpMode        bool
 	deleteSessions bool
 }
@@ -36,8 +38,12 @@ func parseFlags() *globalConf {
 		fmt.Sprintf("port number for the server (defaut: %d-%d)",
 			portRangeStart, portrangeEnd))
 
+	flag.StringVar(&conf.permDir, "hist-dir", "",
+		"where the program will save all the nessesary data. For example: pages,"+
+			" highligted words etc. (Dir is created if not exists)")
+
 	flag.StringVar(&conf.pass, "pass", "",
-		"password for the acceess to the server (default: none)")
+		"password for limiting acceess to the webapp (default: none)")
 
 	flag.BoolVar(&conf.deleteSessions, "del-sessions", false,
 		"delete session datas (aka cookies)")
@@ -51,6 +57,11 @@ func parseFlags() *globalConf {
 	os.Args[0] = progName
 
 	flag.Parse()
+
+	if conf.tmpMode && conf.permDir != "" {
+		fmt.Println("Can not have both tmpurary mode and hist-dir at the same time")
+		os.Exit(1)
+	}
 
 	if conf.tmpMode && conf.deleteSessions {
 		fmt.Println("Can not have both tmpurary mode and delete session datas")
@@ -151,6 +162,36 @@ func p(err error) {
 	}
 }
 
+// if true then no err; and discurd the val
+func fetalErrOkD[T any](_ T, err error) bool {
+	if err != nil {
+		return false
+	}
+	return true
+}
+
+// if true then no err
+func fetalErrOk(err error) bool {
+	if err != nil {
+		fetalErr(err)
+		return false
+	}
+	return true
+}
+
+func fetalErrVal[T any](v T, err error) (T, error) {
+	if err != nil {
+		fetalErr(err)
+	}
+	return v, err
+}
+
+func fetalErr(err error) {
+	fmt.Println("encountured a fetal err:", err)
+	rDebug.PrintStack()
+	fetalErrChannel <- err
+}
+
 func intToArnum(n int) string {
 	numStr := strconv.Itoa(n)
 	res := ""
@@ -222,6 +263,10 @@ func parseQuery(s string, clean func(string) string) []string {
 }
 
 func copyFile(src, dst string) error {
+	if src == dst {
+		_, err := os.Stat(src)
+		return err
+	}
 	sourceFile, err := os.Open(src)
 	if err != nil {
 		return fmt.Errorf("could not open source file: %w", err)

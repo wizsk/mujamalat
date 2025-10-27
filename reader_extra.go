@@ -19,11 +19,11 @@ type HighLightData struct {
 func (rd *readerConf) highlightList(w http.ResponseWriter, r *http.Request) {
 	rd.m.RLock()
 	defer rd.m.RUnlock()
-	hi, err := os.Open(rd.hFilePath)
 
+	hi, err := os.Open(rd.hFilePath)
 	if err != nil && !os.IsNotExist(err) {
 		http.Error(w, "some went wrong", http.StatusInternalServerError)
-		lg.Panicf("while reading %q: %s", rd.hFilePath, err)
+		lg.Println("WARN:", err)
 		return
 	}
 	defer hi.Close()
@@ -93,6 +93,70 @@ func (rd *readerConf) highlight(w http.ResponseWriter, r *http.Request) {
 		add = false
 	}
 
+	if mkHistDirAll(rd.permDir, w) {
+		return
+	}
+
+	if del || up {
+		f, err := fetalErrVal(os.Open(rd.hFilePath))
+		if err != nil {
+			http.Error(w, "could not write to disk", http.StatusInternalServerError)
+			return
+		}
+		s := bufio.NewScanner(f)
+		b := strings.Builder{}
+
+		for s.Scan() {
+			t := strings.TrimSpace(s.Text())
+			if t == "" {
+				continue
+			}
+
+			if strings.Contains(t, word) {
+				if up {
+					b.WriteString(upWord)
+					if contains {
+						b.WriteString("|c")
+					}
+					b.WriteRune('\n')
+				}
+			} else {
+				b.WriteString(t)
+				b.WriteRune('\n')
+			}
+		}
+		f.Close()
+
+		tmpFile := rd.hFilePath + ".tmp"
+		f, err = fetalErrVal(os.Create(tmpFile))
+		if err != nil {
+			http.Error(w, "could not write to disk", http.StatusInternalServerError)
+			return // err
+		}
+		if !fetalErrOkD(f.WriteString(b.String())) {
+			f.Close()
+			return
+		}
+		f.Close()
+		if !fetalErrOk(os.Rename(tmpFile, rd.hFilePath)) {
+			http.Error(w, "server err", http.StatusInternalServerError)
+			return
+		}
+	} else {
+		f, err := fetalErrVal(openAppend(rd.hFilePath))
+		if err != nil {
+			http.Error(w, "could not write to disk", http.StatusInternalServerError)
+			return // err
+		}
+		f.WriteString(word)
+		if contains {
+			f.WriteString("|c")
+		}
+		f.WriteString("\n")
+		f.Close()
+	}
+
+	// after successful write to disk change in mem variables
 	if del {
 		delete(rd.hMap, word)
 		if preContains {
@@ -131,63 +195,6 @@ func (rd *readerConf) highlight(w http.ResponseWriter, r *http.Request) {
 		}
 	}
 
-	if mkHistDirAll(rd.permDir, w) {
-		return
-	}
-
-	if del || up {
-		f := lev(os.Open(rd.hFilePath))
-		if f == nil {
-			return
-		}
-		s := bufio.NewScanner(f)
-		b := strings.Builder{}
-
-		for s.Scan() {
-			t := strings.TrimSpace(s.Text())
-			if t == "" {
-				continue
-			}
-
-			if strings.Contains(t, word) {
-				if up {
-					b.WriteString(upWord)
-					if contains {
-						b.WriteString("|c")
-					}
-					b.WriteRune('\n')
-				}
-			} else {
-				b.WriteString(t)
-				b.WriteRune('\n')
-			}
-		}
-		f.Close()
-
-		tmpFile := rd.hFilePath + ".tmp"
-		f = lev(os.Create(tmpFile))
-		if f == nil {
-			return // err
-		}
-		f.WriteString(b.String())
-		f.Close()
-		if err := os.Rename(tmpFile, rd.hFilePath); err != nil {
-			http.Error(w, "server err", http.StatusInternalServerError)
-			lg.Println(err)
-			return
-		}
-	} else {
-		f := CreateOrAppendToFile(rd.hFilePath, w)
-		if f == nil {
-			return // err
-		}
-		f.WriteString(word)
-		if contains {
-			f.WriteString("|c")
-		}
-		f.WriteString("\n")
-		f.Close()
-	}
 	w.WriteHeader(http.StatusAccepted)
 }
 

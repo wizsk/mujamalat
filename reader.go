@@ -27,17 +27,20 @@ type readerConf struct {
 	hContains []string
 }
 
-func newReader(onlyPaths bool, t templateWraper, tmpMode bool) *readerConf {
+func newReader(gc *globalConf, t templateWraper) *readerConf {
 	rd := readerConf{t: t}
 
 	n := ""
 	var err error
 
-	if tmpMode {
+	if gc.tmpMode {
 		if n, err = os.MkdirTemp(os.TempDir(), progName+"-*"); err != nil {
-			lg.Fatal("Cound not create tmp dir:", err)
+			fmt.Println("FETAL: Cound not create tmp dir:", err)
+			os.Exit(1)
 		}
 		fmt.Println("INFO: tmp dir created:", n)
+	} else if gc.permDir != "" {
+		n = gc.permDir
 	} else if debug {
 		n = filepath.Join("tmp", "perm_mujamalat_history")
 	} else if h, err := os.UserHomeDir(); err == nil {
@@ -45,23 +48,41 @@ func newReader(onlyPaths bool, t templateWraper, tmpMode bool) *readerConf {
 	} else {
 		n = "mujamalat_history"
 	}
+
 	rd.permDir = n
 
 	if _, err := os.Stat(n); err != nil {
 		if err = os.MkdirAll(n, 0700); err != nil && !os.IsExist(err) {
-			lg.Fatalf("Could not create the hist file! %s", n)
+			fmt.Printf("FETAL: Could not create the hist file! %s", n)
+			os.Exit(1)
 		}
 	}
 
 	rd.hFilePath = filepath.Join(n, highlightsFileName)
-	if onlyPaths {
+	if gc.deleteSessions {
 		return &rd
 	}
 
+	hFilePathOldOld := rd.hFilePath + ".old.old"
 	hFilePathOld := rd.hFilePath + ".old"
+	if _, err := os.Stat(hFilePathOld); err == nil {
+		if err := copyFile(hFilePathOld, hFilePathOldOld); err != nil {
+			fmt.Printf(
+				"FETAL: highlight history backup file could not be backedup to %q\nerr: %s\n",
+				hFilePathOldOld, err)
+			os.Exit(1)
+		}
+		fmt.Printf("INFO: highlight history backup file backedup to %q\n", hFilePathOldOld)
+	}
 
-	if err := copyFile(rd.hFilePath, hFilePathOld); err == nil {
-		fmt.Printf("highlight history file backedup to %q\n", hFilePathOld)
+	if _, err := os.Stat(rd.hFilePath); err == nil {
+		if err := copyFile(rd.hFilePath, hFilePathOld); err != nil {
+			fmt.Printf(
+				"FETAL: highlight history file  could not be backedup to %q\nerr: %s\n",
+				hFilePathOld, err)
+			os.Exit(1)
+		}
+		fmt.Printf("INFO: highlight history file backedup to %q\n", hFilePathOld)
 	}
 
 	rd.hMap = make(map[string]bool)
@@ -195,31 +216,30 @@ func (rd *readerConf) post(w http.ResponseWriter, r *http.Request) {
 	}
 
 	f := filepath.Join(d, sha)
-	file, err := os.Create(f)
+	file, err := fetalErrVal(os.Create(f))
 	if err != nil {
-		http.Error(w, "sorry something went wrong! 2", http.StatusInternalServerError)
-		lg.Printf("err: %v\n", err)
+		http.Error(w, "Could not write to disk", http.StatusInternalServerError)
 		return
 	}
-	defer file.Close()
 
-	if _, err := file.WriteString(txt); err != nil {
+	if !fetalErrOkD(file.WriteString(txt)) {
 		http.Error(w, "coun't write to disk", http.StatusInternalServerError)
-		lg.Println("while writing to disk:", err)
 		return
 	}
+	file.Close()
 
 	// after successful write to file insert into entries
-	entries := CreateOrAppendToFile(entriesFilePath, w)
-	if entries == nil {
-		return
-	}
-	defer entries.Close()
-	if _, err := entries.WriteString(sha + ":" + pageName + "\n"); err != nil {
+	entries, err := fetalErrVal(openAppend(entriesFilePath))
+	if err != nil {
 		http.Error(w, "coun't write to disk", http.StatusInternalServerError)
-		lg.Println("while writing to disk:", err)
 		return
 	}
+
+	if !fetalErrOkD(entries.WriteString(sha + ":" + pageName + "\n")) {
+		http.Error(w, "coun't write to disk", http.StatusInternalServerError)
+		return
+	}
+	entries.Close()
 
 	http.Redirect(w, r, url, http.StatusMovedPermanently)
 }

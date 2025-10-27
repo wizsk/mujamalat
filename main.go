@@ -59,6 +59,8 @@ var (
 	}(dicts)
 
 	lg = log.New(os.Stderr, progName+": ", log.LstdFlags|log.Lshortfile)
+
+	fetalErrChannel = make(chan error, 1)
 )
 
 func main() {
@@ -69,7 +71,7 @@ func main() {
 	gc := parseFlags()
 
 	if gc.deleteSessions {
-		rd := newReader(true, nil, gc.tmpMode)
+		rd := newReader(gc, nil)
 		fn := filepath.Join(rd.permDir, sessionFileName)
 		err := os.Remove(fn)
 		if err != nil && !os.IsNotExist(err) {
@@ -103,7 +105,7 @@ func main() {
 
 	go func() {
 		tmpl = ke(openTmpl(debug))
-		rd = newReader(false, tmpl, gc.tmpMode)
+		rd = newReader(gc, tmpl)
 		done <- struct{}{}
 	}()
 
@@ -170,11 +172,12 @@ func main() {
 		err <- server.ListenAndServe()
 	}(serveErr)
 
-	var err error
+	var err, fErr error
 	sig := make(chan os.Signal, 1)
 	signal.Notify(sig, syscall.SIGINT, syscall.SIGTERM)
 	select {
 	case err = <-serveErr:
+	case fErr = <-fetalErrChannel:
 	case <-sig:
 	}
 
@@ -192,5 +195,10 @@ func main() {
 		fmt.Println("Deleting:", rd.permDir)
 		os.RemoveAll(rd.permDir)
 	}
+
+	if err != nil || fErr != nil {
+		os.Exit(1)
+	}
+
 	os.Exit(0)
 }

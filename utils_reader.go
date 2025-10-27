@@ -110,22 +110,17 @@ func mkHistDirAll(d string, w http.ResponseWriter) bool {
 	if _, err := os.Stat(d); err != nil && os.IsNotExist(err) {
 		if err = os.MkdirAll(d, 0700); err != nil {
 			http.Error(w, "something sus!", http.StatusInternalServerError)
-			lg.Panic(err)
+			fetalErr(err)
 			return true
 		}
 	}
 	return false
 }
 
-// nil on err
-func CreateOrAppendToFile(f string, w http.ResponseWriter) *os.File {
-	r, err := os.OpenFile(f, os.O_APPEND|os.O_CREATE|os.O_WRONLY, 0644)
-	if err != nil {
-		http.Error(w, "something sus!", http.StatusInternalServerError)
-		lg.Panic(err)
-		return nil
-	}
-	return r
+// open a file for only writing.
+// append or create if not exists
+func openAppend(f string) (*os.File, error) {
+	return os.OpenFile(f, os.O_APPEND|os.O_CREATE|os.O_WRONLY, 0644)
 }
 
 // has to be called while lock mode!

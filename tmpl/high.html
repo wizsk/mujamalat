@@ -80,7 +80,7 @@
 
 <body>
 
-    <h3>الكلمات المميزة</h3>
+    <h3>الكلمات المميزة {{if .Words}}({{len .Words | arnum}}){{end}}</h3>
     <hr>
     <div id="word-list">
         {{range .Words}}

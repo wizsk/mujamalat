@@ -9,6 +9,7 @@ import (
 	"net/http"
 	"os"
 	"path/filepath"
+	"slices"
 	"strings"
 )
 
@@ -44,7 +45,10 @@ func (rd *readerConf) highlightList(w http.ResponseWriter, r *http.Request) {
 			})
 		}
 	}
-	le(rd.t.ExecuteTemplate(w, highLightsTemplateName, &hd))
+	slices.Reverse(hd.Words)
+	if err = rd.t.ExecuteTemplate(w, highLightsTemplateName, &hd); debug && err != nil {
+		lg.Println(err)
+	}
 }
 
 func (rd *readerConf) highlight(w http.ResponseWriter, r *http.Request) {

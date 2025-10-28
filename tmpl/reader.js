@@ -1,6 +1,7 @@
 // don't remove
 const reader = document.getElementById("reader");
 const popup = document.getElementById("popup");
+const highlight = document.getElementById("highlight");
 const highlightEdit = document.getElementById("editAndHighlight");
 const openDictBtn = document.getElementById("openDictBtn");
 const readerMenu = document.getElementById("readerMenu");
@@ -54,6 +55,43 @@ function openPopup(e) {
     const cw = e.target.dataset.cw;
     const cwOK = cw && cw !== "";
     const hWord = cwOK ? cw : e.target.dataset.oar;
+
+    // don't show regular delete btn while "contains highlight" mode on
+    if (cwOK) highlight.style.display = "none";
+    else {
+        highlight.style.display = "";
+        if (e.target.classList.contains("hi")) highlight.classList.add("alert");
+        else highlight.classList.remove("alert");
+    }
+
+    highlight.onclick = async () => {
+        closePopup();
+
+        let msg = "&add=true";
+        const del = e.target.classList.contains("hi");
+        if (del) msg = "&del=true";
+
+        console.log(`/rd/high?w=${hWord}${msg}`);
+        fetch(`/rd/high?w=${hWord}${msg}`, { method: "POST" })
+            .then((res) => {
+                if (res.status === 202) {
+                    if (del) {
+                        e.target.classList.remove("hi");
+                        addOrRmHiClass(hWord, false);
+                    } else {
+                        e.target.classList.add("hi");
+                        addOrRmHiClass(hWord, true);
+                    }
+                } else {
+                    alert(`Couldn't save/del highlight: ${hWord}`);
+                }
+            })
+            .catch((err) => {
+                alert(`Couldn't save/del highlight: ${hWord}`);
+                console.error(err)
+            });
+    }
+
 
     highlightEdit.onclick = () => {
         closePopup();

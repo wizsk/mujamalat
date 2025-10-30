@@ -144,7 +144,7 @@
     }
 
     .pera:nth-of-type(2n) {
-        text-indent: 4rem;
+        text-indent: 3.5rem;
     }
     .poem-line-num {
         display: inline;
@@ -159,7 +159,7 @@
     {{range $i, $p := .Peras}}
     <div class="pera">
         {{if add $i 1 | isodd}}
-        <span class="poem-line-num">{{qasidaLine $i}} - </span>
+        <span class="poem-line-num">{{qasidaLine $i}}- </span>
         {{end}}
         {{range $p}}
         <span data-oar="{{.Oar}}" {{if .Cw}}data-cw="{{.Cw}}" {{end}}

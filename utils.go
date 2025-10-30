@@ -85,7 +85,11 @@ func parseFlags() *globalConf {
 }
 
 var tmplFuncs = template.FuncMap{
-	"add": func(a, b int) int { return a + b },
+	"add":   func(a, b int) int { return a + b },
+	"isodd": func(n int) bool { return n%2 != 0 },
+	"qasidaLine": func(n int) string {
+		return intToArnum((n + 2) / 2)
+	},
 	// "dec":   func(a, b int) int { return a - b },
 	"arnum": intToArnum,
 }

@@ -133,6 +133,9 @@
         color: #000;
         border: 1px solid #ccc;
     }
+    .poem-line-num {
+        display: none;
+    }
 </style>
 
 <style id="poem">
@@ -141,7 +144,11 @@
     }
 
     .pera:nth-of-type(2n) {
-        text-indent: 3rem;
+        text-indent: 4rem;
+    }
+    .poem-line-num {
+        display: inline;
+        font-weight: bold;
     }
 </style>
 <script>document.getElementById("poem").disabled = true;</script>
@@ -149,9 +156,12 @@
 
 {{define "reader"}}
 <div id="reader">
-    {{range .Peras}}
+    {{range $i, $p := .Peras}}
     <div class="pera">
-        {{range .}}
+        {{if add $i 1 | isodd}}
+        <span class="poem-line-num">{{qasidaLine $i}} - </span>
+        {{end}}
+        {{range $p}}
         <span data-oar="{{.Oar}}" {{if .Cw}}data-cw="{{.Cw}}" {{end}}
             class=" rWord {{if .IsHi}}hi{{end}}">{{.Og}}</span>
         {{end}}

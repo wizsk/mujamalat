@@ -1,4 +1,9 @@
 // don't remove
+// Create a reference for the Wake Lock.
+let wakeLock = null;
+const wakelockOptn = document.getElementById("wakelock");
+let inactivityTimer = null;
+const INACTIVITY_MINUTES = 7;
 const reader = document.getElementById("reader");
 const popup = document.getElementById("popup");
 const highlight = document.getElementById("highlight");
@@ -318,6 +323,69 @@ document.addEventListener('DOMContentLoaded', () => {
 
 });
 
+if ("wakeLock" in navigator) {
+    async function requestWakeLock() {
+        try {
+            wakeLock = await navigator.wakeLock.request("screen");
+
+            wakeLock.addEventListener("release", async () => {
+                wakelockOptn.value = "off";
+                wakelockOptn.style.color = "var(--alert)";
+                console.log("Wake Lock lost — attempting to restore");
+                // Try restoring only if page is still visible
+                if (document.visibilityState === "visible") {
+                    await requestWakeLock();
+                }
+            });
+
+            wakelockOptn.value = "on";
+            wakelockOptn.style.color = "";
+            console.log("Wake Lock active");
+        } catch (err) {
+            console.error("Wake Lock request failed:", err);
+        }
+    }
+
+    function releaseWakeLock() {
+        if (wakeLock) {
+            wakeLock.release();
+            wakeLock = null;
+            console.log("Wake Lock manually released due to inactivity");
+        }
+    }
+
+    document.addEventListener("visibilitychange", async () => {
+        if (document.visibilityState === "visible") {
+            // If wake lock is missing OR previously released → request again
+            if (!wakeLock || wakeLock.released) {
+                await requestWakeLock();
+                resetInactivityTimer();
+            }
+        }
+    });
+
+    function resetInactivityTimer() {
+        clearTimeout(inactivityTimer);
+        inactivityTimer = setTimeout(() => {
+            releaseWakeLock();
+        }, INACTIVITY_MINUTES * 60 * 1000);
+    }
+
+    // Start lock when user interacts
+    document.addEventListener("pointerdown", async () => {
+        if (!wakeLock) {
+            await requestWakeLock();
+        }
+        resetInactivityTimer();
+    });
+
+    // Also consider scroll & key activity
+    ["scroll", "keydown", "touchstart"].forEach(event => {
+        document.addEventListener(event, resetInactivityTimer, { passive: true });
+    });
+}
+
+// lins in the reader menu..1stl close the reader menu
 const readerMenuAnkers = document.getElementsByClassName("readerMenuAnker");
 for (let i = 0; i < readerMenuAnkers.length; i++) {
     readerMenuAnkers[i].addEventListener('click', (e) => {

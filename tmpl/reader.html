@@ -120,7 +120,7 @@
     #readerMenu .select-container {
         display: flex;
         align-items: center;
-        gap: 1rem;
+        gap: 0.5rem;
         margin: 1rem 0;
     }
 
@@ -198,6 +198,16 @@
                 <option value="justify">التبرير</option>
             </select>
         </div>
+
+        <div class="select-container">
+            <label for="wakelock">وضع القراءة المستمرّة:</label>
+            <select id="wakelock" disabled="disabled" value="off"
+                style="color:var(--alert);appearance:none;-webkit-appearance:none;-moz-appearance:none;">
+                <option value="off">مطفَأ</option>
+                <option value="on">مشغَّل</option>
+            </select>
+        </div>
+
 
         <div class="sep"></div>
         <h3>روابط</h3>

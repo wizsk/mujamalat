@@ -28,6 +28,9 @@
     }
 
     #update-word-checkbox-conatiner {
+        display: flex;
+        align-items: center;
+        justify-content: center;
         text-align: center;
         margin: 1.4rem 0;
         user-select: none;
@@ -43,7 +46,11 @@
         align-items: center;
         justify-content: center;
         margin-top: 2rem;
-        gap: 1rem;
+        gap: 0.6rem;
+    }
+
+    .fbtn {
+        width: 100%;
     }
 
     #delete-word {
@@ -62,15 +69,15 @@
             الكلمة الأصلية:
             <span id="original-word">عمل</span>
         </div>
-        <input type="text" id="update-word-inpt" class="input-style">
+        <input type="text" id="update-word-inpt" class="input-style" spellcheck="false">
         <div id="update-word-checkbox-conatiner">
             <input type="checkbox" name="update-word-checkbox" id="update-word-checkbox">
             <label for="update-word-checkbox">إن تحتوي</label>
         </div>
         <div id="update-word-btn-container">
-            <button class="btn" id="update-word-btn">موافق</button>
-            <button class="btn" id="delete-word" style="display: none;">امسح</button>
-            <button class="btn" id="update-word-cancel-btn">إلغاء</button>
+            <button class="btn fbtn" id="update-word-btn">موافق</button>
+            <button class="btn fbtn" id="delete-word" style="display: none;">امسح</button>
+            <button class="btn fbtn" id="update-word-cancel-btn">إلغاء</button>
         </div>
     </div>
 </div>

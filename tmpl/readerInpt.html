@@ -17,8 +17,6 @@
 
         :root {
             font-family: 'font';
-            background: whitesmoke;
-
             box-sizing: border-box;
 
             --btn-pad-y: 6px;
@@ -57,6 +55,13 @@
             color: inherit;
         }
 
+        #btn-container {
+            width: 85%;
+            display: flex;
+            align-utems: center;
+            justify-items: center;
+        }
+
         .btn {
             font-size: inherit;
             font-family: inherit;
@@ -66,6 +71,7 @@
             color: var(--bg);
             border: none;
             cursor: pointer;
+            width: 100%;
         }
 
         .btn-red {
@@ -127,7 +133,7 @@
         .hist-item-div {
             display: flex;
             align-items: center;
-            justify-items: start;
+            justify-items: start; /* this is ignored, so it said. but won't remove for now */
             gap: 5px;
             margin: 0.5rem 0;
         }
@@ -202,8 +208,8 @@
 
 <body>
     <form id="form">
-        <textarea name="txt" id="txt" autofocus rows="8" cols="25" spellcheck="false"></textarea>
-        <div>
+        <textarea name="txt" id="txt" autofocus rows="15" cols="25" spellcheck="false"></textarea>
+        <div id="btn-container">
             <button style="margin-left: .5rem;" class="btn" id="submit" type="submit">اذهب</button>
             <button style="margin-right: .5rem;" class="btn btn-red" onclick="txt.value = ''; txt.focus()"
                 type="button">مسح</button>

@@ -339,7 +339,7 @@ if ("wakeLock" in navigator) {
             });
 
             wakelockOptn.value = "on";
-            wakelockOptn.style.color = "";
+            wakelockOptn.style.color = "var(--ok)";
             console.log("Wake Lock active");
         } catch (err) {
             console.error("Wake Lock request failed:", err);

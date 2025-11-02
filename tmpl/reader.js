@@ -57,9 +57,10 @@ function openPopup(e) {
         lastClikedWord.classList.remove("clicked");
     }
 
+    const onlyAr = e.target.dataset.oar;
     const cw = e.target.dataset.cw;
     const cwOK = cw && cw !== "";
-    const hWord = cwOK ? cw : e.target.dataset.oar;
+    const hWord = cwOK ? cw : onlyAr;
 
     // don't show regular delete btn while "contains highlight" mode on
     if (cwOK) highlight.style.display = "none";
@@ -148,7 +149,7 @@ function openPopup(e) {
 
     openDictBtn.onclick = () => {
         closePopup()
-        openDictionay(hWord);
+        openDictionay(onlyAr);
     }
 
     lastClikedWord = e.target;

@@ -34,7 +34,6 @@ type ReaderWord struct {
 	Og   string // origianl
 	Oar  string // only arabic
 	IsHi bool   // is heighlihted
-	Cw   string // original word
 }
 
 type SomethingWentW struct {

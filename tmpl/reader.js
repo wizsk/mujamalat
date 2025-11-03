@@ -7,7 +7,6 @@ const INACTIVITY_MINUTES = 7;
 const reader = document.getElementById("reader");
 const popup = document.getElementById("popup");
 const highlight = document.getElementById("highlight");
-const highlightEdit = document.getElementById("editAndHighlight");
 const openDictBtn = document.getElementById("openDictBtn");
 const readerMenu = document.getElementById("readerMenu");
 const readerMenuBtn = document.getElementById("readerMenuBtn");
@@ -27,14 +26,13 @@ function closePopup() {
     lastClikedWord.classList.remove("clicked");
     lastClikedWord = null;
     popup.classList.add('hidden');
-    highlightEdit.onclick = () => { };
     openDictBtn.onclick = () => { };
 }
 
-async function addOrRmHiClass(word, add, contains) {
+async function addOrRmHiClass(word, add) {
     for (let i = 0; i < wordSpans.length; i++) {
         const w = wordSpans[i].dataset.oar;
-        if (w === word || contains && w.includes(word)) {
+        if (w === word) {
             if (add) {
                 wordSpans[i].classList.add("hi");
             } else {
@@ -45,8 +43,6 @@ async function addOrRmHiClass(word, add, contains) {
 }
 
 
-var isUpdateHighWordPopupOpenPresedBack = false;
-// let lastClikedWord = null;
 // ontop of the main file
 function openPopup(e) {
     if (lastClikedWord) {
@@ -58,21 +54,15 @@ function openPopup(e) {
     }
 
     const onlyAr = e.target.dataset.oar;
-    const cw = e.target.dataset.cw;
-    const cwOK = cw && cw !== "";
-    const hWord = cwOK ? cw : onlyAr;
 
-    // don't show regular delete btn while "contains highlight" mode on
-    if (cwOK) highlight.style.display = "none";
-    else {
-        highlight.style.display = "";
-        if (e.target.classList.contains("hi")) highlight.classList.add("alert");
-        else highlight.classList.remove("alert");
-    }
+    if (e.target.classList.contains("hi")) {
+        highlight.classList.add("alert");
+    } else { highlight.classList.remove("alert");}
 
     highlight.onclick = async () => {
         closePopup();
 
+        const hWord = onlyAr;
         let msg = "&add=true";
         const del = e.target.classList.contains("hi");
         if (del) msg = "&del=true";
@@ -96,55 +86,6 @@ function openPopup(e) {
                 alert(`Couldn't save/del highlight: ${hWord}`);
                 console.error(err)
             });
-    }
-
-
-    highlightEdit.onclick = () => {
-        closePopup();
-
-        // if it is not highligted then update otherwise add
-        const update = e.target.classList.contains("hi");
-
-        history.pushState({}, "", window.location.href);
-        openUpdateHighWordPopup(hWord, cw, update,
-            (oWord, nWord, oContains, contains) => {
-                wordSpans.forEach((e) => {
-                    if (oContains && e.dataset.cw === oWord ||
-                        !oContains && e.dataset.oar === oWord
-                    ) {
-                        e.dataset.cw = "";
-                        e.classList.remove("hi");
-                    }
-
-                    if (contains && e.dataset.oar.includes(nWord)) {
-                        e.dataset.cw = nWord;
-                        e.classList.add('hi');
-                    } else if (!contains && e.dataset.oar === nWord) {
-                        e.dataset.cw = "";
-                        e.classList.add('hi');
-                    }
-                });
-                addOrRmHiClass(nWord, true, contains);
-            },
-            (word, contains) => {
-                wordSpans.forEach((e) => {
-                    if (contains && e.dataset.cw === word) {
-                        e.dataset.cw = "";
-                        e.classList.remove("hi");
-                    } else if (e.dataset.oar === word)
-                        e.classList.remove("hi");
-                });
-            },
-            () => {
-                if (!isUpdateHighWordPopupOpenPresedBack) {
-                    console.log("after cancel going back")
-                    window.history.back();
-                } else {
-                    console.log("reseing to false: isUpdateHighWordPopupOpenPresedBack")
-                    isUpdateHighWordPopupOpenPresedBack = false;
-                }
-            }
-        );
     }
 
     openDictBtn.onclick = () => {
@@ -228,9 +169,6 @@ window.addEventListener("popstate", (e) => {
         document.body.style.overflow = "auto";
         contentHolder.innerHTML = "";
         readerMode = true;
-    } else if (isUpdateHighWordPopupOpen) {
-        isUpdateHighWordPopupOpenPresedBack = true;
-        if (updateWordCancelBtn) updateWordCancelBtn.click();
     }
 });
 

@@ -46,7 +46,7 @@ document.addEventListener("DOMContentLoaded", () => {
         });
     }
 
-    // {{if not .RDMode}} 
+    // {{if not .RDMode}}
     if (w.value.length === 0) w.focus();
     let p = "";
     if (currWord !== "") {
@@ -139,12 +139,14 @@ async function getResAndShow(word) {
 
     contentHolder.innerHTML = `{{template "wait"}}`;
 
-    console.log(`req: /content?dict=${selectedDict}&w=${word}`);
+    // console.log(`req: /content?dict=${selectedDict}&w=${word}`);
     const r = await fetch(`/content?dict=${selectedDict}&w=${word}`).catch((err) =>
         console.error(err)
     );
 
     if (r && r.ok) {
+        console.log(`cached:`, r.headers.get('X-From-Cache'),
+            `/content?dict=${selectedDict}&w=${word}`);
         const h = await r.text();
         contentHolder.innerHTML = h;
     } else {

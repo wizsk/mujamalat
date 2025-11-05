@@ -114,3 +114,7 @@ func MakeArEnDict() *Dictionary {
 
 	return &dict
 }
+
+func serveCacheSw(w http.ResponseWriter, r *http.Request) {
+	http.ServeFileFS(w, r, staticData, cacheSWFilePath)
+}

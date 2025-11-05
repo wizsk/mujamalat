@@ -90,3 +90,7 @@ func MakeArEnDict() *Dictionary {
 
 	return &dict
 }
+
+func serveCacheSw(w http.ResponseWriter, r *http.Request) {
+	http.ServeFile(w, r, filepath.Join(rootDir, cacheSWFilePath))
+}

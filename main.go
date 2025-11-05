@@ -25,6 +25,7 @@ const (
 	genricTemplateName     = "genric-dict"
 	highLightsTemplateName = "high.html"
 	loginTemplateName      = "login.html"
+	cacheSWFilePath        = "tmpl/cache.js"
 	portRangeStart         = 8080
 	portrangeEnd           = 8099
 

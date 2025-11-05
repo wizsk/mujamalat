@@ -82,5 +82,6 @@ async function changeQueryIdx(el, word, idx) {
     if (old) old.id = "";
 
     el.id = 'querySelector-item-selected';
+    currWord = word;
     getResAndShow(word);
 }

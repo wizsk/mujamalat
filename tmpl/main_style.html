@@ -439,7 +439,8 @@
 
 	table thead,
 	tr:nth-child(even) {
-		background-color: rgba(from var(--accent) r g b / 10%);
+		background-color:
+			color-mix(in srgb, var(--accent), transparent 90%);
 	}
 </style>
 <script>

@@ -57,8 +57,7 @@ document.addEventListener('keydown', (e) => {
         return;
     }
 
-    if (document.activeElement === w ||
-        (updateWordInpt && document.activeElement === updateWordInpt))
+    if (document.activeElement === w)
         return;
 
     if (e.code && /^Digit[1-9]$/.test(e.code)) {

@@ -76,6 +76,7 @@ func (rd *readerConf) highlight(w http.ResponseWriter, r *http.Request) {
 			f.Close()
 			return
 		}
+		f.WriteString("\n")
 		f.Close()
 
 		if !fetalErrOk(os.Rename(tmpFile, rd.hFilePath)) {
@@ -118,20 +119,39 @@ func (rd *readerConf) deletePage(w http.ResponseWriter, r *http.Request) {
 
 	d := rd.permDir
 
-	found, err := isSumInEntries(sha, filepath.Join(d, entriesFileName), true)
-	if err != nil {
-		http.Error(w, err.Error(), http.StatusInternalServerError)
-		lg.Println("while deleting:", err)
-		return
-	} else if found == "" {
+	if _, found := rd.enMap[sha]; !found {
 		http.Error(w, fmt.Sprintf("could not find: %q", sha), http.StatusBadRequest)
-		lg.Println("coundn't find for deleting:", sha)
+		return
+	}
+
+	delete(rd.enMap, sha)
+	rd.enArr, _ = removeArrItmFunc(rd.enArr, func(i int) bool {
+		return rd.enArr[i].Sha == sha
+	})
+	rd.setEnArrRev()
+
+	sb := new(strings.Builder)
+	for _, e := range rd.enArr {
+		sb.WriteString(e.String())
+		sb.WriteByte('\n')
+	}
+
+	enTmp := rd.enFilePath + ".tmp"
+	enFile, err := fetalErrVal(os.Create(enTmp))
+	if err != nil {
+		http.Error(w, "something went wrong", http.StatusInternalServerError)
+		return
+	}
+	if !fetalErrOkD(enFile.WriteString(sb.String())) ||
+		!fetalErrOk(enFile.Close()) ||
+		!fetalErrOk(os.Rename(enTmp, rd.enFilePath)) {
+		http.Error(w, "something went wrong", http.StatusInternalServerError)
 		return
 	}
 
 	f := filepath.Join(d, sha)
-	if err = os.Remove(f); err != nil && !os.IsNotExist(err) {
-		http.Error(w, err.Error(), http.StatusInternalServerError)
+	if err := os.Remove(f); err != nil && !os.IsNotExist(err) {
+		http.Error(w, "something went wrong", http.StatusInternalServerError)
 		lg.Printf("while deleting %q: %v", f, err)
 		return
 	}

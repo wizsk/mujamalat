@@ -3,106 +3,71 @@ package main
 import (
 	"bufio"
 	"bytes"
+	"fmt"
 	"net/http"
-	"slices"
-	"strings"
 
 	"os"
 	"path/filepath"
 )
 
 type EntryInfo struct {
+	Arc  bool // Archive
 	Sha  string
 	Name string
 }
 
-func (rd *readerConf) getEntieslist() ([]EntryInfo, error) {
+func (e *EntryInfo) String() string {
+	a := "0"
+	if e.Arc {
+		a = "1"
+	}
+	return fmt.Sprintf("%s:%s:%s", a, e.Sha, e.Name)
+}
+
+func (rd *readerConf) loadEntieslist() error {
+	const sz = 50 // size
+	rd.enMap = make(map[string]EntryInfo, sz)
+	rd.enArr = make([]EntryInfo, 0, sz)
+
 	fileName := filepath.Join(rd.permDir, entriesFileName)
 	file, err := os.Open(fileName)
 	if err != nil {
 		if os.IsNotExist(err) {
-			return nil, nil
+			return nil
 		}
-		return nil, err
+		return err
 	}
 	defer file.Close()
 
 	s := bufio.NewScanner(file)
-	var entries []EntryInfo
-
+	const itmc = 3 // entries items count
 	for i := 0; s.Scan(); i++ {
-		b := bytes.SplitN(s.Bytes(), []byte{':'}, 2)
-		if len(b) != 2 {
+		b := bytes.SplitN(s.Bytes(), []byte{':'}, itmc)
+		if len(b) != itmc || len(b[0]) != 1 {
 			lg.Printf("Warn: malformed data:%s:%d: %s", fileName, i, s.Text())
 			continue
 		}
-		entries = append(entries, EntryInfo{
-			Sha:  string(b[0]),
-			Name: string(b[1]),
-		})
+
+		e := EntryInfo{
+			Arc:  b[0][0] == byte(1),
+			Sha:  string(b[1]),
+			Name: string(b[2]),
+		}
+
+		rd.enMap[e.Sha] = e
+		rd.enArr = append(rd.enArr, e)
 	}
 
-	slices.Reverse(entries)
-	return entries, nil
+	rd.setEnArrRev()
+	return nil
 }
 
-// call it in locked stage!
-// checks if the given sha is in entries.
-// if found returns the pageName otherwise "".
-// if del is true deletes the found entrey.
-//
-// wont error on fileNotExists
-func isSumInEntries(sha, entriesFilePath string, del bool) (string, error) {
-	if sha == "" || entriesFilePath == "" {
-		return "", nil
+func (rd *readerConf) getEntriesInfo(sha string) *EntryInfo {
+	i, ok := rd.enMap[sha]
+	if ok {
+		return &i
 	}
-
-	entriesFile, err := os.Open(entriesFilePath)
-	if err != nil {
-		if os.IsNotExist(err) {
-			return "", nil
-		}
-		return "", err
-	}
-
-	sb := strings.Builder{}
-	found := ""
-	s := bufio.NewScanner(entriesFile)
-	for s.Scan() {
-		b := s.Text()
-		i := strings.IndexByte(b, ':')
-		if i < 0 {
-			continue // bad entry
-		}
-		if sha == b[:i] {
-			found = b[i+1:]
-			if del {
-				continue // continue collecting
-			} else {
-				return found, nil
-			}
-		}
-		if del {
-			sb.WriteString(b)
-			sb.WriteByte('\n')
-		}
-	}
-	entriesFile.Close()
-
-	if !del {
-		return "", nil
-	}
-
-	entriesFile, err = os.Create(entriesFilePath)
-	if err != nil {
-		return found, err
-	}
-
-	_, err = entriesFile.WriteString(sb.String())
-	if err != nil {
-		return found, err
-	}
-	return found, entriesFile.Close()
+	return nil
 }
 
 // if err then true
@@ -121,6 +86,10 @@ func mkHistDirAll(d string, w http.ResponseWriter) bool {
 // append or create if not exists
 func openAppend(f string) (*os.File, error) {
 	return os.OpenFile(f, os.O_APPEND|os.O_CREATE|os.O_WRONLY, 0644)
+}
+
+func (rd *readerConf) setEnArrRev() {
+	rd.enArrRev = copyRev(rd.enArrRev, rd.enArr)
 }
 
 // has to be called while lock mode!

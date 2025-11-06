@@ -313,3 +313,25 @@ func removeArrItm[T comparable](a []T, itm T) ([]T, bool) {
 	}
 	return a, false
 }
+
+func removeArrItmFunc[T any](a []T, cmp func(int) bool) ([]T, bool) {
+	for i := range len(a) {
+		if cmp(i) {
+			return append(a[:i], a[i+1:]...), true
+		}
+	}
+	return a, false
+}
+
+// shallow copy
+func copyRev[T any](dst, src []T) []T {
+	if dst == nil {
+		dst = make([]T, 0, len(src))
+	} else {
+		dst = dst[:0]
+	}
+	for i := len(src) - 1; i > -1; i-- {
+		dst = append(dst, src[i])
+	}
+	return dst
+}

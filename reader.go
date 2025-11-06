@@ -19,12 +19,16 @@ const (
 )
 
 type readerConf struct {
-	m         sync.RWMutex
-	t         templateWraper
-	permDir   string
-	hFilePath string
-	hMap      map[string]struct{}
-	hArr      []string
+	m          sync.RWMutex
+	t          templateWraper
+	permDir    string
+	hFilePath  string
+	enFilePath string
+	enArr      []EntryInfo
+	enArrRev   []EntryInfo
+	enMap      map[string]EntryInfo // sha
+	hMap       map[string]struct{}
+	hArr       []string
 }
 
 func newReader(gc *globalConf, t templateWraper) *readerConf {
@@ -53,14 +57,21 @@ func newReader(gc *globalConf, t templateWraper) *readerConf {
 
 	if _, err := os.Stat(n); err != nil {
 		if err = os.MkdirAll(n, 0700); err != nil && !os.IsExist(err) {
-			fmt.Printf("FETAL: Could not create the hist file! %s", n)
+			fmt.Printf("FETAL: Could not create the hist file! %s\n", n)
 			os.Exit(1)
 		}
 	}
 
+	rd.enFilePath = filepath.Join(n, entriesFileName)
 	rd.hFilePath = filepath.Join(n, highlightsFileName)
+
 	if gc.deleteSessions {
 		return &rd
+	}
+
+	if err := rd.loadEntieslist(); err != nil {
+		fmt.Printf("FETAL: while loading enties: %s\n", err)
+		os.Exit(1)
 	}
 
 	hFilePathOldOld := rd.hFilePath + ".old.old"
@@ -117,29 +128,22 @@ func (rd *readerConf) page(w http.ResponseWriter, r *http.Request) {
 	h := strings.TrimPrefix(r.URL.Path, "/rd/")
 	if h == "" {
 		// meaning the readerPage.
-		entries, err := rd.getEntieslist()
-		if err != nil {
-			t.ExecuteTemplate(w, somethingWentWrong, &SomethingWentW{"Something went wrong", ""})
-			lg.Panicln("err:", err)
-			return
-		}
-		err = t.ExecuteTemplate(w, "readerInpt.html", entries)
+		err := t.ExecuteTemplate(w, "readerInpt.html", rd.enArrRev)
 		if debug && err != nil {
-			lg.Panicln(err)
+			lg.Println(err)
 		}
 		return
 	}
 
 	// serve the saved file
-	d := rd.permDir
-	pageName, _ := isSumInEntries(h, filepath.Join(d, entriesFileName), false)
-	if pageName == "" {
+	ei := rd.getEntriesInfo(h)
+	if ei == nil {
 		w.WriteHeader(http.StatusNotFound)
 		t.ExecuteTemplate(w, somethingWentWrong, &SomethingWentW{"Could not find page", "/rd/"})
 		return
 	}
 
-	fn := filepath.Join(d, h)
+	fn := filepath.Join(rd.permDir, ei.Sha)
 	f, err := os.Open(fn)
 	if err != nil {
 		w.WriteHeader(http.StatusNotFound)
@@ -170,7 +174,7 @@ func (rd *readerConf) page(w http.ResponseWriter, r *http.Request) {
 	}
 	f.Close()
 
-	readerConf := ReaderData{pageName, peras}
+	readerConf := ReaderData{ei.Name, peras}
 	tm := TmplData{Curr: "ar_en", Dicts: dicts, DictsMap: dictsMap, RD: readerConf, RDMode: true}
 	if err := t.ExecuteTemplate(w, mainTemplateName, &tm); debug && err != nil {
 		lg.Println(err)
@@ -184,7 +188,6 @@ func (rd *readerConf) post(w http.ResponseWriter, r *http.Request) {
 	}
 
 	d := rd.permDir
-	entriesFilePath := filepath.Join(d, entriesFileName)
 
 	rd.m.Lock()
 	defer rd.m.Unlock()
@@ -193,14 +196,9 @@ func (rd *readerConf) post(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	found, err := isSumInEntries(sha, entriesFilePath, false)
-	if err != nil {
-		lg.Println(err)
-	}
-
 	url := "/rd/" + sha
 	// exisits in the entris so skip writing
-	if found != "" {
+	if _, found := rd.enMap[sha]; found {
 		http.Redirect(w, r, url, http.StatusMovedPermanently)
 		return
 	}
@@ -219,17 +217,26 @@ func (rd *readerConf) post(w http.ResponseWriter, r *http.Request) {
 	file.Close()
 
 	// after successful write to file insert into entries
-	entries, err := fetalErrVal(openAppend(entriesFilePath))
+	entries, err := fetalErrVal(openAppend(rd.enFilePath))
 	if err != nil {
 		http.Error(w, "coun't write to disk", http.StatusInternalServerError)
 		return
 	}
-
-	if !fetalErrOkD(entries.WriteString(sha + ":" + pageName + "\n")) {
+	str := "0:" + sha + ":" + pageName + "\n"
+	if !fetalErrOkD(entries.WriteString(str)) {
 		http.Error(w, "coun't write to disk", http.StatusInternalServerError)
 		return
 	}
 	entries.Close()
+
+	e := EntryInfo{
+		Arc:  false,
+		Sha:  sha,
+		Name: pageName,
+	}
+	rd.enMap[sha] = e
+	rd.enArr = append(rd.enArr, e)
+	rd.setEnArrRev()
 
 	http.Redirect(w, r, url, http.StatusMovedPermanently)
 }

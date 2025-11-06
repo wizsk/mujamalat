@@ -304,3 +304,12 @@ func copyFile(src, dst string) error {
 
 	return nil
 }
+
+func removeArrItm[T comparable](a []T, itm T) ([]T, bool) {
+	for i := range len(a) {
+		if a[i] == itm {
+			return append(a[:i], a[i+1:]...), true
+		}
+	}
+	return a, false
+}

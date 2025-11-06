@@ -24,6 +24,7 @@ type readerConf struct {
 	permDir   string
 	hFilePath string
 	hMap      map[string]struct{}
+	hArr      []string
 }
 
 func newReader(gc *globalConf, t templateWraper) *readerConf {
@@ -84,15 +85,25 @@ func newReader(gc *globalConf, t templateWraper) *readerConf {
 		fmt.Printf("INFO: highlight history file backedup to %q\n", hFilePathOld)
 	}
 
-	rd.hMap = make(map[string]struct{})
-	if f, err := os.Open(rd.hFilePath); err == nil {
-		s := bufio.NewScanner(f)
-		for s.Scan() {
-			l := strings.TrimSpace(s.Text())
-			if l != "" {
+	const ds = 100
+	if f, err := os.ReadFile(rd.hFilePath); err == nil {
+		sl := bytes.Split(f, []byte("\n"))
+
+		rd.hMap = make(map[string]struct{}, len(sl)+ds)
+		rd.hArr = make([]string, 0, len(sl)+ds)
+
+		for i := range len(sl) {
+			lb := bytes.TrimSpace(sl[i])
+			if len(lb) > 0 {
+				l := string(lb)
 				rd.hMap[l] = struct{}{}
+				rd.hArr = append(rd.hArr, l)
 			}
 		}
+	}
+	if rd.hMap == nil {
+		rd.hMap = make(map[string]struct{}, ds)
+		rd.hArr = make([]string, 0, ds)
 	}
 
 	return &rd

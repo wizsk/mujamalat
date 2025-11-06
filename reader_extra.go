@@ -9,7 +9,6 @@ import (
 	"net/http"
 	"os"
 	"path/filepath"
-	"slices"
 	"strings"
 )
 
@@ -19,28 +18,19 @@ type HighLightData struct {
 
 func (rd *readerConf) highlightList(w http.ResponseWriter, r *http.Request) {
 	rd.m.RLock()
-	defer rd.m.RUnlock()
-
-	hi, err := os.Open(rd.hFilePath)
-	if err != nil && !os.IsNotExist(err) {
-		http.Error(w, "some went wrong", http.StatusInternalServerError)
-		lg.Println("WARN:", err)
-		return
+	rw := make([]ReaderWord, 0, len(rd.hArr))
+	for i := len(rd.hArr) - 1; i > -1; i-- {
+		rw = append(rw, ReaderWord{
+			Oar: rd.hArr[i],
+		})
 	}
-	defer hi.Close()
+	rd.m.RUnlock()
 
-	s := bufio.NewScanner(hi)
-	hd := HighLightData{}
-	for s.Scan() {
-		l := bytes.TrimSpace(s.Bytes())
-		if len(l) > 0 {
-			hd.Words = append(hd.Words, ReaderWord{
-				Oar: string(l),
-			})
-		}
+	hd := HighLightData{
+		Words: rw,
 	}
-	slices.Reverse(hd.Words)
-	if err = rd.t.ExecuteTemplate(w, highLightsTemplateName, &hd); debug && err != nil {
+
+	if err := rd.t.ExecuteTemplate(w, highLightsTemplateName, &hd); debug && err != nil {
 		lg.Println(err)
 	}
 }
@@ -74,34 +64,20 @@ func (rd *readerConf) highlight(w http.ResponseWriter, r *http.Request) {
 	}
 
 	if del {
-		f, err := fetalErrVal(os.Open(rd.hFilePath))
-		if err != nil {
-			http.Error(w, "could not write to disk", http.StatusInternalServerError)
-			return
-		}
-		s := bufio.NewScanner(f)
-		b := strings.Builder{}
-
-		for s.Scan() {
-			t := strings.TrimSpace(s.Text())
-			if t != "" && t != word {
-				b.WriteString(t)
-				b.WriteRune('\n')
-			}
-		}
-		f.Close()
+		rd.hArr, _ = removeArrItm(rd.hArr, word)
 
 		tmpFile := rd.hFilePath + ".tmp"
-		f, err = fetalErrVal(os.Create(tmpFile))
+		f, err := fetalErrVal(os.Create(tmpFile))
 		if err != nil {
 			http.Error(w, "could not write to disk", http.StatusInternalServerError)
 			return // err
 		}
-		if !fetalErrOkD(f.WriteString(b.String())) {
+		if !fetalErrOkD(f.WriteString(strings.Join(rd.hArr, "\n"))) {
 			f.Close()
 			return
 		}
 		f.Close()
+
 		if !fetalErrOk(os.Rename(tmpFile, rd.hFilePath)) {
 			http.Error(w, "server err", http.StatusInternalServerError)
 			return
@@ -121,8 +97,10 @@ func (rd *readerConf) highlight(w http.ResponseWriter, r *http.Request) {
 	// after successful write to disk change in mem variables
 	if del {
 		delete(rd.hMap, word)
+		// in hArr word already deleted
 	} else if add {
 		rd.hMap[word] = struct{}{}
+		rd.hArr = append(rd.hArr, word)
 	}
 
 	w.WriteHeader(http.StatusAccepted)

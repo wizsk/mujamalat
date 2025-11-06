@@ -53,6 +53,8 @@
         textarea {
             background-color: inherit;
             color: inherit;
+            border: 2px solid #ccc;
+            border-radius: var(--border-radious);
         }
 
         #btn-container {
@@ -307,17 +309,18 @@
 
         const del = document.getElementsByClassName("del");
         for (let i = 0; i < del.length; i++) {
-            del[i].onclick = (e) => {
-                const pName = del[i].dataset.name.slice(0, 50) +
-                    (del[i].dataset.name.length > 50 ? "..." : "");
+            const cd = del[i];
+            cd.onclick = (e) => {
+                const pName = cd.dataset.name.slice(0, 50) +
+                    (cd.dataset.name.length > 50 ? "..." : "");
 
                 console.log(pName);
                 const c = confirm("هل تريد أن تمسح: " + pName + "؟");
                 if (!c) return;
-                fetch(del[i].dataset.link, { method: "POST" })
+                fetch(cd.dataset.link, { method: "POST" })
                     .then(async (r) => {
                         if (r.ok && r.status === 202) {
-                            histItems.removeChild(del[i].parentElement)
+                            histItems.removeChild(cd.parentElement)
                             if (histItems.childElementCount === 0) {
                                 hist.style.display = "none";
                             }

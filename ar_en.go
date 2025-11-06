@@ -32,7 +32,7 @@ type Entry_arEn struct {
 
 func (d *Dictionary) FindWords(words string) []Entry_arEn {
 	var res []Entry_arEn
-	for _, w := range strings.Split(words, " ") {
+	for w := range strings.SplitSeq(words, " ") {
 		if w != "" {
 			res = append(res, d.FindWord(w)...)
 		}
@@ -49,7 +49,7 @@ func (d *Dictionary) FindWord(word string) []Entry_arEn {
 	for _, q := range transliterateRmHarakats(word) {
 		w := []rune(q)
 
-		for i := 0; i < len(w); i++ {
+		for i := range len(w) {
 			for j := i + 1; j <= len(w); j++ {
 				c := d.dict(rSlice(w, 0, i), rSlice(w, i, j), rSlice(w, j, len(w)))
 				res = append(res, c...)

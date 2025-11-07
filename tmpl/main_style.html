@@ -15,6 +15,13 @@
 		font-style: normal;
 	}
 
+	@font-face {
+		font-family: "amiri";
+		src: url("/pub/Amiri-Regular.ttf") format("truetype");
+		font-weight: normal;
+		font-style: normal;
+	}
+
 	:root {
 		direction: rtl;
 		font-family: 'font';
@@ -385,16 +392,9 @@
 
 {{define "eng-style"}}
 <style id="eng_style">
-	@font-face {
-		font-family: "eng-font";
-		src: url("/pub/Amiri-Regular.ttf") format("truetype");
-		font-weight: normal;
-		font-style: normal;
-	}
-
 	#content,
 	#content div {
-		font-family: "eng-font";
+		font-family: "amiri";
 		direction: ltr !important;
 	}
 

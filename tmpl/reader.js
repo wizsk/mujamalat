@@ -221,19 +221,19 @@ function getVewingModeLSN() {
     return `${window.location.pathname}-vewingMode`
 }
 
-const textJustifyClassName = 'text-justify';
+const textRightClassName = 'text-right';
 textAlign.onchange = (e) => {
     const val = e.target.value;
     switch (val) {
         case "right":
-            reader.classList.remove(textJustifyClassName);
-            setPopUpPos();
-            window.localStorage.removeItem(getTextAlignLSN());
-            break;
-        case "justify":
-            reader.classList.add(textJustifyClassName);
+            reader.classList.add(textRightClassName);
             setPopUpPos();
             window.localStorage.setItem(getTextAlignLSN(), val);
+            break;
+        case "justify":
+            reader.classList.remove(textRightClassName);
+            setPopUpPos();
+            window.localStorage.removeItem(getTextAlignLSN());
             break;
     }
 }
@@ -255,9 +255,9 @@ document.addEventListener('DOMContentLoaded', () => {
         vewingMode.value = "poem";
     }
 
-    if (window.localStorage.getItem(getTextAlignLSN()) === "justify") {
-        reader.classList.add(textJustifyClassName);
-        textAlign.value = "justify";
+    if (window.localStorage.getItem(getTextAlignLSN()) === "right") {
+        reader.classList.add(textRightClassName);
+        textAlign.value = "right";
     }
 
 });

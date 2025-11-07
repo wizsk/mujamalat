@@ -21,7 +21,7 @@
 
     #reader {
         max-width: 35em;
-        text-align: right;
+        text-align: justify;
         margin-left: auto;
         margin-right: auto;
         margin-top: 2rem;
@@ -29,8 +29,8 @@
         margin-bottom: 8rem;
     }
 
-    .text-justify {
-        text-align: justify !important;
+    .text-right {
+        text-align: right !important;
     }
 
     .pera {
@@ -151,6 +151,15 @@
         display: inline;
         font-weight: bold;
     }
+
+    #text-align {
+        pointer-events:none;
+        opacity: 0.5;
+    }
+
+    #reader {
+        text-align: right !important;
+    }
 </style>
 <script>document.getElementById("poem").disabled = true;</script>
 {{end}}
@@ -179,6 +188,7 @@
             <select id="font-selector">
                 <option value="font">كتاب</option>
                 <option value="uthman">عثمان</option>
+                <option value="amiri">أميري</option>
             </select>
         </div>
 
@@ -193,8 +203,8 @@
         <div class="select-container">
             <label for="text-align">محاذاة النص:</label>
             <select id="text-align">
-                <option value="right">لليمين</option>
                 <option value="justify">التبرير</option>
+                <option value="right">لليمين</option>
             </select>
         </div>
 

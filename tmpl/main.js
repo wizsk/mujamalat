@@ -8,6 +8,7 @@ const contentHolder = document.getElementById("content");
 const dicts = document.getElementsByClassName('sw-dict-item');
 const changeDict = document.getElementById("change-dict");
 const changeDictInpt = document.getElementById("change-dict-inpt");
+const w = document.getElementById("w");
 const input = w;
 let currWord = "{{if .Queries}}{{index .Queries .Idx}}{{end}}";
 let preQuery = "{{.Query}}"; // this is current query belive it or not! lol
@@ -58,23 +59,32 @@ document.addEventListener("DOMContentLoaded", () => {
 
 w.onfocus = () => showHideNav(true);
 
+
 let lastScrollTop = 0;
 let navHidden = false;
+const threshold = 5; // adjust as needed
 window.addEventListener("scroll", function () {
-    let currentScroll = window.pageYOffset || document.documentElement.scrollTop;
-    showHideNav(currentScroll < lastScrollTop);
-    lastScrollTop = currentScroll <= 0 ? 0 : currentScroll; // Prevent negative scroll values
-    // {{if .RDMode}}
-    closePopup();
-    // {{end}}
+    const currentScroll = window.pageYOffset || document.documentElement.scrollTop;
+
+    // Only toggle if movement is greater than threshold
+    if (Math.abs(currentScroll - lastScrollTop) > threshold) {
+        showHideNav(currentScroll < lastScrollTop);
+        lastScrollTop = currentScroll;
+        // {{if .RDMode}}
+        closePopup();
+        // {{end}}
+    }
 });
+
 
 // {{if .RDMode}}
 let lastScrollTopDict = 0;
 dict_container.addEventListener("scroll", function () {
     let currentScroll = dict_container.scrollTop;
-    showHideNav(currentScroll < lastScrollTopDict);
-    lastScrollTopDict = currentScroll <= 0 ? 0 : currentScroll; // Prevent negative scroll values
+    if (Math.abs(currentScroll - lastScrollTopDict) > threshold) {
+        showHideNav(currentScroll < lastScrollTopDict);
+        lastScrollTopDict = currentScroll;
+    }
 });
 // {{end}}
 

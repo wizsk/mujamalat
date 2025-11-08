@@ -42,6 +42,7 @@ for (let i = 0; i < dicts.length; i++) {
  * @returns
  */
 function showHideNav(show, force) {
+    // console.log("showHideNav called:", show, force);
     if (show) {
         if (!navHidden && !force) return;
 
@@ -50,11 +51,18 @@ function showHideNav(show, force) {
         navHidden = false;
     } else {
         if (navHidden && !force) return;
+        if (document.activeElement === w && !force) return;
 
         if (!readerMode) {
-            const s = querySelector.classList.contains('hidden') ? getFullHeight(nav)
-                : getFullHeight(form) + getFullHeight(sw_dict);
-
+            let s = 0;
+            if (querySelector.classList.contains('hidden')) {
+                const rect = nav.getBoundingClientRect();
+                const style = window.getComputedStyle(nav);
+                const paddingTop = parseFloat(style.paddingTop);
+                s = getFullHeight(form) + paddingTop;
+            } else {
+                s =getFullHeight(form) + getFullHeight(sw_dict);
+            }
             nav.style.transform = `translateY(-${s}px)`;
         }
         overlay.style.transform = `translateY(180px)`;

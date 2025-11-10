@@ -270,11 +270,7 @@ if ("wakeLock" in navigator) {
             wakeLock.addEventListener("release", async () => {
                 wakelockOptn.value = "off";
                 wakelockOptn.style.color = "var(--alert)";
-                console.log("Wake Lock lost — attempting to restore");
-                // Try restoring only if page is still visible
-                if (document.visibilityState === "visible") {
-                    await requestWakeLock();
-                }
+                console.log("Wake Lock lost");
             });
 
             wakelockOptn.value = "on";

@@ -117,8 +117,7 @@ w.oninput = () => {
                 const v = queryArr[i];
                 let idx = "";
                 if (i < 10)
-                    idx = `${i + 1}:`.replace(/[0-9]/g, (d) =>
-                        String.fromCharCode(0x0660 + parseInt(d)));
+                    idx = `${enToArNum(i + 1)}:`;
 
                 b += `<button onclick='changeQueryIdx(this, ${JSON.stringify(v)}, ${i})'
                 class="querySelector-item" id="${queryArr.length - 1 === i ? 'querySelector-item-selected' : ''}">
@@ -178,4 +177,9 @@ function getFullHeight(element) {
     // Full height = content height + padding + border + margin
     const fullHeight = rect.height + marginTop + marginBottom + paddingTop + paddingBottom + borderTop + borderBottom;
     return fullHeight;
+}
+
+function enToArNum(n) {
+    return `${n}`.replace(/[0-9]/g, (d) =>
+        String.fromCharCode(0x0660 + parseInt(d)));
 }

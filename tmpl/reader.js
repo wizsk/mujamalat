@@ -262,6 +262,36 @@ document.addEventListener('DOMContentLoaded', () => {
 
 });
 
+/** LSN = local storage name */
+function getScrollLSN() {
+    return `${window.location.pathname}-scroll`
+}
+
+let saveTimeOutScroll;
+window.addEventListener("scroll", () => {
+    clearTimeout(saveTimeOutScroll);
+    saveTimeOutScroll = setTimeout(() => {
+        if (window.scrollY === 0) {
+            localStorage.removeItem(getScrollLSN());
+        } else {
+            localStorage.setItem(getScrollLSN(), window.scrollY)
+        };
+    }, 200);
+});
+
+window.addEventListener("load", () => {
+    const saved = localStorage.getItem(getScrollLSN());
+    if (saved !== null) {
+        setTimeout(() => {
+            window.scrollTo({
+                top: Number(saved),
+                behavior: "smooth"
+            });
+        }, 50);
+    }
+});
+
+
 if ("wakeLock" in navigator) {
     async function requestWakeLock() {
         try {

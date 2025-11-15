@@ -92,8 +92,30 @@ func (rd *readerConf) setEnArrRev() {
 	rd.enArrRev = copyRev(rd.enArrRev, rd.enArr)
 }
 
-// has to be called while lock mode!
-// func (rd *readerConf) inHighlight(w string) bool {
-// 	_, ok := rd.hMap[keepOnlyArabic(w)]
-// 	return ok
-// }
+func cleanSpacesInPlace(data []byte) []byte {
+	cur := 0 // cursor
+	for i := range len(data) {
+		if '\t' != data[i] && '\n' != data[i] && '\v' != data[i] &&
+			'\f' != data[i] && '\r' != data[i] && ' ' != data[i] {
+			data[cur] = data[i]
+			cur++
+		} else if cur > 0 && data[i] == ' ' && data[cur-1] != ' ' && data[cur-1] != '\n' {
+			data[cur] = ' '
+			cur++
+		} else if cur > 0 && data[i] == '\n' && data[cur-1] != '\n' {
+			if data[cur-1] == ' ' {
+				data[cur-1] = '\n'
+			} else {
+				data[cur] = '\n'
+				cur++
+			}
+		}
+	}
+
+	if cur > 0 {
+		if data[cur-1] == ' ' || data[cur-1] == '\n' {
+			cur--
+		}
+	}
+	return data[:cur]
+}

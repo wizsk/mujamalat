@@ -178,7 +178,7 @@ func (rc *readerConf) validatePostAnd(w http.ResponseWriter, r *http.Request) (s
 	}
 	r.Body.Close()
 
-	data = bytes.TrimSpace(data)
+	data = cleanSpacesInPlace(data)
 	if len(data) == 0 {
 		return
 	}

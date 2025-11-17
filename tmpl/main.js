@@ -90,6 +90,7 @@ dict_container.addEventListener("scroll", function () {
 
 form.onsubmit = (e) => {
     e.preventDefault();
+    w.blur();
     // {{if not .RDMode}}
     window.location.href = `${window.location.pathname}?w=${w.value}&idx=${queryIdx}`;
     // {{end}}

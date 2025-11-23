@@ -74,7 +74,7 @@ window.addEventListener("scroll", function () {
         closePopup();
         // {{end}}
     }
-});
+}, { passive: true });
 
 
 // {{if .RDMode}}
@@ -85,7 +85,7 @@ dict_container.addEventListener("scroll", function () {
         showHideNav(currentScroll < lastScrollTopDict);
         lastScrollTopDict = currentScroll;
     }
-});
+}, { passive: true });
 // {{end}}
 
 form.onsubmit = (e) => {

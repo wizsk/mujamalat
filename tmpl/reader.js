@@ -14,6 +14,7 @@ const wordSpans = document.querySelectorAll(".rWord");
 const vewingMode = document.getElementById("vewing-mode");
 const textAlign = document.getElementById("text-align");
 const poemStyle = document.getElementById("poem");
+const poemLineNumHide = document.getElementById("hide-line-numbers");
 const fontSelector = document.getElementById("font-selector");
 
 for (let i = 0; i < wordSpans.length; i++) {
@@ -221,6 +222,19 @@ function getVewingModeLSN() {
     return `${window.location.pathname}-vewingMode`
 }
 
+/** LSN = local storage name */
+function getPoemLineNumHideLSN() {
+    return `${window.location.pathname}-poem-line-number-hide`
+}
+
+poemLineNumHide.onchange = (e) => {
+    if (e.target.checked) {
+        window.localStorage.setItem(getPoemLineNumHideLSN(), "true");
+    } else {
+        window.localStorage.removeItem(getPoemLineNumHideLSN());
+    }
+}
+
 const textRightClassName = 'text-right';
 textAlign.onchange = (e) => {
     const val = e.target.value;
@@ -258,6 +272,10 @@ document.addEventListener('DOMContentLoaded', () => {
     if (window.localStorage.getItem(getTextAlignLSN()) === "right") {
         reader.classList.add(textRightClassName);
         textAlign.value = "right";
+    }
+
+    if (window.localStorage.getItem(getPoemLineNumHideLSN())) {
+        poemLineNumHide.checked = true;
     }
 
 });

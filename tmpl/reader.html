@@ -137,6 +137,10 @@
         user-select: none;
         display: none;
     }
+
+    #hide-line-numbers-div {
+        display: none !important;
+    }
 </style>
 
 <style id="poem">
@@ -147,9 +151,19 @@
     .pera:nth-of-type(2n) {
         text-indent: 3.5rem;
     }
+
     .poem-line-num {
         display: inline;
         font-weight: bold;
+    }
+
+    #hide-line-numbers-div {
+        display: flex !important;
+        user-select: none;
+    }
+
+    body:has(#hide-line-numbers:checked) .poem-line-num {
+        display: none;
     }
 
     #text-align {
@@ -198,6 +212,11 @@
                 <option value="normal">عادي</option>
                 <option value="poem">قصيدة</option>
             </select>
+        </div>
+
+        <div id="hide-line-numbers-div" class="select-container">
+            <label for="hide-line-numbers">إخفاء أرقام الأبيات:</label>
+            <input type="checkbox" id="hide-line-numbers">
         </div>
 
         <div class="select-container">

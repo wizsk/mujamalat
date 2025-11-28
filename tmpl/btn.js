@@ -42,7 +42,7 @@ function scroolToTop() {
         // {{end}}
         dict_container.scrollTo({ top: 0, behavior: 'smooth' });
         w.focus();
-        w.select();
+        w.setSelectionRange(w.value.length, w.value.length);
     }
 }
 

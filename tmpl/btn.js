@@ -37,10 +37,11 @@ function scroolToTop() {
     if (readerMode) {
         window.scrollTo({ top: 0, behavior: 'smooth' });
     } else {
-        // {{if .RDMode}} this is for when just dict mode
-        window.scrollTo({ top: 0, behavior: 'smooth' });
-        // {{end}}
-        dict_container.scrollTo({ top: 0, behavior: 'smooth' });
+        // TODO: FIX THIS
+        // // {{if .RDMode}} this is for when just dict mode
+        // window.scrollTo({ top: 0, behavior: 'smooth' });
+        // // {{end}}
+        // dict_container.scrollTo({ top: 0, behavior: 'smooth' });
         w.focus();
         w.setSelectionRange(w.value.length, w.value.length);
     }

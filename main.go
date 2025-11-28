@@ -23,6 +23,7 @@ const (
 	mainTemplateName       = "main.html"
 	somethingWentWrong     = "something-wrong"
 	genricTemplateName     = "genric-dict"
+	engDictTemplateName    = "eng-dict"
 	highLightsTemplateName = "high.html"
 	loginTemplateName      = "login.html"
 	cacheSWFilePath        = "tmpl/cache.js"
@@ -148,7 +149,7 @@ func main() {
 		mw = sequreMiddleware(mw)
 	}
 
-	if gc.verbose || debug {
+	if gc.verbose {
 		mw = middleware(mw)
 	}
 

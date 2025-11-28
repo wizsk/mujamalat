@@ -12,6 +12,7 @@ type Entry_eng struct {
 	Id      int
 	PID     int
 	IsRoot  bool
+	IsHi    bool
 	Word    string        `json:"word"`
 	Meaning template.HTML `json:"meaning"`
 }
@@ -37,7 +38,7 @@ func lanelexconEntry(db *sql.DB, query string) []Entry_eng {
 
 	// "FullTextSearch": "SELECT id, word, MAX(highlight) highlight, definition, is_root, quran_occurrence, favorite_flag from (SELECT dict.word, dict.id, CASE dict.id WHEN dict2.id then 1 else 0 end as highlight, REPLACE(dict.definition,'$word','<mark>$word</mark>') AS definition,  dict.is_root , dict.quran_occurrence, dict.favorite_flag FROM DICTIONARY dict inner join (SELECT ID, PARENT_ID, is_root FROM DICTIONARY WHERE definition match '$word' LIMIT 50) dict2 ON dict.parent_id = dict2.parent_id) group by word, definition, is_root, quran_occurrence order by id ";
 	r := lev(db.Query(`SELECT word, meanings, is_root FROM lanelexcon
-	WHERE parent_id IN (SELECT parent_id FROM lanelexcon WHERE WORD = ?)
+	WHERE parent_id IN (SELECT parent_id FROM lanelexcon WHERE is_root AND WORD = ?)
 	ORDER BY id`, query))
 	// "SELECT id, word, MAX(highlight) highlight, definition, is_root, quran_occurrence, favorite_flag from (SELECT dict.word, dict.id, CASE dict.id WHEN dict2.id then 1 else 0 end as highlight, REPLACE(dict.definition,'$word','<mark>$word</mark>') AS definition,  dict.is_root , dict.quran_occurrence, dict.favorite_flag FROM DICTIONARY dict inner join (SELECT ID, PARENT_ID, is_root FROM DICTIONARY WHERE definition match '$word' LIMIT 50) dict2 ON dict.parent_id = dict2.parent_id) group by word, definition, is_root, quran_occurrence order by id ";
 	for r.Next() {
@@ -48,17 +49,19 @@ func lanelexconEntry(db *sql.DB, query string) []Entry_eng {
 		en = append(en, e)
 	}
 	r.Close()
-	if len(en) > 0 || len(query) > 1 {
+	if len(en) > 0 {
 		return en
 	}
 
 	r = lev(db.Query(`SELECT word, meanings, is_root FROM lanelexcon
-	WHERE word LIKE ? LIMIT 100`, query))
+	WHERE parent_id IN (SELECT parent_id FROM lanelexcon WHERE WORD = ?)
+	ORDER BY id`, query))
 	for r.Next() {
 		e := Entry_eng{}
 		if le(r.Scan(&e.Word, &e.Meaning, &e.IsRoot)) {
 			continue
 		}
+		e.IsHi = e.Word == query
 		en = append(en, e)
 	}
 	r.Close()
@@ -96,8 +99,9 @@ func hanswehrEntry(db *sql.DB, query string) []Entry_eng {
 	if len(en) > 0 {
 		return en
 	}
+
 	r = lev(db.Query(`SELECT word, meanings, is_root FROM hanswehr
-	WHERE parent_id IN (SELECT parent_id FROM hanswehr WHERE is_root AND word = ?)
+	WHERE parent_id IN (SELECT parent_id FROM hanswehr WHERE word = ?)
 	ORDER BY ID`, query))
 
 	for r.Next() {
@@ -105,11 +109,12 @@ func hanswehrEntry(db *sql.DB, query string) []Entry_eng {
 		if le(r.Scan(&e.Word, &e.Meaning, &e.IsRoot)) {
 			continue
 		}
+		e.IsHi = e.Word == query
 		en = append(en, e)
 	}
 	r.Close()
-
-	if len(en) > 0 || len(query) > 1 {
+	// in reality 3 is more like 2 arabic letters
+	if len(en) > 0 || len(query) < 3 {
 		return en
 	}
 

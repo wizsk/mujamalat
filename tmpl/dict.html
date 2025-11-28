@@ -3,9 +3,18 @@
 {{if ne $i 0}}
 <hr>
 {{end}}
-<div>
     <div><span class="word">{{$v.Word}}:</span> {{$v.Meaning}}</div>
-</div>
+{{else}}
+{{template "no-res"}}
+{{end}}
+{{end}}
+
+{{define "eng-dict"}}
+{{range $i, $v := .}}
+{{if ne $i 0}}
+<hr>
+{{end}}
+    <div class="{{if .IsHi}}search-hi{{end}}"><span class="word">{{$v.Word}}:</span> {{$v.Meaning}}</div>
 {{else}}
 {{template "no-res"}}
 {{end}}

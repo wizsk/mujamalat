@@ -18,6 +18,7 @@ type TmplData struct {
 	ArEn              []Entry_arEn
 	RD                ReaderData
 	RDMode            bool
+	DebugMode         bool
 }
 
 // dict names

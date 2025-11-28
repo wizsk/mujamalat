@@ -100,6 +100,7 @@
         // {{template "reader.js" .}}
         // {{end}}
     </script>
+    <!-- {{if not .DebugMode}} -->
     <script>
         if ("serviceWorker" in navigator) {
             navigator.serviceWorker.register(
@@ -109,6 +110,7 @@
                 catch(e => console.log("SW Error:", e));
         } else console.log("no service worker");
     </script>
+    <!-- {{end}} -->
 </body>
 
 </html>

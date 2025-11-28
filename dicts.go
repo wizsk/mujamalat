@@ -128,11 +128,11 @@ func (dc *dictConf) api(w http.ResponseWriter, r *http.Request) {
 
 	case "hanswehr":
 		en := hanswehrEntry(dc.db, word)
-		le(dc.t.ExecuteTemplate(w, genricTemplateName, &en))
+		le(dc.t.ExecuteTemplate(w, engDictTemplateName, &en))
 
 	case "lanelexcon":
 		en := lanelexconEntry(dc.db, word)
-		le(dc.t.ExecuteTemplate(w, genricTemplateName, &en))
+		le(dc.t.ExecuteTemplate(w, engDictTemplateName, &en))
 
 	case "ar_en":
 		en := arEnEntry(dc.arEnDict, word)

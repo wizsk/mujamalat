@@ -3,8 +3,6 @@ package main
 import (
 	"bytes"
 	"compress/gzip"
-	"crypto/sha1"
-	"fmt"
 	"io"
 	"maps"
 	"net/http"
@@ -119,18 +117,19 @@ func CompressionMiddleware(next http.Handler) http.Handler {
 
 		maps.Copy(w.Header(), cw.header)
 
-		// Compute ETag
-		hash := sha1.Sum(cw.buf.Bytes())
-		etag := fmt.Sprintf(`"%x"`, hash[:])
-		w.Header().Set("ETag", etag)
-
-		// 304 Not Modified
-		if match := r.Header.Get("If-None-Match"); match != "" {
-			if strings.Contains(match, etag) {
-				w.WriteHeader(http.StatusNotModified)
-				return
-			}
-		}
+		// TODO: LOOK INTO IT
+		// // Compute ETag
+		// hash := sha1.Sum(cw.buf.Bytes())
+		// etag := fmt.Sprintf(`"%x"`, hash[:])
+		// w.Header().Set("ETag", etag)
+		//
+		// // 304 Not Modified
+		// if match := r.Header.Get("If-None-Match"); match != "" {
+		// 	if strings.Contains(match, etag) {
+		// 		w.WriteHeader(http.StatusNotModified)
+		// 		return
+		// 	}
+		// }
 
 		// Determine MIME type
 		contentType := cw.header.Get("Content-Type")

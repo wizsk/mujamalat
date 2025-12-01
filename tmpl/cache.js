@@ -2,7 +2,8 @@ const CACHE_NAME = "mujamalat-content-page-cache-v1";
 
 function shouldCache(request) {
   try {
-    return new URL(request.url).pathname.startsWith('/content');
+    const u = new URL(request.url);
+    return u.pathname.startsWith('/content') || u.pathname.startsWith('/pub');
   } catch {
     return false;
   }

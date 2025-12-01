@@ -149,6 +149,11 @@ func main() {
 		mw = sequreMiddleware(mw)
 	}
 
+	if !gc.noCompress {
+		fmt.Println("INFO: Server responses will be compressed")
+		mw = CompressionMiddleware(mw)
+	}
+
 	if gc.verbose {
 		mw = middleware(mw)
 	}

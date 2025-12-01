@@ -2,7 +2,10 @@ module github.com/wizsk/mujamalat
 
 go 1.25
 
-require github.com/glebarez/go-sqlite v1.22.0
+require (
+	github.com/andybalholm/brotli v1.2.0
+	github.com/glebarez/go-sqlite v1.22.0
+)
 
 require (
 	github.com/dustin/go-humanize v1.0.1 // indirect

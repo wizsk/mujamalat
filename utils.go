@@ -24,6 +24,7 @@ type globalConf struct {
 	permDir        string
 	tmpMode        bool
 	deleteSessions bool
+	noCompress     bool
 }
 
 func parseFlags() *globalConf {
@@ -54,6 +55,9 @@ func parseFlags() *globalConf {
 	showVersion := flag.Bool("v", false, "print version information")
 
 	flag.BoolVar(&conf.verbose, "s", false, "show request logs [be verbose]")
+
+	flag.BoolVar(&conf.noCompress, "no-compress", false,
+		"do not compress response (no gzip/br)")
 
 	os.Args[0] = progName
 

@@ -117,7 +117,6 @@ func main() {
 	dc := dictConf{db: db, t: tmpl, arEnDict: arEnDict}
 
 	if gc.pass != "" {
-		fmt.Println("Password set:", gc.pass)
 		loadSessions(rd.permDir, gc.pass, tmpl)
 		startCleanupTicker()
 	}
@@ -163,6 +162,10 @@ func main() {
 
 	if gc.port == "" {
 		gc.port = findFreePort(portRangeStart, portrangeEnd)
+	}
+
+	if gc.pass != "" {
+		fmt.Println("\n-- Password:", gc.pass)
 	}
 
 	fmt.Println()

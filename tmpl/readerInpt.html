@@ -380,6 +380,13 @@
         pins.forEach(p => {
             p.addEventListener('click', async () => {
                 const npinned = p.parentElement.dataset.pin == "0";
+
+                const pName = p.dataset.name.slice(0, 50) +
+                    (p.dataset.name.length > 50 ? "..." : "");
+
+                if (!npinned && !confirm("هل ترغب في إزالة التثبيت: " + pName + "؟"))
+                    return;
+
                 const u = `/rd/entryEdit?sha=${p.dataset.sha}&pin=${npinned ? "true" : "false"}`;
                 let res = null;
                 try {
@@ -387,7 +394,7 @@
                 } catch (err) { console.error(err) }
 
                 if (!res || !res.ok || res.status !== 202) {
-                    alert("Could not (un)pin");
+                    alert("لم يتمكن من التثبيت/إلغاء التثبيت: "+pName);
                     return;
                 }
 

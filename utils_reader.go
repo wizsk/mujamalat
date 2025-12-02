@@ -49,7 +49,7 @@ func (rd *readerConf) loadEntieslist() error {
 		}
 
 		e := EntryInfo{
-			Pin:  b[0][0] == byte(1),
+			Pin:  b[0][0] == byte('1'),
 			Sha:  string(b[1]),
 			Name: string(b[2]),
 		}

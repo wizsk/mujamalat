@@ -7,47 +7,8 @@
     <link rel="shortcut icon" href="/pub/fav.png" type="image/x-icon">
     <title>Reader</title>
 
+    {{template "common-css"}}
     <style>
-        @font-face {
-            font-family: "font";
-            src: url("/pub/fonts/kitab/Kitab-Regular.woff2") format("woff2");
-            font-weight: normal;
-            font-style: normal;
-        }
-        @font-face {
-            font-family: "font";
-            src: url("/pub/fonts/kitab/Kitab-Bold.woff2") format("woff2");
-            font-weight: bold;
-            font-style: normal;
-        }
-
-        :root {
-            font-family: 'font';
-            box-sizing: border-box;
-
-            --btn-pad-y: 6px;
-            --btn-pad-x: 12px;
-            --border-radious: 4px;
-            --main-padding-x: 2rem;
-            /* light color ig */
-            --color: rgb(34, 34, 34);
-            --color-highlight: #02647a;
-            --bg: rgb(255, 250, 243);
-            --accent: #337ab7;
-            --accent-dark: #286090;
-            --alert: #a94442;
-            --ar-en-tbl-bg: #3379b73d;
-            background-color: var(--bg);
-            color: var(--color);
-        }
-
-        body {
-            direction: rtl;
-            text-align: right;
-            font-size: 1.2rem;
-            max-width: 100vw;
-        }
-
         form {
             display: flex;
             align-items: center;
@@ -64,7 +25,7 @@
         }
 
         #btn-container {
-            width: 85%;
+            width: 75%;
             display: flex;
             align-utems: center;
             justify-items: center;
@@ -83,7 +44,7 @@
         }
 
         .btn-red {
-            background-color: var(--alert);
+            background-color: var(--muted);
         }
 
         .head {
@@ -98,10 +59,10 @@
 
         .links {
             display: block;
-            color: inherit;
+            color: var(--accent-dark);
             width: fit-content;
             margin: 1rem auto;
-            text-decoration: none;
+            /* text-decoration: none; */
         }
 
         .links:first-child {
@@ -113,31 +74,6 @@
             margin: 3rem 1rem;
         }
 
-        .hist-item {
-            margin: 0.7rem 0;
-            display: block;
-            width: 100%;
-            white-space: nowrap;
-            overflow: hidden;
-            text-overflow: ellipsis;
-            text-decoration: none;
-            color: rgb(7, 7, 133);
-        }
-
-        /* Styles for medium-sized screens */
-        @media (min-width: 768px) {
-            body {
-                font-size: 1.4rem;
-                display: flex;
-                align-items: center;
-                flex-direction: column;
-            }
-
-            .hist-item {
-                max-width: 500px;
-            }
-        }
-
         .hist-item-div {
             display: flex;
             align-items: center;
@@ -146,9 +82,20 @@
             margin: 0.5rem 0;
         }
 
+        .hist-item {
+            margin: 0.7rem 0;
+            display: block;
+            flex: 1;
+            white-space: nowrap;
+            overflow: hidden;
+            text-overflow: ellipsis;
+            text-decoration: none;
+            color: var(--color);
+        }
+
         h3 {
             margin: 0 0.5rem;
-            user-select: non;
+            user-select: none;
             cursor: pointer;
         }
 
@@ -176,39 +123,57 @@
 
         .svg-btn {
             all: unset;
-            user-select: none;
-            cursor: pointer;
-            background-color: none;
-            padding: 0;
-            --btn-wh: 2.2rem;
-            width: var(--btn-wh);
-            height: var(--btn-wh);
-            border-radius: var(--border-radious);
-            border: none;
-            cursor: pointer;
             display: flex;
             align-items: center;
             justify-content: center;
-            margin-right: auto;
-            /* box-shadow: 0 2px 4px rgba(0, 0, 0, 0.15); */
+
+            color: var(--muted);
+            user-select: none;
+            cursor: pointer;
+            background-color: none;
+
+            border-radius: var(--border-radious);
+            border: none;
+            padding: 0;
+            --btn-wh: 2.0rem;
+            height: var(--btn-wh);
+            width: var(--btn-wh);
         }
 
         .svg-btn svg {
-            --svg-wh: 1.4rem;
-            width: var(--svg-wh);
-            height: var(--svg-wh);
+            --svg-wh: var(--btn-wh);
+            width:  calc(var(--svg-wh) - .5rem);
+            height: calc(var(--svg-wh) - .5rem);
         }
 
         .del {
-            color: var(--alert);
+            color: var(--muted);
         }
 
         .pin {
             margin-left: .5rem;
         }
+
         .pinned {
-            background-color: var(--alert);
-            color: #fff;
+            background-color: var(--accent-dark);
+            color: var(--bg);
+        }
+
+        /* Styles for medium-sized screens */
+        @media (min-width: 768px) {
+            body {
+                display: flex;
+                align-items: center;
+                flex-direction: column;
+            }
+
+            .hist-item {
+                max-width: 500px;
+            }
+
+            .svg-btn {
+                --btn-wh: 3.0rem;
+            }
         }
     </style>
 </head>
@@ -405,15 +370,14 @@
                     p.classList.remove("pinned");
                     p.parentElement.dataset.pin= "0";
                 }
-                sortButtons();
+                sortButtons(histItemsRev);
             });
         });
 
-        // Function to sort buttons, keeping pinned ones on top
         function sortButtons(rev) {
             const container = document.querySelector('#hist-items');
             const buttons = Array.from(container.querySelectorAll('.hist-item-div'));
-            // First, separate pinned buttons from others
+
             const pinnedHistItems = buttons.filter(button => button.getAttribute('data-pin') === '1');
             const nonPinnedHistItems = buttons.filter(button => button.getAttribute('data-pin') !== '1');
 
@@ -423,7 +387,7 @@
 
                 return parseInt(a.getAttribute('data-idx')) - parseInt(b.getAttribute('data-idx'));
             });
-            // Sort the non-pinned buttons by data-idx
+
             nonPinnedHistItems.sort((a, b) => {
                 if (rev)
                     return parseInt(b.getAttribute('data-idx')) - parseInt(a.getAttribute('data-idx'));
@@ -431,16 +395,11 @@
                 return parseInt(a.getAttribute('data-idx')) - parseInt(b.getAttribute('data-idx'));
             });
 
-            // Append pinned buttons first, then the sorted non-pinned buttons
             const sortedButtons = [...pinnedHistItems, ...nonPinnedHistItems];
 
-            // Empty the container and append the sorted buttons
             container.innerHTML = '';
             sortedButtons.forEach(button => container.appendChild(button));
         }
-
-        // Call the sorting function
-        // sortButtons();
 
 
         document.addEventListener('keydown', (e) => {

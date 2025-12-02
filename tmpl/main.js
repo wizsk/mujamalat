@@ -5,6 +5,7 @@ let lastClikedWord = null;
 let readerMode = "{{if .RDMode}}y{{end}}" === "y";
 let selectedDictAr = "{{index .DictsMap .Curr}}";
 const contentHolder = document.getElementById("content");
+const navSpace = document.getElementById("navSpace");
 const dicts = document.getElementsByClassName('sw-dict-item');
 const changeDict = document.getElementById("change-dict");
 const changeDictInpt = document.getElementById("change-dict-inpt");
@@ -108,6 +109,9 @@ w.oninput = () => {
         const word = queryArr[queryIdx];
         currWord = word;
 
+        // its async hence non blocking u stupid
+        getResAndShow(word);
+
         querySelector.innerHTML = "";
         if (queryArr.length > 1) {
             let b = "";
@@ -128,9 +132,7 @@ w.oninput = () => {
             querySelector.classList.add('hidden');
         }
 
-        setNavHeight()
-
-        getResAndShow(word);
+        setNavHeight();
 
         // {{if not .RDMode}}
         document.title = `${selectedDictAr}: ${word}`;
@@ -145,7 +147,6 @@ async function getResAndShow(word) {
         return;
     }
 
-
     contentHolder.innerHTML = `{{template "wait"}}`;
 
     // console.log(`req: /content?dict=${selectedDict}&w=${word}`);
@@ -158,10 +159,10 @@ async function getResAndShow(word) {
             `/content?dict=${selectedDict}&w=${word}`);
         const h = await r.text();
         contentHolder.innerHTML = h;
-        const target = document.querySelector(".search-hi");
-        if (target) {
-        target.scrollIntoView({ behavior: "smooth", block: "start" });
-        }
+        // const target = document.querySelector(".search-hi");
+        // if (target) {
+        //      target.scrollIntoView({ behavior: "smooth", block: "start" });
+        // }
     } else {
         contentHolder.innerHTML = `{{template "server-issue"}}`;
     }

@@ -72,8 +72,9 @@ function showHideNav(show, force) {
 
 /** Set the div which will take space so, other elements don't do behind the nav */
 function setNavHeight() {
-    document.documentElement.style.setProperty(
-        "--header-height", `${nav.offsetHeight + 20}px`);
+    // document.documentElement.style.setProperty(
+    //     "--header-height",
+    navSpace.style.height =`${nav.offsetHeight + 20}px`;
 }
 
 /**

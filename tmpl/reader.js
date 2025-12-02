@@ -318,14 +318,14 @@ if ("wakeLock" in navigator) {
             wakeLock.addEventListener("release", async () => {
                 wakelockOptn.value = "off";
                 wakelockOptn.style.color = "var(--alert)";
-                console.log("Wake Lock lost");
+                // console.log("Wake Lock lost");
             });
 
             wakelockOptn.value = "on";
             wakelockOptn.style.color = "var(--ok)";
-            console.log("Wake Lock active");
+            // console.log("Wake Lock active");
         } catch (err) {
-            console.error("Wake Lock request failed:", err);
+            // console.error("Wake Lock request failed:", err);
         }
     }
 
@@ -333,7 +333,7 @@ if ("wakeLock" in navigator) {
         if (wakeLock) {
             wakeLock.release();
             wakeLock = null;
-            console.log("Wake Lock manually released due to inactivity");
+            // console.log("Wake Lock manually released due to inactivity");
         }
     }
 

@@ -93,6 +93,7 @@
         max-width: 400px;
         box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
         /* margin-top: 6rem; */
+        margin-bottom: 6rem;
     }
 
     #readerMenu h3 {
@@ -103,7 +104,7 @@
         margin: 2rem 0;
     }
 
-    #readerMenu button {
+    #readerMenu .close {
         display: block;
         margin-left: auto;
         margin-right: auto;
@@ -140,6 +141,12 @@
 
     #hide-line-numbers-div {
         display: none !important;
+    }
+
+    /* reader menu btn*/
+    .rm-btn {
+        --btn-pad-y: 2px;
+        --btn-pad-x: 6px;
     }
 </style>
 
@@ -241,6 +248,21 @@
             </select>
         </div>
 
+        <div class="select-container">
+            <span>
+                حجم الخط:
+            </span>
+            <button class="btn rm-btn" id="plus">
+                زيادة
+            </button>
+            <button class="btn rm-btn" id="minus">
+                تقليل
+            </button>
+            <button class="btn rm-btn hidden" id="resetFont"
+                style="background-color: var(--alert);">
+                إعادة
+            </button>
+        </div>
 
         <div class="sep"></div>
         <h3>روابط</h3>
@@ -249,7 +271,7 @@
         <a class="readerMenuAnker" href="/rd/">- انتقل إلى مدخل القارئ</a>
         <a class="readerMenuAnker" href="/"> - انتقل إلى القواميس</a>
         <a class="readerMenuAnker" href="/rd/highlist/">- اذهب إلى قائمة الكلمات المميزة</a>
-        <button class="btn" style="width: 100%;" onclick="window.history.back()">اغلق</button>
+        <button class="btn close" style="width: 100%;" onclick="window.history.back()">اغلق</button>
     </aside>
 </div>
 

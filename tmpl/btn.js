@@ -1,6 +1,7 @@
 // btn.js
 
 // -- font stuff
+const resetFont = document.getElementById("resetFont");
 const fontDiffCVal = 2.0;
 
 function saveFont(s) {
@@ -55,9 +56,9 @@ function resetFontSize() {
     resetFont.classList.add("hidden");
 }
 
-plus.onclick = fontSizeInc;
-minus.onclick = fontSizeDec;
-up.onclick = scroolToTop;
+document.getElementById("plus").onclick = fontSizeInc;
+document.getElementById("minus").onclick = fontSizeDec;
+document.getElementById("up").onclick = scroolToTop;
 
 resetFont.onclick = resetFontSize;
 

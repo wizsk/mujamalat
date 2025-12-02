@@ -11,14 +11,14 @@ import (
 )
 
 type EntryInfo struct {
-	Arc  bool // Archive
+	Pin  bool // Archive
 	Sha  string
 	Name string
 }
 
 func (e *EntryInfo) String() string {
 	a := "0"
-	if e.Arc {
+	if e.Pin {
 		a = "1"
 	}
 	return fmt.Sprintf("%s:%s:%s", a, e.Sha, e.Name)
@@ -49,7 +49,7 @@ func (rd *readerConf) loadEntieslist() error {
 		}
 
 		e := EntryInfo{
-			Arc:  b[0][0] == byte(1),
+			Pin:  b[0][0] == byte(1),
 			Sha:  string(b[1]),
 			Name: string(b[2]),
 		}

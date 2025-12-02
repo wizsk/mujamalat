@@ -135,6 +135,7 @@ func main() {
 
 	mux.HandleFunc("POST /rd/", rd.post)
 	mux.HandleFunc("GET /rd/", rd.page)
+	mux.HandleFunc("POST /rd/entryEdit", rd.entryEdit)
 	mux.HandleFunc("POST /rd/high", rd.highlight)
 	mux.HandleFunc("GET /rd/highlist/", rd.highlightList)
 	mux.HandleFunc("POST /rd/delete/", rd.deletePage)

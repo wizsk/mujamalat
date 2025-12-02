@@ -174,24 +174,11 @@
             background-color: #cccccc1c;
         }
 
-        .del {
-            all: unset;
-            display: inline;
-            font-size: inherit;
-            font-family: inherit;
-            background-color: none;
-            padding: 0;
-            color: var(--alert);
-            border: none;
-            cursor: pointer;
-        }
-
-        .del {
+        .svg-btn {
             all: unset;
             user-select: none;
             cursor: pointer;
             background-color: none;
-            color: var(--alert);
             padding: 0;
             --btn-wh: 2.2rem;
             width: var(--btn-wh);
@@ -206,10 +193,22 @@
             /* box-shadow: 0 2px 4px rgba(0, 0, 0, 0.15); */
         }
 
-        .del svg {
+        .svg-btn svg {
             --svg-wh: 1.4rem;
             width: var(--svg-wh);
             height: var(--svg-wh);
+        }
+
+        .del {
+            color: var(--alert);
+        }
+
+        .pin {
+            margin-left: .5rem;
+        }
+        .pinned {
+            background-color: var(--alert);
+            color: #fff;
         }
     </style>
 </head>
@@ -236,15 +235,41 @@
         <h3 id="hist-title">قائمة النص</h3>
         <hr>
         <div id="hist-items">
-            {{range .}}
-            <div class="hist-item-div">
+            {{range $i, $v := .}}
+            {{if not $v.Pin}}{{continue}}{{end}}
+            <div class="hist-item-div" data-idx="{{$i}}"
+                data-pin="{{if $v.Pin}}1{{else}}0{{end}}">
                 <span class="dash">-</span>
-                <a class="hist-item" href="/rd/{{.Sha}}">{{.Name}}</a>
-                <button class="del" data-link="/rd/delete/{{.Sha}}" data-name="{{.Name}}">
+                <a class="hist-item" href="/rd/{{$v.Sha}}">{{.Name}}</a>
+                <button class="svg-btn pin {{if $v.Pin}}pinned{{end}}" data-sha="{{$v.Sha}}" data-name="{{$v.Name}}">
                     <svg xmlns="http://www.w3.org/2000/svg" fill="currentColor" viewBox="0 0 16 16">
-                        <path
-                            d="M6.5 1h3a.5.5 0 0 1 .5.5v1H6v-1a.5.5 0 0 1 .5-.5M11 2.5v-1A1.5 1.5 0 0 0 9.5 0h-3A1.5 1.5 0 0 0 5 1.5v1H1.5a.5.5 0 0 0 0 1h.538l.853 10.66A2 2 0 0 0 4.885 16h6.23a2 2 0 0 0 1.994-1.84l.853-10.66h.538a.5.5 0 0 0 0-1zm1.958 1-.846 10.58a1 1 0 0 1-.997.92h-6.23a1 1 0 0 1-.997-.92L3.042 3.5zm-7.487 1a.5.5 0 0 1 .528.47l.5 8.5a.5.5 0 0 1-.998.06L5 5.03a.5.5 0 0 1 .47-.53Zm5.058 0a.5.5 0 0 1 .47.53l-.5 8.5a.5.5 0 1 1-.998-.06l.5-8.5a.5.5 0 0 1 .528-.47M8 4.5a.5.5 0 0 1 .5.5v8.5a.5.5 0 0 1-1 0V5a.5.5 0 0 1 .5-.5" />
+                        <path d="M9.828.722a.5.5 0 0 1 .354.146l4.95 4.95a.5.5 0 0 1 0 .707c-.48.48-1.072.588-1.503.588-.177 0-.335-.018-.46-.039l-3.134 3.134a6 6 0 0 1 .16 1.013c.046.702-.032 1.687-.72 2.375a.5.5 0 0 1-.707 0l-2.829-2.828-3.182 3.182c-.195.195-1.219.902-1.414.707s.512-1.22.707-1.414l3.182-3.182-2.828-2.829a.5.5 0 0 1 0-.707c.688-.688 1.673-.767 2.375-.72a6 6 0 0 1 1.013.16l3.134-3.133a3 3 0 0 1-.04-.461c0-.43.108-1.022.589-1.503a.5.5 0 0 1 .353-.146"/>
                     </svg>
+                </button>
+                <button class="svg-btn del" data-link="/rd/delete/{{$v.Sha}}" data-name="{{$v.Name}}">
+                    <svg xmlns="http://www.w3.org/2000/svg" fill="currentColor" viewBox="0 0 16 16">
+                        <path d="M2.5 1a1 1 0 0 0-1 1v1a1 1 0 0 0 1 1H3v9a2 2 0 0 0 2 2h6a2 2 0 0 0 2-2V4h.5a1 1 0 0 0 1-1V2a1 1 0 0 0-1-1H10a1 1 0 0 0-1-1H7a1 1 0 0 0-1 1zm3 4a.5.5 0 0 1 .5.5v7a.5.5 0 0 1-1 0v-7a.5.5 0 0 1 .5-.5M8 5a.5.5 0 0 1 .5.5v7a.5.5 0 0 1-1 0v-7A.5.5 0 0 1 8 5m3 .5v7a.5.5 0 0 1-1 0v-7a.5.5 0 0 1 1 0"/>
+                    </svg>
+                </button>
+            </div>
+            {{end}}
+
+            {{range $i, $v := .}}
+            {{if $v.Pin}}{{continue}}{{end}}
+            <div class="hist-item-div" data-idx="{{$i}}"
+                data-pin="{{if $v.Pin}}1{{else}}0{{end}}">
+                <span class="dash">-</span>
+                <a class="hist-item" href="/rd/{{$v.Sha}}">{{.Name}}</a>
+                <button class="svg-btn pin {{if $v.Pin}}pinned{{end}}" data-sha="{{$v.Sha}}" data-name="{{$v.Name}}">
+                    <svg xmlns="http://www.w3.org/2000/svg" fill="currentColor" viewBox="0 0 16 16">
+                        <path d="M9.828.722a.5.5 0 0 1 .354.146l4.95 4.95a.5.5 0 0 1 0 .707c-.48.48-1.072.588-1.503.588-.177 0-.335-.018-.46-.039l-3.134 3.134a6 6 0 0 1 .16 1.013c.046.702-.032 1.687-.72 2.375a.5.5 0 0 1-.707 0l-2.829-2.828-3.182 3.182c-.195.195-1.219.902-1.414.707s.512-1.22.707-1.414l3.182-3.182-2.828-2.829a.5.5 0 0 1 0-.707c.688-.688 1.673-.767 2.375-.72a6 6 0 0 1 1.013.16l3.134-3.133a3 3 0 0 1-.04-.461c0-.43.108-1.022.589-1.503a.5.5 0 0 1 .353-.146"/>
+                    </svg>
+                </button>
+                <button class="svg-btn del" data-link="/rd/delete/{{$v.Sha}}" data-name="{{$v.Name}}">
+                    <svg xmlns="http://www.w3.org/2000/svg" fill="currentColor" viewBox="0 0 16 16">
+                        <path d="M2.5 1a1 1 0 0 0-1 1v1a1 1 0 0 0 1 1H3v9a2 2 0 0 0 2 2h6a2 2 0 0 0 2-2V4h.5a1 1 0 0 0 1-1V2a1 1 0 0 0-1-1H10a1 1 0 0 0-1-1H7a1 1 0 0 0-1 1zm3 4a.5.5 0 0 1 .5.5v7a.5.5 0 0 1-1 0v-7a.5.5 0 0 1 .5-.5M8 5a.5.5 0 0 1 .5.5v7a.5.5 0 0 1-1 0v-7A.5.5 0 0 1 8 5m3 .5v7a.5.5 0 0 1-1 0v-7a.5.5 0 0 1 1 0"/>
+                    </svg>
+                </button>
                 </button>
             </div>
             {{end}}
@@ -259,6 +284,7 @@
         const save = document.getElementById("save");
         const histTitle = document.getElementById("hist-title");
         const histItems = document.getElementById("hist-items");
+        let histItemsRev = false;
 
         form.onsubmit = (e) => {
             e.preventDefault();
@@ -286,26 +312,29 @@
         document.addEventListener("DOMContentLoaded", (e) => {
             if (histTitle) {
                 const val = window.localStorage.getItem(histSortLSK);
-                histItmsRev(val, false);
+                if (val) histItemsRev = true;
+                histItmsRev(histItemsRev, false);
             }
         })
 
         if (histTitle) {
-            histTitle.onclick = () =>
-                histItmsRev(!histItems.classList.contains("flex-rev"), true);
+            histTitle.onclick = () => {
+                histItemsRev = !histItemsRev;
+                histItmsRev(histItemsRev, true);
+            }
         }
 
         let hisTitleTxt = null;
         function histItmsRev(rev, save) {
             if (!hisTitleTxt) hisTitleTxt = histTitle.innerText;
             if (rev) {
-                histItems.classList.add("flex-rev");
+                sortButtons(true);
                 histTitle.innerText =
                     hisTitleTxt + histTitleRev;
                 if (save)
-                    window.localStorage.setItem(histSortLSK, "flex-rev");
+                    window.localStorage.setItem(histSortLSK, "rev");
             } else {
-                histItems.classList.remove("flex-rev");
+                sortButtons();
                 histTitle.innerText =
                     hisTitleTxt + histTitleNorm;
                 if (save)
@@ -341,6 +370,71 @@
                     });
             }
         }
+
+        // Select the container element
+
+        // Select all buttons (or rm-btn elements) inside the container
+
+        // Add click event listeners to all buttons
+        const pins = document.querySelectorAll(".pin");
+        pins.forEach(p => {
+            p.addEventListener('click', async () => {
+                const npinned = p.parentElement.dataset.pin == "0";
+                const u = `/rd/entryEdit?sha=${p.dataset.sha}&pin=${npinned ? "true" : "false"}`;
+                let res = null;
+                try {
+                    res = await fetch(u, { method: 'POST' });
+                } catch (err) { console.error(err) }
+
+                if (!res || !res.ok || res.status !== 202) {
+                    alert("Could not (un)pin");
+                    return;
+                }
+
+                if (npinned) {
+                    p.classList.add("pinned");
+                    p.parentElement.dataset.pin= "1";
+                } else {
+                    p.classList.remove("pinned");
+                    p.parentElement.dataset.pin= "0";
+                }
+                sortButtons();
+            });
+        });
+
+        // Function to sort buttons, keeping pinned ones on top
+        function sortButtons(rev) {
+            const container = document.querySelector('#hist-items');
+            const buttons = Array.from(container.querySelectorAll('.hist-item-div'));
+            // First, separate pinned buttons from others
+            const pinnedHistItems = buttons.filter(button => button.getAttribute('data-pin') === '1');
+            const nonPinnedHistItems = buttons.filter(button => button.getAttribute('data-pin') !== '1');
+
+            pinnedHistItems.sort((a, b) => {
+                if (rev)
+                    return parseInt(b.getAttribute('data-idx')) - parseInt(a.getAttribute('data-idx'));
+
+                return parseInt(a.getAttribute('data-idx')) - parseInt(b.getAttribute('data-idx'));
+            });
+            // Sort the non-pinned buttons by data-idx
+            nonPinnedHistItems.sort((a, b) => {
+                if (rev)
+                    return parseInt(b.getAttribute('data-idx')) - parseInt(a.getAttribute('data-idx'));
+
+                return parseInt(a.getAttribute('data-idx')) - parseInt(b.getAttribute('data-idx'));
+            });
+
+            // Append pinned buttons first, then the sorted non-pinned buttons
+            const sortedButtons = [...pinnedHistItems, ...nonPinnedHistItems];
+
+            // Empty the container and append the sorted buttons
+            container.innerHTML = '';
+            sortedButtons.forEach(button => container.appendChild(button));
+        }
+
+        // Call the sorting function
+        // sortButtons();
+
 
         document.addEventListener('keydown', (e) => {
             if ((e.ctrlKey || e.shiftKey) && e.code == "Enter") {

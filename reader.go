@@ -219,7 +219,7 @@ func (rd *readerConf) post(w http.ResponseWriter, r *http.Request) {
 	entries.Close()
 
 	e := EntryInfo{
-		Arc:  false,
+		Pin:  false,
 		Sha:  sha,
 		Name: pageName,
 	}

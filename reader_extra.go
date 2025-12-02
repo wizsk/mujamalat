@@ -107,6 +107,66 @@ func (rd *readerConf) highlight(w http.ResponseWriter, r *http.Request) {
 	w.WriteHeader(http.StatusAccepted)
 }
 
+func (rd *readerConf) entryEdit(w http.ResponseWriter, r *http.Request) {
+	sha := strings.TrimSpace(r.FormValue("sha"))
+	pin := false
+	if p := strings.TrimSpace(r.FormValue("pin")); p == "true" || p == "false" {
+		pin = p == "true"
+	} else {
+		// faulty request
+		sha = ""
+	}
+
+	if sha == "" {
+		http.Error(w, "bad req", http.StatusBadRequest)
+		return
+	}
+
+	rd.m.Lock()
+	defer rd.m.Unlock()
+
+	e, found := rd.enMap[sha]
+	if !found {
+		http.Error(w, "sha not found", http.StatusBadRequest)
+		return
+	} else if e.Pin == pin {
+		w.WriteHeader(http.StatusAccepted)
+		return
+	}
+
+	e.Pin = pin
+	rd.enMap[sha] = e
+
+	for i := range len(rd.enArr) {
+		if rd.enArr[i].Sha == sha {
+			rd.enArr[i].Pin = pin
+			break
+		}
+	}
+	rd.setEnArrRev()
+
+	sb := new(strings.Builder)
+	for _, e := range rd.enArr {
+		sb.WriteString(e.String())
+		sb.WriteByte('\n')
+	}
+
+	enTmp := rd.enFilePath + ".tmp"
+	enFile, err := fetalErrVal(os.Create(enTmp))
+	if err != nil {
+		http.Error(w, "something went wrong", http.StatusInternalServerError)
+		return
+	}
+	if !fetalErrOkD(enFile.WriteString(sb.String())) ||
+		!fetalErrOk(enFile.Close()) ||
+		!fetalErrOk(os.Rename(enTmp, rd.enFilePath)) {
+		http.Error(w, "something went wrong", http.StatusInternalServerError)
+		return
+	}
+
+	w.WriteHeader(http.StatusAccepted)
+}
+
 func (rd *readerConf) deletePage(w http.ResponseWriter, r *http.Request) {
 	rd.m.Lock()
 	defer rd.m.Unlock()

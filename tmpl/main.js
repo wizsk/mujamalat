@@ -108,9 +108,6 @@ w.oninput = () => {
         const word = queryArr[queryIdx];
         currWord = word;
 
-        getResAndShow(word);
-
-
         querySelector.innerHTML = "";
         if (queryArr.length > 1) {
             let b = "";
@@ -131,7 +128,9 @@ w.oninput = () => {
             querySelector.classList.add('hidden');
         }
 
-        navSpace.style.height = `${nav.offsetHeight + 20}px`;
+        setNavHeight()
+
+        getResAndShow(word);
 
         // {{if not .RDMode}}
         document.title = `${selectedDictAr}: ${word}`;
@@ -159,6 +158,10 @@ async function getResAndShow(word) {
             `/content?dict=${selectedDict}&w=${word}`);
         const h = await r.text();
         contentHolder.innerHTML = h;
+        const target = document.querySelector(".search-hi");
+        if (target) {
+        target.scrollIntoView({ behavior: "smooth", block: "start" });
+        }
     } else {
         contentHolder.innerHTML = `{{template "server-issue"}}`;
     }

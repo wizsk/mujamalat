@@ -55,14 +55,14 @@ function showHideNav(show, force) {
 
         if (!readerMode) {
             let s = 0;
-            if (querySelector.classList.contains('hidden')) {
-                const rect = nav.getBoundingClientRect();
-                const style = window.getComputedStyle(nav);
-                const paddingTop = parseFloat(style.paddingTop);
-                s = getFullHeight(form) + paddingTop;
-            } else {
-                s =getFullHeight(form) + getFullHeight(sw_dict);
-            }
+            // if (true || querySelector.classList.contains('hidden')) {
+            const rect = nav.getBoundingClientRect();
+            const style = window.getComputedStyle(nav);
+            const paddingTop = parseFloat(style.paddingTop);
+            s = getFullHeight(form) + paddingTop;
+            // } else {
+            //     s =getFullHeight(form) + getFullHeight(sw_dict);
+            // }
             nav.style.transform = `translateY(-${s}px)`;
         }
         overlay.style.transform = `translateY(180px)`;
@@ -71,7 +71,10 @@ function showHideNav(show, force) {
 }
 
 /** Set the div which will take space so, other elements don't do behind the nav */
-function setNavHeight() { navSpace.style.height = `${nav.offsetHeight + 20}px` }
+function setNavHeight() {
+    document.documentElement.style.setProperty(
+        "--header-height", `${nav.offsetHeight + 20}px`);
+}
 
 /**
  *

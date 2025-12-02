@@ -2,7 +2,7 @@
     {{template "nav.html" .}}
 </nav>
 
-<div id="navSpace" style="transition: height 0.3s ease;"></div>
+<div id="navSpace" style="height: var(--header-height);transition: height 0.3s ease;"></div>
 
 <div id="content">
     {{if and (not .Query) (not .RDMode)}}

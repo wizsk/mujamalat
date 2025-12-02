@@ -27,12 +27,12 @@ var (
 
 func unzipAndWriteDb() string {
 	dbDir := filepath.Join(rootDir, "./db")
-	fmt.Printf("Loading db dynamically from %q\n", dbDir)
+	fmt.Printf("INFO: Loading db dynamically from %q\n", dbDir)
 	dbFilePath := filepath.Join(dbDir, dbFileName)
 
 	if stat, err := os.Stat(dbFilePath); err == nil &&
 		stat.Size() == dbSize {
-		fmt.Println("DB was alreay written. skipping...")
+		fmt.Println("INFO: DB was alreay written. skipping...")
 		return dbFilePath
 	}
 
@@ -40,7 +40,7 @@ func unzipAndWriteDb() string {
 	r := ke(zip.OpenReader(zipFilePath))
 	defer r.Close()
 	if len(r.File) != 1 {
-		lg.Fatalf("Expected 1 file inside the zipped file: %s",
+		lg.Fatalf("FETAL: Expected 1 file inside the zipped file: %s",
 			zipFilePath)
 	}
 

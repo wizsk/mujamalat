@@ -74,18 +74,7 @@ func newReader(gc *globalConf, t templateWraper) *readerConf {
 		os.Exit(1)
 	}
 
-	hFilePathOldOld := rd.hFilePath + ".old.old"
 	hFilePathOld := rd.hFilePath + ".old"
-	if _, err := os.Stat(hFilePathOld); err == nil {
-		if err := copyFile(hFilePathOld, hFilePathOldOld); err != nil {
-			fmt.Printf(
-				"FETAL: highlight history backup file could not be backedup to %q\nerr: %s\n",
-				hFilePathOldOld, err)
-			os.Exit(1)
-		}
-		fmt.Printf("INFO: highlight history backup file backedup to %q\n", hFilePathOldOld)
-	}
-
 	if _, err := os.Stat(rd.hFilePath); err == nil {
 		if err := copyFile(rd.hFilePath, hFilePathOld); err != nil {
 			fmt.Printf(

@@ -84,7 +84,7 @@ func main() {
 		os.Exit(0)
 	}
 
-	fmt.Println("Initalizing...")
+	fmt.Println("INFO: Initalizing...")
 	iStart := time.Now()
 	done := make(chan struct{}, 1)
 
@@ -122,7 +122,11 @@ func main() {
 		startCleanupTicker()
 	}
 
-	fmt.Println("Initalizaion done in:",
+	if !gc.noCompress {
+		fmt.Println("INFO: Server text responses will be compressed with br or gzip")
+	}
+
+	fmt.Println("INFO: Initalizaion done in:",
 		time.Since(iStart).String())
 
 	mux := http.NewServeMux()
@@ -150,7 +154,6 @@ func main() {
 	}
 
 	if !gc.noCompress {
-		fmt.Println("INFO: Server responses will be compressed")
 		mw = CompressionMiddleware(mw)
 	}
 

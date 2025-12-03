@@ -134,6 +134,11 @@
         color: var(--color);
         border: 1px solid #ccc;
     }
+
+    #readerMenu input[type='checkbox'] {
+        accent-color: var(--accent);
+    }
+
     .poem-line-num {
         user-select: none;
         display: none;
@@ -177,7 +182,6 @@
     }
 
     #hide-line-numbers {
-        accent-color: var(--accent);
     }
 
     body:has(#hide-line-numbers:checked) .poem-line-num {

@@ -21,6 +21,7 @@ try {
     queryIdx = 0;
 }
 let isChangeDictShwoing = false;
+let scrollOnSearch = false;
 
 
 let resizeTimoutId;
@@ -159,10 +160,12 @@ async function getResAndShow(word) {
             `/content?dict=${selectedDict}&w=${word}`);
         const h = await r.text();
         contentHolder.innerHTML = h;
-        // const target = document.querySelector(".search-hi");
-        // if (target) {
-        //      target.scrollIntoView({ behavior: "smooth", block: "start" });
-        // }
+        if (scrollOnSearch) {
+            const target = document.querySelector(".search-hi");
+            if (target) {
+                target.scrollIntoView({ behavior: "smooth", block: "start" });
+            }
+        }
     } else {
         contentHolder.innerHTML = `{{template "server-issue"}}`;
     }

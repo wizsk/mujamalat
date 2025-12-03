@@ -108,6 +108,8 @@
 		display: none !important;
 	}
 
+	.no-select { user-select: none }
+
 	.input-style {
 		all: unset;
 		direction: rtl;
@@ -442,7 +444,7 @@
 
 	.search-hi {
 		color: var(--color-hi);
-		scroll-margin-top: calc(var(--header-height) + 1rem);
+		scroll-margin-top: calc(var(--header-height) + .4rem);
 	}
 </style>
 <script>

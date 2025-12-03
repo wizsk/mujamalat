@@ -16,6 +16,7 @@ const textAlign = document.getElementById("text-align");
 const poemStyle = document.getElementById("poem");
 const poemLineNumHide = document.getElementById("hide-line-numbers");
 const fontSelector = document.getElementById("font-selector");
+const scrollOnSearchC = document.getElementById("scroll-on-search");
 
 for (let i = 0; i < wordSpans.length; i++) {
     if (wordSpans[i].dataset.oar !== "")
@@ -235,6 +236,22 @@ poemLineNumHide.onchange = (e) => {
     }
 }
 
+/** LSN = local storage name */
+function getScrollOnSearchLSN() {
+    // return `${window.location.pathname}-`
+    return 'scroll-on-search';
+}
+
+scrollOnSearchC.onchange = (e) => {
+    if (e.target.checked) {
+        window.localStorage.setItem(getScrollOnSearchLSN(), "true");
+        scrollOnSearch = true;
+    } else {
+        window.localStorage.removeItem(getScrollOnSearchLSN());
+        scrollOnSearch = false;
+    }
+}
+
 const textRightClassName = 'text-right';
 textAlign.onchange = (e) => {
     const val = e.target.value;
@@ -278,6 +295,10 @@ document.addEventListener('DOMContentLoaded', () => {
         poemLineNumHide.checked = true;
     }
 
+    if (window.localStorage.getItem(getScrollOnSearchLSN())) {
+        scrollOnSearchC.checked = true;
+        scrollOnSearch = true;
+    }
 });
 
 /** LSN = local storage name */

@@ -135,6 +135,9 @@ func CompressionMiddleware(next http.Handler) http.Handler {
 		contentType := cw.header.Get("Content-Type")
 		if contentType == "" {
 			contentType = http.DetectContentType(cw.buf.Bytes())
+			if contentType != "" {
+				w.Header().Set("Content-Type", contentType)
+			}
 		}
 
 		if !isCompressible(contentType) ||

@@ -81,44 +81,22 @@
             }
         }
 
-        .resize-btn {
+        #resizeHandle {
+            all: unset;
             margin: .5rem auto 0;
             touch-action: none;
             cursor: ns-resize;
 
-            /* center under textarea */
-            position: relative;
-
             background-color: var(--muted);
             display: block;
-            /* display: flex; */
-            /* align-items: center; */
-            /* justify-content: center; */
-
             user-select: none;
 
             border-radius: var(--border-radious);
             border: none;
             padding: 0;
-            --btn-wh: 2.0rem;
-            height: var(--btn-wh);
+            --btn-wh: 4.0rem;
             width: var(--btn-wh);
-
-
-            height: calc(var(--btn-wh)/3);
-
-            /* buttom: 0; */
-            /* & svg { */
-            /*     display: none; */
-            /*     --svg-wh: var(--btn-wh); */
-            /*     --_s:  calc(var(--svg-wh) - calc(var(--svg-wh)/4)); */
-            /*     width: var(--_s); */
-            /*     height: var(--_s); */
-            /* } */
-
-            &:focus, &:active, &:target {
-                background-color: var(--accent-dark);
-            }
+            height: calc(var(--btn-wh)/4);
         }
 
         #btn-container {
@@ -266,13 +244,8 @@
     <form id="form">
         <div class="ta-wrap">
             <textarea id="txt" rows="4"></textarea>
-            <div class="resize-btn">
-                <!-- <svg xmlns="http://www.w3.org/2000/svg" fill="currentColor" viewBox="0 0 16 16"> -->
-                <!--     <path d="M8.354 14.854a.5.5 0 0 1-.708 0l-2-2a.5.5 0 0 1 .708-.708L7.5 13.293V2.707L6.354 3.854a.5.5 0 1 1-.708-.708l2-2a.5.5 0 0 1 .708 0l2 2a.5.5 0 0 1-.708.708L8.5 2.707v10.586l1.146-1.147a.5.5 0 0 1 .708.708z"/> -->
-                <!-- </svg> -->
-            </div>
+            <button id="resizeHandle"></button>
         </div>
-        <!-- <textarea name="txt" id="txt" autofocus spellcheck="false" placeholder="ضع النص هنا..."></textarea> -->
         <div id="btn-container">
             <button class="svg-btn" id="submit" type="submit">
 
@@ -350,56 +323,55 @@
     </main>
     {{end}}
 
+
     <script>
         const ta = document.getElementById("txt");
-        const btn = document.querySelector(".resize-btn");
+        const handle = document.getElementById("resizeHandle");
 
         let startY = 0;
-        let startH = 0;
+        let startHeight = 0;
+        let dragging = false;
 
-        function startDrag(y) {
-            startY = y;
-            startH = ta.offsetHeight;
-        }
+        function startDrag(e) {
+            dragging = true;
+            handle.style.backgroundColor = "var(--alert)";
 
-        function doDrag(y) {
-            const newH = startH + (y - startY);
+            startY = e.touches ? e.touches[0].clientY : e.clientY;
+            startHeight = ta.offsetHeight;
 
-            const lineHeight = 1.2 * parseFloat(getComputedStyle(ta).fontSize);
-            const minH = lineHeight * 2; // 2 rows minimum
-
-            ta.style.height = Math.max(newH, minH) + "px";
-        }
-
-        // Mouse
-        btn.addEventListener("mousedown", (e) => {
             e.preventDefault();
-            startDrag(e.clientY);
+        }
 
-            document.addEventListener("mousemove", onMove, {passive: true});
-            document.addEventListener("mouseup", stopDrag, {passive: true});
-        });
+        function duringDrag(e) {
+            if (!dragging) return;
 
-        function onMove(e) {
-            doDrag(e.clientY);
+            const y = e.touches ? e.touches[0].clientY : e.clientY;
+            const dy = y - startY;
+
+            let newHeight = startHeight + dy;
+            const maxHeight = window.innerHeight * 0.9;
+
+            newHeight = Math.max(80, Math.min(newHeight, maxHeight));
+            ta.style.height = newHeight + "px";
         }
 
         function stopDrag() {
-            document.removeEventListener("mousemove", onMove);
-            document.removeEventListener("mouseup", stopDrag);
+            dragging = false;
+            handle.style.backgroundColor = "";
         }
 
-        // Touch
-        btn.addEventListener("touchstart", (e) => {
-            startDrag(e.touches[0].clientY);
-        }, {passive: true});
+        handle.addEventListener("mousedown", startDrag);
+        handle.addEventListener("touchstart", startDrag, { passive: false });
 
-        btn.addEventListener("touchmove", (e) => {
-            doDrag(e.touches[0].clientY);
-        }, {passive: true});
+        window.addEventListener("mousemove", duringDrag);
+        window.addEventListener("touchmove", duringDrag, { passive: false });
+
+        window.addEventListener("mouseup", stopDrag);
+        window.addEventListener("touchend", stopDrag);
 
         document.getElementById("tgl-cursor").onclick = () => {
             const text = ta.value;
+            if (text.length == 0) return;
             const cursorPos = ta.selectionStart;
             const mid = text.length / 2;
 

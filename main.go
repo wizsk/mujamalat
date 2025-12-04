@@ -142,6 +142,10 @@ func main() {
 
 	mux.Handle("/pub/", servePubData())
 
+	if debug {
+		mux.Handle("/tmp/", http.StripPrefix("/tmp/", http.FileServer(http.Dir("tmp"))))
+	}
+
 	mux.HandleFunc("/version", func(w http.ResponseWriter, r *http.Request) {
 		printVersionWritter(w)
 	})

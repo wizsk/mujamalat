@@ -179,6 +179,7 @@
             margin: 0 0.5rem;
             user-select: none;
             cursor: pointer;
+            font-size: 1.1em;
         }
 
         hr {
@@ -260,7 +261,7 @@
                 </svg>
             </button>
             <button class="svg-btn btn-mt"
-                onclick="if (txt.value.trim().length > 0 && confirm('هل ترغل أن تسمح؟')) txt.value = ''"
+                onclick="if (txt.value.trim().length > 0 && confirm('هل ترغب أن تسمح؟')) txt.value = ''"
                 type="button">
                 <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" fill="currentColor" class="bi bi-arrow-down-up" viewBox="0 0 16 16">
                     <path d="M2.5 1a1 1 0 0 0-1 1v1a1 1 0 0 0 1 1H3v9a2 2 0 0 0 2 2h6a2 2 0 0 0 2-2V4h.5a1 1 0 0 0 1-1V2a1 1 0 0 0-1-1H10a1 1 0 0 0-1-1H7a1 1 0 0 0-1 1zm3 4a.5.5 0 0 1 .5.5v7a.5.5 0 0 1-1 0v-7a.5.5 0 0 1 .5-.5M8 5a.5.5 0 0 1 .5.5v7a.5.5 0 0 1-1 0v-7A.5.5 0 0 1 8 5m3 .5v7a.5.5 0 0 1-1 0v-7a.5.5 0 0 1 1 0"/>
@@ -278,7 +279,11 @@
 
     {{if .}}
     <main id="hist">
-        <h3 id="hist-title">قائمة النص</h3>
+        <h3 id="hist-title">
+            قائمة النص
+            «<span id="hist-count">{{len . | arnum}}</span>»
+            <span id="hist-sort-type"></span>
+        </h3>
         <hr>
         <div id="hist-items">
             {{range $i, $v := .}}
@@ -395,7 +400,10 @@
         const save = document.getElementById("save");
         const histTitle = document.getElementById("hist-title");
         const histItems = document.getElementById("hist-items");
+        const histCS = document.getElementById("hist-count");
+        const histSortType = document.getElementById("hist-sort-type");
         let histItemsRev = false;
+        let histC = parseInt("{{len .}}");
 
         form.onsubmit = (e) => {
             e.preventDefault();
@@ -435,19 +443,15 @@
             }
         }
 
-        let hisTitleTxt = null;
         function histItmsRev(rev, save) {
-            if (!hisTitleTxt) hisTitleTxt = histTitle.innerText;
             if (rev) {
                 sortButtons(true);
-                histTitle.innerText =
-                    hisTitleTxt + histTitleRev;
+                histSortType.innerText = histTitleRev;
                 if (save)
                     window.localStorage.setItem(histSortLSK, "rev");
             } else {
                 sortButtons();
-                histTitle.innerText =
-                    hisTitleTxt + histTitleNorm;
+                histSortType.innerText = histTitleNorm;
                 if (save)
                     window.localStorage.removeItem(histSortLSK);
             }
@@ -466,6 +470,8 @@
                 fetch(cd.dataset.link, { method: "POST" })
                     .then(async (r) => {
                         if (r.ok && r.status === 202) {
+                            histCS.innerText = `${--histC}`.replace(/[0-9]/g, (d) =>
+                                String.fromCharCode(0x0660 + parseInt(d)));
                             histItems.removeChild(cd.parentElement)
                             if (histItems.childElementCount === 0) {
                                 hist.style.display = "none";

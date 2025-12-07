@@ -63,6 +63,11 @@ func parseFlags() *globalConf {
 
 	flag.Parse()
 
+	if *showVersion {
+		printVersion()
+		os.Exit(0)
+	}
+
 	if conf.tmpMode && conf.permDir != "" {
 		fmt.Println("Can not have both tmpurary mode and hist-dir at the same time")
 		os.Exit(1)
@@ -78,11 +83,6 @@ func parseFlags() *globalConf {
 			fmt.Printf("FETAL: '%s' Not a valid port nubmer\n", conf.port)
 			os.Exit(1)
 		}
-	}
-
-	if *showVersion {
-		printVersion()
-		os.Exit(0)
 	}
 
 	return &conf
@@ -245,6 +245,7 @@ var versionTxt []byte = nil
 func printVersionWritter(wm io.Writer) {
 	if versionTxt != nil {
 		wm.Write(versionTxt)
+		return
 	}
 	w := new(bytes.Buffer)
 	fmt.Fprintf(w, "%s: %s\n", progName, version)

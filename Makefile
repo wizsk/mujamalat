@@ -22,7 +22,7 @@ TagsD := -tags 'netgo'
 all: curr
 
 install: curr
-	@echo sudo mv $(OUTPUT_DIR)/$(APP_NAME) $(BIN_DIR)
+	@echo mv $(OUTPUT_DIR)/$(APP_NAME) $(BIN_DIR)
 
 curr:
 	@echo "Building satatic version for for current os"

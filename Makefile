@@ -22,7 +22,8 @@ TagsD := -tags 'netgo'
 all: curr
 
 install: curr
-	@echo mv $(OUTPUT_DIR)/$(APP_NAME) $(BIN_DIR)
+	@echo "INSTALLING TO" $(BIN_DIR)/$(APP_NAME)
+	@mv $(OUTPUT_DIR)/$(APP_NAME) $(BIN_DIR)
 
 curr:
 	@echo "Building satatic version for for current os"

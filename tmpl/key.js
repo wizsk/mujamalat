@@ -139,6 +139,18 @@ document.addEventListener('keydown', (e) => {
             querySelectorNextPre(false, 'sw-dict-item', 'sw-dict-item-selected');
             break;
 
+        case "KeyR":
+            e.preventDefault();
+            window.location.href = '/rd/'
+            break;
+
+
+        // {{if .RDMode}}
+        case "KeyM":
+            e.preventDefault();
+            readerMenuBtn.click();
+            break;
+        // {{end}}"
     }
 
 })

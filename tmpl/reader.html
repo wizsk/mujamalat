@@ -126,15 +126,10 @@
             color: var(--bg);
             border: none;
         }
-
-        .rm-btn:not(:first-of-type) {
-            margin-right: 0.5rem;
-        }
     }
 
-    .poem-line-num {
-        user-select: none;
-        display: none;
+    .rm-btn:not(:first-of-type) {
+        margin-right: 0.5rem;
     }
 
     #hide-line-numbers-div {
@@ -143,6 +138,16 @@
 
     #select-line-numbers-div {
         display: none !important;
+    }
+
+    #poem-align-div {
+        display: none !important;
+    }
+
+
+    .poem-line-num {
+        user-select: none;
+        display: none;
     }
 </style>
 
@@ -165,10 +170,8 @@
         user-select: none;
     }
 
-    #hide-line-numbers {}
-
     #select-line-numbers-div {
-        display: block !important;
+        display: flex !important;
     }
 
     body:has(#hide-line-numbers:checked) .poem-line-num {
@@ -179,13 +182,24 @@
         user-select: auto;
     }
 
-    #text-align {
-        pointer-events: none;
-        opacity: 0.5;
+    body:has(#vewing-mode option[value="poem"]:checked) {
+
+        #text-align-div {
+            display: none;
+        }
+
+        #poem-align-div {
+            display: block !important;
+        }
     }
 
     #reader {
         text-align: right !important;
+    }
+
+    .poem-center {
+        display: flex;
+        align-items: center;
     }
 </style>
 <script>
@@ -194,15 +208,17 @@
 {{end}}
 
 {{define "reader"}}
-<div id="reader">
-    {{range $i, $p := .Peras}}
-    <div class="pera">
-        {{- if add $i 1 | isodd -}}
-        <span class="poem-line-num">{{qasidaLine $i}}- </span>
-        {{- end}}
-        {{- range $p}}<span data-oar="{{.Oar}}" class="rWord {{if .IsHi}}hi{{end}}">{{.Og}}</span> {{end -}}
+<div id="readerWrapper">
+    <div id="reader">
+        {{range $i, $p := .Peras}}
+        <div class="pera">
+            {{- if add $i 1 | isodd -}}
+            <span class="poem-line-num">{{qasidaLine $i}}- </span>
+            {{- end}}
+            {{- range $p}}<span data-oar="{{.Oar}}" class="rWord {{if .IsHi}}hi{{end}}">{{.Og}}</span> {{end -}}
+        </div>
+        {{end}}
     </div>
-    {{end}}
 </div>
 
 <dialog id="readerMenu">
@@ -234,6 +250,22 @@
         </select>
     </div>
 
+    <div class="select-container" id="text-align-div">
+        <label for="text-align">محاذاة النص:</label>
+        <select id="text-align">
+            <option value="justify">التبرير</option>
+            <option value="right">لليمين</option>
+        </select>
+    </div>
+
+    <div class="select-container" id="poem-align-div">
+        <label for="poem-align">محاذاة الأبيات:</label>
+        <select id="poem-align">
+            <option value="right">لليمين</option>
+            <option value="center">الوسط</option>
+        </select>
+    </div>
+
     <div id="hide-line-numbers-div" class="select-container">
         <label for="hide-line-numbers">
             إخفاء أرقام الأبيات:
@@ -246,14 +278,6 @@
             اجعل أرقام الأبيات قابلة للاختيار:
         </label>
         <input type="checkbox" id="select-line-numbers" />
-    </div>
-
-    <div class="select-container">
-        <label for="text-align">محاذاة النص:</label>
-        <select id="text-align">
-            <option value="justify">التبرير</option>
-            <option value="right">لليمين</option>
-        </select>
     </div>
 
     <div class="select-container">

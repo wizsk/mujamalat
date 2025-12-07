@@ -5,6 +5,7 @@ const wakelockOptn = document.getElementById("wakelock");
 let inactivityTimer = null;
 const INACTIVITY_MINUTES = 7;
 const reader = document.getElementById("reader");
+const readerWrapper = document.getElementById("readerWrapper");
 const popup = document.getElementById("popup");
 const highlight = document.getElementById("highlight");
 const openDictBtn = document.getElementById("openDictBtn");
@@ -13,6 +14,7 @@ const readerMenuBtn = document.getElementById("readerMenuBtn");
 const wordSpans = document.querySelectorAll(".rWord");
 const vewingMode = document.getElementById("vewing-mode");
 const textAlign = document.getElementById("text-align");
+const poemAlign = document.getElementById("poem-align");
 const poemStyle = document.getElementById("poem");
 const poemLineNumHide = document.getElementById("hide-line-numbers");
 const fontSelector = document.getElementById("font-selector");
@@ -278,6 +280,29 @@ function getTextAlignLSN() {
   return `${window.location.pathname}-textAlign`;
 }
 
+
+const poemCenterClassName = "poem-center";
+poemAlign.onchange = (e) => {
+  const val = e.target.value;
+  switch (val) {
+    case "right":
+      readerWrapper.classList.remove(poemCenterClassName);
+      setPopUpPos();
+      window.localStorage.removeItem(getPoemAlignLSN());
+      break;
+    case "center":
+      readerWrapper.classList.add(poemCenterClassName);
+      setPopUpPos();
+      window.localStorage.setItem(getPoemAlignLSN(), val);
+      break;
+  }
+};
+
+/** LSN = local storage name */
+function getPoemAlignLSN() {
+  return `${window.location.pathname}-textAlign`;
+}
+
 document.addEventListener("DOMContentLoaded", () => {
   const font = window.localStorage.getItem(getFontSelectorLSN());
   if (font) {
@@ -288,9 +313,12 @@ document.addEventListener("DOMContentLoaded", () => {
   if (window.localStorage.getItem(getVewingModeLSN()) === "poem") {
     poemStyle.disabled = false;
     vewingMode.value = "poem";
-  }
-
-  if (window.localStorage.getItem(getTextAlignLSN()) === "right") {
+    if (window.localStorage.getItem(getPoemAlignLSN()) === "center") {
+      readerWrapper.classList.add(poemCenterClassName);
+      poemAlign.value = "center";
+    }
+  } else if (window.localStorage.getItem(getTextAlignLSN()) === "right") {
+    // this sould only run while not in poem mode
     reader.classList.add(textRightClassName);
     textAlign.value = "right";
   }

@@ -3,6 +3,7 @@ OUTPUT_DIR := build
 
 BUILD_TIME := $(shell date +%s)
 GIT_COMMIT := $(shell git rev-parse --short HEAD)
+GIT_COMMIT_MSG := $(shell git log -1 --pretty=%B)
 
 # to install in custom path
 # BIN_DIR=/bin make install
@@ -15,7 +16,7 @@ ifeq ($(origin BIN_DIR), undefined)
 endif
 
 # ldflags for embedding variables
-LDFLAGS := -ldflags "-X 'main.buildTime=$(BUILD_TIME)' -X 'main.gitCommit=$(GIT_COMMIT)' -s -w"
+LDFLAGS := -ldflags "-X 'main.buildTime=$(BUILD_TIME)' -X 'main.gitCommit=$(GIT_COMMIT)' -X 'main.gitCommitMsg=$(GIT_COMMIT_MSG)' -s -w"
 Tags := -tags 'static netgo'
 TagsD := -tags 'netgo'
 

@@ -38,9 +38,11 @@ const (
 )
 
 var (
-	buildTime string
-	gitCommit string
-	dicts     = []Dict{
+	buildTime    string
+	gitCommit    string
+	gitCommitMsg string
+
+	dicts = []Dict{
 		{"قاموس مباشر", arEnName},
 		{"معجم الغني", "mujamul_ghoni"},
 		{"هانز وير", hanswehrName},

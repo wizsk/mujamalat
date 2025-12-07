@@ -259,6 +259,9 @@ func printVersionWritter(wm io.Writer) {
 	if gitCommit != "" {
 		fmt.Fprintf(w, "git commit: %s\n", gitCommit)
 	}
+	if gitCommitMsg != "" {
+		fmt.Fprintf(w, "git commit message: %s\n", gitCommitMsg)
+	}
 	versionTxt = w.Bytes()
 	wm.Write(versionTxt)
 }

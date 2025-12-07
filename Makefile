@@ -4,12 +4,25 @@ OUTPUT_DIR := build
 BUILD_TIME := $(shell date +%s)
 GIT_COMMIT := $(shell git rev-parse --short HEAD)
 
+# to install in custom path
+# BIN_DIR=/bin make install
+ifeq ($(origin BIN_DIR), undefined)
+    ifeq ($(origin TERMUX__PREFIX), environment)
+        BIN_DIR := $(TERMUX__PREFIX)/bin/
+    else
+        BIN_DIR := /usr/local/bin/
+    endif
+endif
+
 # ldflags for embedding variables
 LDFLAGS := -ldflags "-X 'main.buildTime=$(BUILD_TIME)' -X 'main.gitCommit=$(GIT_COMMIT)' -s -w"
 Tags := -tags 'static netgo'
 TagsD := -tags 'netgo'
 
 all: curr
+
+install: curr
+	@echo sudo mv $(OUTPUT_DIR)/$(APP_NAME) $(BIN_DIR)
 
 curr:
 	@echo "Building satatic version for for current os"

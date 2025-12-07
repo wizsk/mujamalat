@@ -1,6 +1,7 @@
 package main
 
 import (
+	"bytes"
 	"context"
 	"database/sql"
 	"fmt"
@@ -9,6 +10,7 @@ import (
 	"os"
 	"os/signal"
 	"path/filepath"
+	"sync"
 	"syscall"
 	"time"
 
@@ -65,7 +67,25 @@ var (
 	lg = log.New(os.Stderr, progName+": ", log.LstdFlags|log.Lshortfile)
 
 	fetalErrChannel = make(chan error, 1)
+
+	// Buffer Pool
+	bufPool = sync.Pool{
+		New: func() any { return new(bytes.Buffer) },
+	}
 )
+
+// Acquire a buffer
+func getBuf() *bytes.Buffer {
+	b := bufPool.Get().(*bytes.Buffer)
+	b.Reset()
+	return b
+}
+
+// Return buffer to pool
+func putBuf(b *bytes.Buffer) {
+	b.Reset()
+	bufPool.Put(b)
+}
 
 func main() {
 	if debug {
@@ -84,6 +104,23 @@ func main() {
 		}
 		fmt.Printf("Deleted %s\n", fn)
 		os.Exit(0)
+	}
+
+	if gc.migrate {
+		rd := newReader(gc, nil)
+		buf := new(bytes.Buffer)
+		for _, e := range rd.enArr {
+			buf.Reset()
+			ep := filepath.Join(rd.permDir, e.Sha)
+			data := ke(os.ReadFile(ep))
+			if isMJENFile(data) {
+				continue
+			}
+			fmt.Printf("migrating file: %q\n", ep)
+			formatInputText(data, buf)
+			p(os.WriteFile(ep, buf.Bytes(), 0o644))
+		}
+		return
 	}
 
 	fmt.Println("INFO: Initalizing...")
@@ -139,6 +176,7 @@ func main() {
 	mux.HandleFunc("GET /rd/", rd.page)
 	mux.HandleFunc("POST /rd/entryEdit", rd.entryEdit)
 	mux.HandleFunc("POST /rd/high", rd.highlight)
+	mux.HandleFunc("GET /rd/highlist/{word}", rd.highlightWord)
 	mux.HandleFunc("GET /rd/highlist/", rd.highlightList)
 	mux.HandleFunc("POST /rd/delete/", rd.deletePage)
 

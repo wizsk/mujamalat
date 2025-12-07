@@ -10,6 +10,7 @@ import (
 	"os"
 	"path/filepath"
 	"strings"
+	"unicode/utf8"
 )
 
 type HighLightData struct {
@@ -33,6 +34,105 @@ func (rd *readerConf) highlightList(w http.ResponseWriter, r *http.Request) {
 	if err := rd.t.ExecuteTemplate(w, highLightsTemplateName, &hd); debug && err != nil {
 		lg.Println(err)
 	}
+}
+
+func (rd *readerConf) highlightWord(w http.ResponseWriter, r *http.Request) {
+	word := r.PathValue("word")
+	if word == "" {
+		return
+	}
+	wordB := []byte(word)
+
+	rd.m.RLock()
+	defer rd.m.RUnlock()
+	pera := new(bytes.Buffer)
+
+	buf := getBuf()
+	defer putBuf(buf)
+
+	for _, v := range rd.enArr {
+		fn := filepath.Join(rd.permDir, v.Sha)
+		f, err := os.Open(fn)
+		if err != nil {
+			continue // handle
+		}
+
+		buf.Reset()
+		io.Copy(buf, f)
+		f.Close()
+
+		if !isMJENFile(buf.Bytes()) {
+			continue // handle or not
+		}
+
+		data := buf.Bytes()[len(magicValMJENnl):]
+
+		for l := range bytes.SplitSeq(data, []byte("\n\n")) {
+			l = bytes.TrimSpace(l)
+			if len(l) == 0 {
+				continue
+			}
+
+		inner:
+			for ww := range bytes.SplitSeq(l, []byte("\n")) {
+				ww = bytes.TrimSpace(ww)
+				if len(ww) == 0 {
+					continue
+				}
+				s := bytes.SplitN(ww, []byte(":"), 2)
+				if len(s) != 2 {
+					continue // handle
+				}
+
+				c := string(s[0])
+				if c == word {
+					for w := range bytes.SplitSeq(l, []byte("\n")) {
+						w = bytes.TrimSpace(w)
+						if len(w) == 0 {
+							continue
+						}
+						s := bytes.SplitN(w, []byte(":"), 2)
+						if len(s) != 2 {
+							continue // handle
+						}
+
+						isEq := bytes.Equal(wordB, s[0])
+						if isEq {
+							pera.WriteString(`<span class="hi">`)
+						}
+
+						pera.Write(s[1])
+						if isEq {
+							pera.WriteString(`</span> `)
+						} else {
+							pera.WriteByte(' ')
+						}
+					}
+
+					pera.WriteString("<br><br>")
+					continue inner // just for surity
+				}
+			}
+		}
+	}
+
+	w.Header().Add("Content-Type", "text/html; charset=utf-8")
+	w.Write([]byte(`<style>.hi {background: #ffbf0099;}</style>`))
+	w.Write(bytes.TrimSpace(pera.Bytes()))
+}
+
+func bytesToRune(s []byte, t []rune) []rune {
+	if rc := utf8.RuneCount(s); len(t) < rc {
+		t = make([]rune, rc)
+	}
+	i := 0
+	for len(s) > 0 {
+		r, l := utf8.DecodeRune(s)
+		t[i] = r
+		i++
+		s = s[l:]
+	}
+	return t
 }
 
 func (rd *readerConf) highlight(w http.ResponseWriter, r *http.Request) {
@@ -238,14 +338,22 @@ func (rc *readerConf) validatePostAnd(w http.ResponseWriter, r *http.Request) (s
 	}
 	r.Body.Close()
 
+	// for getting corrent sha
 	data = cleanSpacesInPlace(data)
 	if len(data) == 0 {
 		return
 	}
 
+	buf := getBuf()
+	defer putBuf(buf)
+
 	sha = fmt.Sprintf("%x", sha256.Sum256(data))
 	pageName = rc.postPageName(data)
-	txt = string(data)
+
+	formatInputText(data, buf)
+	if buf.Len() > 0 {
+		txt = buf.String()
+	}
 	return
 }
 

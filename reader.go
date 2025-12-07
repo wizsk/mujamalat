@@ -1,9 +1,9 @@
 package main
 
 import (
-	"bufio"
 	"bytes"
 	"fmt"
+	"io"
 	"net/http"
 	"os"
 	"path/filepath"
@@ -74,15 +74,17 @@ func newReader(gc *globalConf, t templateWraper) *readerConf {
 		os.Exit(1)
 	}
 
-	hFilePathOld := rd.hFilePath + ".old"
-	if _, err := os.Stat(rd.hFilePath); err == nil {
-		if err := copyFile(rd.hFilePath, hFilePathOld); err != nil {
-			fmt.Printf(
-				"FETAL: highlight history file  could not be backedup to %q\nerr: %s\n",
-				hFilePathOld, err)
-			os.Exit(1)
+	if t != nil {
+		hFilePathOld := rd.hFilePath + ".old"
+		if _, err := os.Stat(rd.hFilePath); err == nil {
+			if err := copyFile(rd.hFilePath, hFilePathOld); err != nil {
+				fmt.Printf(
+					"FETAL: highlight history file  could not be backedup to %q\nerr: %s\n",
+					hFilePathOld, err)
+				os.Exit(1)
+			}
+			fmt.Printf("INFO: highlight history file backedup to %q\n", hFilePathOld)
 		}
-		fmt.Printf("INFO: highlight history file backedup to %q\n", hFilePathOld)
 	}
 
 	const ds = 100
@@ -141,27 +143,48 @@ func (rd *readerConf) page(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	s := bufio.NewScanner(f)
+	buf := getBuf()
+	defer putBuf(buf)
+
+	buf.Reset()
+	io.Copy(buf, f)
+	f.Close()
+
+	if !isMJENFile(buf.Bytes()) {
+		t.ExecuteTemplate(w, somethingWentWrong, &SomethingWentW{"Please migrage the entry files", ""})
+		return
+	}
+
+	data := buf.Bytes()[len(magicValMJENnl):]
+
 	peras := [][]ReaderWord{}
-	for s.Scan() {
-		t := bytes.TrimSpace(s.Bytes())
-		if len(t) == 0 {
+	for l := range bytes.SplitSeq(data, []byte("\n\n")) {
+		l = bytes.TrimSpace(l)
+		if len(l) == 0 {
 			continue
 		}
 		p := []ReaderWord{}
-		for b := range bytes.SplitSeq(t, []byte{' '}) {
-			w := string(b)
-			c := keepOnlyArabic(w)
+		for ww := range bytes.SplitSeq(l, []byte("\n")) {
+			ww = bytes.TrimSpace(ww)
+			if len(ww) == 0 {
+				continue
+			}
+			s := bytes.SplitN(ww, []byte(":"), 2)
+			if len(s) != 2 {
+				// handle
+				continue
+			}
+
+			c := string(s[0])
 			_, found := rd.hMap[c]
 			p = append(p, ReaderWord{
-				Og:   w,
+				Og:   string(s[1]),
 				Oar:  c,
 				IsHi: found,
 			})
 		}
 		peras = append(peras, p)
 	}
-	f.Close()
 
 	readerConf := ReaderData{ei.Name, peras}
 	tm := TmplData{Curr: "ar_en", Dicts: dicts, DictsMap: dictsMap, RD: readerConf, RDMode: true}

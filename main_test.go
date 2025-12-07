@@ -1,6 +1,10 @@
 package main
 
-import "testing"
+import (
+	"bytes"
+	"fmt"
+	"testing"
+)
 
 func TestCleanSpacesInPlace(t *testing.T) {
 	cases := []struct{ in, ex string }{
@@ -26,6 +30,58 @@ func TestCleanSpacesInPlace(t *testing.T) {
 		if r != c.ex {
 			t.Logf("case: %d:%q", i, c.in)
 			t.Logf("ex:%q != got:%q", c.ex, r)
+			t.FailNow()
+		}
+	}
+}
+
+func TestFormatInputText(t *testing.T) {
+	cases := []struct{ in, ex []byte }{
+		{
+			[]byte(""),
+			[]byte(""),
+		},
+		{
+			[]byte("  \n \t             "),
+			[]byte(""),
+		},
+		{
+			[]byte("  \n \t   #          "),
+			[]byte(magicValMJENnl + ":#\n\n"),
+		},
+		{
+			[]byte(`أَلا أَيُّهَا اَلمَقْصُودُ؟ فِي كُلِّ! حَاجَةٍ،
+شَكَوْتُ إِلَيْكَ الضُّرَّ - فَارْحَمْ شَكَايَتِي.
+٢`),
+			[]byte(magicValMJENnl + `أَلا:أَلا
+أَيُّهَا:أَيُّهَا
+اَلمَقْصُودُ:اَلمَقْصُودُ؟
+فِي:فِي
+كُلِّ:كُلِّ!
+حَاجَةٍ:حَاجَةٍ،
+
+شَكَوْتُ:شَكَوْتُ
+إِلَيْكَ:إِلَيْكَ
+الضُّرَّ:الضُّرَّ
+:-
+فَارْحَمْ:فَارْحَمْ
+شَكَايَتِي:شَكَايَتِي.
+
+:٢
+
+`),
+		},
+	}
+	buf := new(bytes.Buffer)
+	for i, c := range cases {
+		formatInputText(c.in, buf)
+		if !bytes.Equal(buf.Bytes(), c.ex) {
+			fmt.Printf("case: %d:\n%s\n", i, c.in)
+			fmt.Printf("  ex: \n%s\n", c.ex)
+			fmt.Printf(" got: \n%s\n", buf.Bytes())
+
+			fmt.Printf("  ex: %q\n", c.ex)
+			fmt.Printf(" got: %q\n", buf.Bytes())
 			t.FailNow()
 		}
 	}

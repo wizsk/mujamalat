@@ -119,3 +119,44 @@ func cleanSpacesInPlace(data []byte) []byte {
 	}
 	return data[:cur]
 }
+
+const magicValMJEN = "MJEN.V1"
+const magicValMJENnl = magicValMJEN + "\n"
+
+func isMJENFile(data []byte) bool {
+	return len(data) > len(magicValMJENnl) &&
+		bytes.HasPrefix(data, []byte(magicValMJENnl))
+}
+
+func formatInputText(inpt []byte, buf *bytes.Buffer) {
+	buf.Reset()
+	size := len(inpt) + len(magicValMJENnl)
+	if buf.Cap() < size {
+		buf.Grow(size)
+	}
+
+	buf.WriteString(magicValMJENnl)
+	for l := range bytes.SplitSeq(inpt, []byte("\n")) {
+		t := bytes.TrimSpace(l)
+		if len(t) == 0 {
+			continue
+		}
+		for b := range bytes.SplitSeq(t, []byte{' '}) {
+			if len(b) == 0 {
+				continue
+			}
+			w := string(b)
+			c := keepOnlyArabic(w)
+			buf.WriteString(c)
+			buf.WriteByte(':')
+			buf.Write(b)
+			buf.WriteByte('\n')
+		}
+		buf.WriteByte('\n')
+	}
+
+	// if the file was empty then skip
+	if buf.Len() == len(magicValMJENnl) {
+		buf.Reset()
+	}
+}

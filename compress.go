@@ -17,11 +17,6 @@ const (
 )
 
 var (
-	// Buffer Pool
-	bufPool = sync.Pool{
-		New: func() any { return new(bytes.Buffer) },
-	}
-
 	// Gzip writer pool
 	gzipPool = sync.Pool{
 		New: func() any {
@@ -85,19 +80,6 @@ func (cw *captureWriter) WriteHeader(status int) {
 
 func (cw *captureWriter) Write(b []byte) (int, error) {
 	return cw.buf.Write(b)
-}
-
-// Acquire a buffer
-func getBuf() *bytes.Buffer {
-	b := bufPool.Get().(*bytes.Buffer)
-	b.Reset()
-	return b
-}
-
-// Return buffer to pool
-func putBuf(b *bytes.Buffer) {
-	b.Reset()
-	bufPool.Put(b)
 }
 
 // Middleware

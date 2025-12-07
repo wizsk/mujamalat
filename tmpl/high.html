@@ -41,6 +41,8 @@
 
         .word-span {
             flex: 1;
+            color: inherit;
+            text-decoration: none;
         }
 
         .word:nth-child(2n) {
@@ -86,7 +88,7 @@
         {{range .Words}}
         <div class="word">
             <span class="dash">-</span>
-            <span class="word-span">{{.Oar}}</span>
+            <a class="word-span" href="/rd/highlist/{{.Oar}}">{{.Oar}}</a>
 
             <button data-oar="{{.Oar}}" class="update">
                 <svg xmlns="http://www.w3.org/2000/svg" fill="currentColor" viewBox="0 0 16 16">

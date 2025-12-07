@@ -25,6 +25,7 @@ type globalConf struct {
 	tmpMode        bool
 	deleteSessions bool
 	noCompress     bool
+	migrate        bool
 }
 
 func parseFlags() *globalConf {
@@ -58,6 +59,9 @@ func parseFlags() *globalConf {
 
 	flag.BoolVar(&conf.noCompress, "no-compress", false,
 		"do not compress response (no gzip/br)")
+
+	flag.BoolVar(&conf.migrate, "migrate", false,
+		"migrate entry files")
 
 	os.Args[0] = progName
 

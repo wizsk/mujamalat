@@ -8,9 +8,9 @@ GIT_COMMIT := $(shell git rev-parse --short HEAD)
 # BIN_DIR=/bin make install
 ifeq ($(origin BIN_DIR), undefined)
     ifeq ($(origin TERMUX__PREFIX), environment)
-        BIN_DIR := $(TERMUX__PREFIX)/bin/
+        BIN_DIR := $(TERMUX__PREFIX)/bin
     else
-        BIN_DIR := /usr/local/bin/
+        BIN_DIR := /usr/local/bin
     endif
 endif
 
@@ -23,7 +23,7 @@ all: curr
 
 install: curr
 	@echo "INSTALLING TO" $(BIN_DIR)/$(APP_NAME)
-	@mv $(OUTPUT_DIR)/$(APP_NAME) $(BIN_DIR)
+	@mv $(OUTPUT_DIR)/$(APP_NAME) $(BIN_DIR)/
 
 curr:
 	@echo "Building satatic version for for current os"

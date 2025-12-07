@@ -148,7 +148,11 @@ document.addEventListener('keydown', (e) => {
         // {{if .RDMode}}
         case "KeyM":
             e.preventDefault();
-            readerMenuBtn.click();
+            if (readerMenu.open) {
+                window.history.back();
+            } else {
+                readerMenuBtn.click();
+            }
             break;
         // {{end}}"
     }

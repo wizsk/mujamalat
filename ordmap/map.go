@@ -128,8 +128,9 @@ func (om *OrderedMap[K, V]) Values() []V {
 // Values returns ordered values.
 func (om *OrderedMap[K, V]) ValuesRev() []V {
 	vals := make([]V, len(om.data))
-	for i := len(om.data) - 1; i > -1; i-- {
-		vals[i] = om.data[i].Value
+	for i, j := len(om.data)-1, 0; i > -1; i-- {
+		vals[j] = om.data[i].Value
+		j++
 	}
 	return vals
 }

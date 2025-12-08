@@ -7,6 +7,8 @@ import (
 	"os"
 	"path/filepath"
 	"strings"
+
+	"github.com/wizsk/mujamalat/ordmap"
 )
 
 type HiIdx struct {
@@ -36,8 +38,13 @@ func (rd *readerConf) indexHiWordsSafe() {
 	rd.indexHiWords()
 }
 
-// it is save to call
 func (rd *readerConf) indexHiWords() {
+	rd.hMap.CngData(func(e ordmap.Entry[string, HiIdx]) ordmap.Entry[string, HiIdx] {
+		e.Value.MatchCound = 0
+		e.Value.Peras = e.Value.Peras[0:]
+		return e
+	})
+
 	buf := getBuf()
 	defer putBuf(buf)
 

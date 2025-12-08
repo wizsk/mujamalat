@@ -119,7 +119,7 @@ func (rd *readerConf) page(w http.ResponseWriter, r *http.Request) {
 	h := strings.TrimPrefix(r.URL.Path, "/rd/")
 	if h == "" {
 		// meaning the readerPage.
-		err := t.ExecuteTemplate(w, "readerInpt.html", rd.enMap.Values())
+		err := t.ExecuteTemplate(w, "readerInpt.html", rd.enMap.ValuesRev())
 		if debug && err != nil {
 			lg.Println(err)
 		}

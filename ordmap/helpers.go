@@ -22,3 +22,13 @@ func (om *OrderedMap[K, V]) JoinStr(str func(e Entry[K, V]) string, step string)
 	}
 	return b.String()
 }
+
+func isZero(k any) bool {
+	switch k.(type) {
+	case string:
+		if any(k).(string) == "" {
+			return true
+		}
+	}
+	return false
+}

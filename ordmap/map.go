@@ -23,6 +23,10 @@ func NewWithCap[K comparable, V any](c int) *OrderedMap[K, V] {
 
 // Set inserts or updates (preserves order).
 func (om *OrderedMap[K, V]) Set(k K, v V) {
+	if isZero(k) {
+		return
+	}
+
 	if idx, found := om.index[k]; found {
 		om.data[idx].Value = v
 		return
@@ -77,6 +81,19 @@ func (om *OrderedMap[K, V]) Delete(k K) bool {
 	return true
 }
 
+func (om *OrderedMap[K, V]) Reset() {
+	if om.data != nil {
+		om.data = om.data[:0]
+		clear(om.index)
+	}
+}
+
+func (om *OrderedMap[K, V]) CngData(cng func(Entry[K, V]) Entry[K, V]) {
+	for i, e := range om.data {
+		om.data[i] = cng(e)
+	}
+}
+
 func (om *OrderedMap[K, V]) Len() int {
 	return len(om.data)
 }
@@ -104,6 +121,15 @@ func (om *OrderedMap[K, V]) Values() []V {
 	vals := make([]V, len(om.data))
 	for i, e := range om.data {
 		vals[i] = e.Value
+	}
+	return vals
+}
+
+// Values returns ordered values.
+func (om *OrderedMap[K, V]) ValuesRev() []V {
+	vals := make([]V, len(om.data))
+	for i := len(om.data) - 1; i > -1; i-- {
+		vals[i] = om.data[i].Value
 	}
 	return vals
 }

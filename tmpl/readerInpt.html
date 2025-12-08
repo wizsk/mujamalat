@@ -101,6 +101,15 @@
             height: calc(var(--btn-wh)/4);
         }
 
+        #tmpModeDiv {
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            gap: 1rem;
+            margin-bottom: 1rem;
+            user-select: none;
+        }
+
         #btn-container {
             /* width: var(--width); */
             /* max-width: var(--max-width); */
@@ -252,8 +261,11 @@
             <textarea id="txt" rows="4"></textarea>
             <button id="resizeHandle"></button>
         </div>
-        <div>
-            <label for="tmpMode">TMP MODE</label>
+
+        <div id="tmpModeDiv">
+            <label for="tmpMode">
+                الوضع المؤقت
+            </label>
             <input type="checkbox" name="tmpMode" id="tmpMode">
         </div>
 

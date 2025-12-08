@@ -25,6 +25,8 @@ type HighLightWord struct {
 func (rd *readerConf) highlightList(w http.ResponseWriter, r *http.Request) {
 	sort := r.FormValue("sort")
 	rd.m.RLock()
+	defer rd.m.RUnlock()
+
 	rw := make([]HighLightWord, 0, len(rd.hArr))
 
 	switch sort {
@@ -55,7 +57,6 @@ func (rd *readerConf) highlightList(w http.ResponseWriter, r *http.Request) {
 			})
 		}
 	}
-	rd.m.RUnlock()
 
 	hd := HighLightData{
 		Words: rw,
@@ -75,12 +76,14 @@ func (rd *readerConf) highlightWord(w http.ResponseWriter, r *http.Request) {
 	defer rd.m.RUnlock()
 
 	if idx, ok := rd.hIdx[word]; ok {
-		w.Header().Add("Content-Type", "text/html; charset=utf-8")
-		w.Write([]byte(`<style>:root{direction: rtl;.hi {background: #ffbf0099;}</style>`))
-		fmt.Fprintf(w, "<p>موضعات %s</p>", intToArnum(idx.MatchCound))
-		w.Write(idx.Bytes())
+		readerConf := ReaderData{idx.Word, idx.Peras}
+		tm := TmplData{Curr: "ar_en", Dicts: dicts, DictsMap: dictsMap, RD: readerConf, RDMode: true}
+		if err := rd.t.ExecuteTemplate(w, mainTemplateName, &tm); debug && err != nil {
+			lg.Println(err)
+		}
 	} else {
-		http.NotFound(w, r)
+		w.WriteHeader(http.StatusNotFound)
+		rd.t.ExecuteTemplate(w, somethingWentWrong, &SomethingWentW{"Could not find page", "/rd/highlist/"})
 	}
 }
 

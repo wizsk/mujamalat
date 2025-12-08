@@ -161,7 +161,8 @@ func formatInputText(inpt []byte, buf *bytes.Buffer) {
 	}
 }
 
-func fomatHiIdxPera(buf *bytes.Buffer, splitedLine [][]byte, wordB []byte) {
+func fomatHiIdxPera(splitedLine [][]byte, wordB []byte) []ReaderWord {
+	res := []ReaderWord{}
 	for _, w := range splitedLine {
 		w = bytes.TrimSpace(w)
 		if len(w) == 0 {
@@ -172,16 +173,12 @@ func fomatHiIdxPera(buf *bytes.Buffer, splitedLine [][]byte, wordB []byte) {
 			continue // handle
 		}
 
-		isEq := bytes.Equal(wordB, s[0])
-		if isEq {
-			buf.WriteString(`<span class="hi">`)
-		}
-		buf.Write(s[1])
-		if isEq {
-			buf.WriteString(`</span> `)
-		} else {
-			buf.WriteByte(' ')
-		}
+		oar := string(s[0])
+		res = append(res, ReaderWord{
+			Og:   string(s[1]),
+			Oar:  oar,
+			IsHi: bytes.Equal(wordB, s[0]),
+		})
 	}
-	buf.WriteString("<br><br>")
+	return res
 }

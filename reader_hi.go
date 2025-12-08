@@ -13,11 +13,11 @@ import (
 type HiIdx struct {
 	Word       string
 	MatchCound int
-	*bytes.Buffer
+	Peras      [][]ReaderWord
 }
 
 func (h *HiIdx) String() string {
-	return fmt.Sprintf("%s:%d:%s", h.Word, h.MatchCound, h.Buffer)
+	return fmt.Sprintf("%s:%d:%v", h.Word, h.MatchCound, h.Peras)
 }
 
 type HiIdxArr []HiIdx
@@ -79,10 +79,9 @@ func (rd *readerConf) indexHiligtedWords() {
 						h, ok := rd.hIdx[word]
 						if !ok {
 							h.Word = word
-							h.Buffer = new(bytes.Buffer)
 						}
 						h.MatchCound++
-						fomatHiIdxPera(h.Buffer, splitedLine, wordB)
+						h.Peras = append(h.Peras, fomatHiIdxPera(splitedLine, wordB))
 						rd.hIdx[word] = h
 					}
 				}
@@ -125,7 +124,7 @@ func (rd *readerConf) setHIdxArr(op idxArrOpType, h *HiIdx) {
 }
 
 func (rd *readerConf) indexHiligtedWord(word string) {
-	h := HiIdx{Word: word, Buffer: new(bytes.Buffer)}
+	h := HiIdx{Word: word}
 	wordB := []byte(word)
 
 	buf := getBuf()
@@ -168,7 +167,7 @@ func (rd *readerConf) indexHiligtedWord(word string) {
 
 				if bytes.Equal(s[0], wordB) {
 					h.MatchCound++
-					fomatHiIdxPera(h.Buffer, lineSplit, wordB)
+					h.Peras = append(h.Peras, fomatHiIdxPera(lineSplit, wordB))
 					continue inner // no need to look at this pera
 				}
 			}

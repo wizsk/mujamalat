@@ -109,7 +109,8 @@ func main() {
 	if gc.migrate {
 		rd := newReader(gc, nil)
 		buf := new(bytes.Buffer)
-		for _, e := range rd.enArr {
+		for _, e := range *rd.enMap.Entries() {
+			e := e.Value
 			buf.Reset()
 			ep := filepath.Join(rd.permDir, e.Sha)
 			data := ke(os.ReadFile(ep))

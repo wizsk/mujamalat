@@ -1,0 +1,81 @@
+package ordmap
+
+type OrderedMap[K comparable, V any] struct {
+	index map[K]V // key → index in data slice
+	data  []V     // ordered values
+}
+
+func New[K comparable, V any]() *OrderedMap[K, V] {
+	return &OrderedMap[K, V]{
+		index: make(map[K]V),
+		data:  make([]V, 0),
+	}
+}
+
+func (om *OrderedMap[K, V]) IsSet(k K, v V) bool {
+	if _, exists := om.index[k]; exists {
+		return true
+	}
+	return false
+}
+
+// Set inserts or updates value for key.
+// Insert preserves order.
+func (om *OrderedMap[K, V]) Set(k K, v V) {
+	if idx, exists := om.index[k]; exists {
+		om.data[idx] = v
+		return
+	}
+	om.data = append(om.data, v)
+	om.index[k] = len(om.data) - 1
+}
+
+// Get returns value for key.
+func (om *OrderedMap[K, V]) Get(k K) (V, bool) {
+	idx, ok := om.index[k]
+	if !ok {
+		var zero V
+		return zero, false
+	}
+	return om.data[idx], true
+}
+
+// Delete removes a key and keeps order (O(n)).
+func (om *OrderedMap[K, V]) Delete(k K) bool {
+	idx, ok := om.index[k]
+	if !ok {
+		return false
+	}
+
+	// Remove from slice while preserving order
+	copy(om.data[idx:], om.data[idx+1:])
+	om.data = om.data[:len(om.data)-1]
+
+	// Rebuild indices for shifted values
+	for i := idx; i < len(om.data); i++ {
+		// Find which key had index i+1
+		for key, pos := range om.index {
+			if pos == i+1 {
+				om.index[key] = i
+				break
+			}
+		}
+	}
+
+	delete(om.index, k)
+	return true
+}
+
+// Values returns underlying slice by reference.
+func (om *OrderedMap[K, V]) Values() *[]V {
+	return &om.data
+}
+
+// Len returns number of entries.
+func (om *OrderedMap[K, V]) Len() int {
+	return len(om.data)
+}
+
+func (om *OrderedMap[K, V]) Cap() int {
+	return cap(om.data)
+}

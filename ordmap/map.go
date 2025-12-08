@@ -1,19 +1,23 @@
 package ordmap
 
-type entry[K comparable, V any] struct {
+type Entry[K comparable, V any] struct {
 	Key   K
 	Value V
 }
 
 type OrderedMap[K comparable, V any] struct {
 	index map[K]int     // key → index in slice
-	data  []entry[K, V] // ordered storage
+	data  []Entry[K, V] // ordered storage
 }
 
 func New[K comparable, V any]() *OrderedMap[K, V] {
+	return NewWithCap[K, V](0)
+}
+
+func NewWithCap[K comparable, V any](c int) *OrderedMap[K, V] {
 	return &OrderedMap[K, V]{
-		index: make(map[K]int),
-		data:  make([]entry[K, V], 0),
+		index: make(map[K]int, c),
+		data:  make([]Entry[K, V], 0, c),
 	}
 }
 
@@ -24,7 +28,7 @@ func (om *OrderedMap[K, V]) Set(k K, v V) {
 		return
 	}
 
-	om.data = append(om.data, entry[K, V]{k, v})
+	om.data = append(om.data, Entry[K, V]{k, v})
 	om.index[k] = len(om.data) - 1
 }
 
@@ -37,6 +41,21 @@ func (om *OrderedMap[K, V]) Get(k K) (V, bool) {
 	return zero, false
 }
 
+func (om *OrderedMap[K, V]) GetIdx(idx int) V {
+	return om.data[idx].Value
+}
+
+func (om *OrderedMap[K, V]) GetIdxKV(idx int) Entry[K, V] {
+	return om.data[idx]
+}
+
+func (om *OrderedMap[K, V]) IsSet(k K) bool {
+	if _, found := om.index[k]; found {
+		return true
+	}
+	return false
+}
+
 // Delete keeps order (O(n) but stable).
 func (om *OrderedMap[K, V]) Delete(k K) bool {
 	idx, ok := om.index[k]
@@ -44,7 +63,7 @@ func (om *OrderedMap[K, V]) Delete(k K) bool {
 		return false
 	}
 
-	// remove entry at idx by shifting left
+	// remove Entry at idx by shifting left
 	copy(om.data[idx:], om.data[idx+1:])
 	om.data = om.data[:len(om.data)-1]
 
@@ -58,8 +77,16 @@ func (om *OrderedMap[K, V]) Delete(k K) bool {
 	return true
 }
 
+func (om *OrderedMap[K, V]) Len() int {
+	return len(om.data)
+}
+
+func (om *OrderedMap[K, V]) Cap() int {
+	return cap(om.data)
+}
+
 // Entries returns a reference to the slice (no copy).
-func (om *OrderedMap[K, V]) Entries() *[]entry[K, V] {
+func (om *OrderedMap[K, V]) Entries() *[]Entry[K, V] {
 	return &om.data
 }
 
@@ -79,4 +106,24 @@ func (om *OrderedMap[K, V]) Values() []V {
 		vals[i] = e.Value
 	}
 	return vals
+}
+
+// Iter returns a channel that can be ranged over
+func (m *OrderedMap[K, V]) Iter() <-chan Entry[K, V] {
+	ch := make(chan Entry[K, V], len(m.data)) // buffered to avoid goroutine blocking
+	for _, e := range m.data {
+		ch <- e
+	}
+	close(ch)
+	return ch
+}
+
+// IterReverse returns a channel for reverse iteration
+func (m *OrderedMap[K, V]) IterReverse() <-chan Entry[K, V] {
+	ch := make(chan Entry[K, V], len(m.data))
+	for i := len(m.data) - 1; i >= 0; i-- {
+		ch <- m.data[i]
+	}
+	close(ch)
+	return ch
 }

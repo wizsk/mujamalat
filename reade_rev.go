@@ -19,9 +19,9 @@ func (rd *readerConf) revPage(w http.ResponseWriter, r *http.Request) {
 	defer rd.m.Unlock()
 
 	idx := HiIdx{}
-	if len(rd.hIdxArr) > len(revPageData.words) {
+	if rd.hIdx.Len() > len(revPageData.words) {
 		for {
-			idx = rd.hIdxArr[rand.Intn(len(rd.hIdxArr))]
+			idx = rd.hIdx.GetIdx(rand.Intn(rd.hIdx.Len()))
 			if _, ok := revPageData.words[idx.Word]; !ok {
 				break
 			}

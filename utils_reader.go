@@ -8,6 +8,8 @@ import (
 
 	"os"
 	"path/filepath"
+
+	"github.com/wizsk/mujamalat/ordmap"
 )
 
 type EntryInfo struct {
@@ -26,8 +28,7 @@ func (e *EntryInfo) String() string {
 
 func (rd *readerConf) loadEntieslist() error {
 	const sz = 50 // size
-	rd.enMap = make(map[string]EntryInfo, sz)
-	rd.enArr = make([]EntryInfo, 0, sz)
+	rd.enMap = ordmap.NewWithCap[string, EntryInfo](sz)
 
 	fileName := filepath.Join(rd.permDir, entriesFileName)
 	file, err := os.Open(fileName)
@@ -54,19 +55,9 @@ func (rd *readerConf) loadEntieslist() error {
 			Name: string(b[2]),
 		}
 
-		rd.enMap[e.Sha] = e
-		rd.enArr = append(rd.enArr, e)
+		rd.enMap.Set(e.Sha, e)
 	}
 
-	rd.setEnArrRev()
-	return nil
-}
-
-func (rd *readerConf) getEntriesInfo(sha string) *EntryInfo {
-	i, ok := rd.enMap[sha]
-	if ok {
-		return &i
-	}
 	return nil
 }
 
@@ -88,9 +79,9 @@ func openAppend(f string) (*os.File, error) {
 	return os.OpenFile(f, os.O_APPEND|os.O_CREATE|os.O_WRONLY, 0644)
 }
 
-func (rd *readerConf) setEnArrRev() {
-	rd.enArrRev = copyRev(rd.enArrRev, rd.enArr)
-}
+// func (rd *readerConf) setEnArrRev() {
+// 	rd.enArrRev = copyRev(rd.enArrRev, rd.enArr)
+// }
 
 func cleanSpacesInPlace(data []byte) []byte {
 	cur := 0 // cursor

@@ -9,6 +9,8 @@ import (
 	"path/filepath"
 	"strings"
 	"sync"
+
+	"github.com/wizsk/mujamalat/ordmap"
 )
 
 const (
@@ -24,13 +26,20 @@ type readerConf struct {
 	permDir    string
 	hFilePath  string
 	enFilePath string
-	enArr      []EntryInfo
-	enArrRev   []EntryInfo
-	enMap      map[string]EntryInfo // sha
-	hMap       map[string]struct{}
-	hArr       []string
-	hIdx       map[string]HiIdx
-	hIdxArr    HiIdxArr
+
+	// enArr    []EntryInfo
+	// enArrRev []EntryInfo
+	// enMap    map[string]EntryInfo                 // sha
+
+	enMap *ordmap.OrderedMap[string, EntryInfo] // sha
+
+	hMap *ordmap.OrderedMap[string, struct{}]
+	// hMap map[string]struct{}
+	// hArr []string
+
+	hIdx *ordmap.OrderedMap[string, HiIdx]
+	// hIdx    map[string]HiIdx
+	// hIdxArr HiIdxArr
 }
 
 func newReader(gc *globalConf, t templateWraper) *readerConf {
@@ -93,21 +102,20 @@ func newReader(gc *globalConf, t templateWraper) *readerConf {
 	if f, err := os.ReadFile(rd.hFilePath); err == nil {
 		sl := bytes.Split(f, []byte("\n"))
 
-		rd.hMap = make(map[string]struct{}, len(sl)+ds)
-		rd.hArr = make([]string, 0, len(sl)+ds)
+		rd.hMap = ordmap.NewWithCap[string, struct{}](len(sl) + ds)
+		// rd.hArr = make([]string, 0, len(sl)+ds)
 
 		for i := range len(sl) {
 			lb := bytes.TrimSpace(sl[i])
 			if len(lb) > 0 {
 				l := string(lb)
-				rd.hMap[l] = struct{}{}
-				rd.hArr = append(rd.hArr, l)
+				rd.hMap.Set(l, struct{}{})
 			}
 		}
 	}
+
 	if rd.hMap == nil {
-		rd.hMap = make(map[string]struct{}, ds)
-		rd.hArr = make([]string, 0, ds)
+		rd.hMap = ordmap.NewWithCap[string, struct{}](ds)
 	}
 
 	startCleanTmpPageDataTicker()
@@ -122,7 +130,7 @@ func (rd *readerConf) page(w http.ResponseWriter, r *http.Request) {
 	h := strings.TrimPrefix(r.URL.Path, "/rd/")
 	if h == "" {
 		// meaning the readerPage.
-		err := t.ExecuteTemplate(w, "readerInpt.html", rd.enArrRev)
+		err := t.ExecuteTemplate(w, "readerInpt.html", rd.enMap.Values())
 		if debug && err != nil {
 			lg.Println(err)
 		}
@@ -130,8 +138,8 @@ func (rd *readerConf) page(w http.ResponseWriter, r *http.Request) {
 	}
 
 	// serve the saved file
-	ei := rd.getEntriesInfo(h)
-	if ei == nil {
+	ei, ok := rd.enMap.Get(h)
+	if !ok {
 		w.WriteHeader(http.StatusNotFound)
 		t.ExecuteTemplate(w, somethingWentWrong, &SomethingWentW{"Could not find page", "/rd/"})
 		return
@@ -179,11 +187,10 @@ func (rd *readerConf) page(w http.ResponseWriter, r *http.Request) {
 			}
 
 			c := string(s[0])
-			_, found := rd.hMap[c]
 			p = append(p, ReaderWord{
 				Og:   string(s[1]),
 				Oar:  c,
-				IsHi: found,
+				IsHi: rd.hMap.IsSet(c),
 			})
 		}
 		peras = append(peras, p)
@@ -213,7 +220,7 @@ func (rd *readerConf) post(w http.ResponseWriter, r *http.Request) {
 
 	url := "/rd/" + sha
 	// exisits in the entris so skip writing
-	if _, found := rd.enMap[sha]; found {
+	if rd.enMap.IsSet(sha) {
 		http.Redirect(w, r, url, http.StatusMovedPermanently)
 		return
 	}
@@ -249,9 +256,7 @@ func (rd *readerConf) post(w http.ResponseWriter, r *http.Request) {
 		Sha:  sha,
 		Name: pageName,
 	}
-	rd.enMap[sha] = e
-	rd.enArr = append(rd.enArr, e)
-	rd.setEnArrRev()
 
+	rd.enMap.Set(sha, e)
 	http.Redirect(w, r, url, http.StatusMovedPermanently)
 }

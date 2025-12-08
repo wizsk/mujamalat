@@ -6,8 +6,9 @@ import (
 	"io"
 	"os"
 	"path/filepath"
-	"sort"
 	"strings"
+
+	"github.com/wizsk/mujamalat/ordmap"
 )
 
 type HiIdx struct {
@@ -32,7 +33,7 @@ func (h HiIdxArr) String() string {
 }
 
 func (rd *readerConf) indexHiligtedWords() {
-	rd.hIdx = make(map[string]HiIdx, len(rd.hArr)+50)
+	rd.hIdx = ordmap.New[string, HiIdx]()
 
 	rd.m.Lock()
 	defer rd.m.Unlock()
@@ -40,7 +41,9 @@ func (rd *readerConf) indexHiligtedWords() {
 	buf := getBuf()
 	defer putBuf(buf)
 
-	for _, v := range rd.enArr {
+	for _, v := range *rd.enMap.Entries() {
+		v := v.Value
+
 		fn := filepath.Join(rd.permDir, v.Sha)
 		f, err := os.Open(fn)
 		if err != nil {
@@ -73,23 +76,22 @@ func (rd *readerConf) indexHiligtedWords() {
 					continue // handle
 				}
 
-				for _, word := range rd.hArr {
+				for _, word := range *rd.hMap.Entries() {
+					word := word.Key
 					wordB := []byte(word)
 					if bytes.Equal(s[0], wordB) {
-						h, ok := rd.hIdx[word]
+						h, ok := rd.hIdx.Get(word)
 						if !ok {
 							h.Word = word
 						}
 						h.MatchCound++
 						h.Peras = append(h.Peras, fomatHiIdxPera(splitedLine, wordB))
-						rd.hIdx[word] = h
+						rd.hIdx.Set(word, h)
 					}
 				}
 			}
 		}
 	}
-
-	rd.setHIdxArr(hIdxArrNew, nil)
 }
 
 type idxArrOpType uint
@@ -100,28 +102,28 @@ const (
 	hIdxArrDel
 )
 
-func (rd *readerConf) setHIdxArr(op idxArrOpType, h *HiIdx) {
-	switch op {
-	case hIdxArrNew:
-		rd.hIdxArr = make([]HiIdx, 0, len(rd.hIdx)+50)
-		for _, v := range rd.hIdx {
-			rd.hIdxArr = append(rd.hIdxArr, v)
-		}
-	case hIdxArrAdd:
-		rd.hIdxArr = append(rd.hIdxArr, *h)
-	case hIdxArrDel:
-		rd.hIdxArr, _ = removeArrItmFunc(rd.hIdxArr, func(i int) bool {
-			return rd.hIdxArr[i].Word == h.Word
-		})
-		return // no sorting needed
-	default:
-		panic("wrong op porovided")
-	}
-
-	sort.Slice(rd.hIdxArr, func(i, j int) bool {
-		return rd.hIdxArr[i].MatchCound > rd.hIdxArr[j].MatchCound
-	})
-}
+// func (rd *readerConf) setHIdxArr(op idxArrOpType, h *HiIdx) {
+// 	switch op {
+// 	case hIdxArrNew:
+// 		rd.hIdxArr = make([]HiIdx, 0, len(rd.hIdx)+50)
+// 		for _, v := range rd.hIdx {
+// 			rd.hIdxArr = append(rd.hIdxArr, v)
+// 		}
+// 	case hIdxArrAdd:
+// 		rd.hIdxArr = append(rd.hIdxArr, *h)
+// 	case hIdxArrDel:
+// 		rd.hIdxArr, _ = removeArrItmFunc(rd.hIdxArr, func(i int) bool {
+// 			return rd.hIdxArr[i].Word == h.Word
+// 		})
+// 		return // no sorting needed
+// 	default:
+// 		panic("wrong op porovided")
+// 	}
+//
+// 	sort.Slice(rd.hIdxArr, func(i, j int) bool {
+// 		return rd.hIdxArr[i].MatchCound > rd.hIdxArr[j].MatchCound
+// 	})
+// }
 
 func (rd *readerConf) indexHiligtedWord(word string) {
 	h := HiIdx{Word: word}
@@ -130,7 +132,8 @@ func (rd *readerConf) indexHiligtedWord(word string) {
 	buf := getBuf()
 	defer putBuf(buf)
 
-	for _, v := range rd.enArr {
+	for _, v := range *rd.enMap.Entries() {
+		v := v.Value
 		fn := filepath.Join(rd.permDir, v.Sha)
 		f, err := os.Open(fn)
 		if err != nil {
@@ -173,6 +176,5 @@ func (rd *readerConf) indexHiligtedWord(word string) {
 			}
 		}
 	}
-	rd.hIdx[word] = h
-	rd.setHIdxArr(hIdxArrAdd, &h)
+	rd.hIdx.Set(word, h)
 }

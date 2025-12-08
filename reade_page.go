@@ -116,11 +116,10 @@ func (rd *readerConf) tmpPage(w http.ResponseWriter, r *http.Request) {
 			}
 			w := string(w)
 			c := keepOnlyArabic(w)
-			_, found := rd.hMap[c]
 			p = append(p, ReaderWord{
 				Og:   w,
 				Oar:  c,
-				IsHi: found,
+				IsHi: rd.hMap.IsSet(c),
 			})
 		}
 		peras = append(peras, p)

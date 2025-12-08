@@ -27,33 +27,33 @@ func (rd *readerConf) highlightList(w http.ResponseWriter, r *http.Request) {
 	rd.m.RLock()
 	defer rd.m.RUnlock()
 
-	rw := make([]HighLightWord, 0, len(rd.hArr))
+	rw := make([]HighLightWord, 0, rd.hMap.Len())
 
 	switch sort {
 	case "most":
-		for i := 0; i < len(rd.hIdxArr); i++ {
-			word := rd.hIdxArr[i].Word
-			count := rd.hIdxArr[i].MatchCound
+		for i := 0; i < rd.hIdx.Len(); i++ {
+			word := rd.hIdx.GetIdx(i).Word
+			count := rd.hIdx.GetIdx(i).MatchCound
 			rw = append(rw, HighLightWord{
 				Oar:   word,
 				Count: count,
 			})
 		}
 	case "least":
-		for i := len(rd.hIdxArr) - 1; i > -1; i-- {
-			word := rd.hIdxArr[i].Word
-			count := rd.hIdxArr[i].MatchCound
+		for i := rd.hIdx.Len() - 1; i > -1; i-- {
+			word := rd.hIdx.GetIdx(i).Word
+			count := rd.hIdx.GetIdx(i).MatchCound
 			rw = append(rw, HighLightWord{
 				Oar:   word,
 				Count: count,
 			})
 		}
 	default:
-		for i := len(rd.hArr) - 1; i > -1; i-- {
-			word := rd.hArr[i]
+		for i := rd.hMap.Len() - 1; i > -1; i-- {
+			word := rd.hMap.GetIdxKV(i).Key
 			rw = append(rw, HighLightWord{
 				Oar:   word,
-				Count: rd.hIdx[word].MatchCound,
+				Count: rd.hIdx.GetIdx(i).MatchCound,
 			})
 		}
 	}
@@ -75,7 +75,7 @@ func (rd *readerConf) highlightWord(w http.ResponseWriter, r *http.Request) {
 	rd.m.RLock()
 	defer rd.m.RUnlock()
 
-	if idx, ok := rd.hIdx[word]; ok {
+	if idx, ok := rd.hIdx.Get(word); ok {
 		readerConf := ReaderData{idx.Word, idx.Peras}
 		tm := TmplData{Curr: "ar_en", Dicts: dicts, DictsMap: dictsMap, RD: readerConf, RDMode: true}
 		if err := rd.t.ExecuteTemplate(w, mainTemplateName, &tm); debug && err != nil {
@@ -119,7 +119,7 @@ func (rd *readerConf) highlight(w http.ResponseWriter, r *http.Request) {
 	rd.m.Lock()
 	defer rd.m.Unlock()
 
-	_, found := rd.hMap[word]
+	found := rd.hMap.IsSet(word)
 	if (found && add) || (!found && del) {
 		w.WriteHeader(http.StatusAccepted)
 		return
@@ -130,7 +130,7 @@ func (rd *readerConf) highlight(w http.ResponseWriter, r *http.Request) {
 	}
 
 	if del {
-		rd.hArr, _ = removeArrItm(rd.hArr, word)
+		rd.hMap.Delete(word)
 
 		tmpFile := rd.hFilePath + ".tmp"
 		f, err := fetalErrVal(os.Create(tmpFile))
@@ -138,7 +138,8 @@ func (rd *readerConf) highlight(w http.ResponseWriter, r *http.Request) {
 			http.Error(w, "could not write to disk", http.StatusInternalServerError)
 			return // err
 		}
-		if !fetalErrOkD(f.WriteString(strings.Join(rd.hArr, "\n"))) {
+
+		if !fetalErrOkD(f.WriteString(rd.hiMapStr())) {
 			f.Close()
 			return
 		}
@@ -151,6 +152,7 @@ func (rd *readerConf) highlight(w http.ResponseWriter, r *http.Request) {
 		}
 	} else {
 		// on add append
+		rd.hMap.Set(word, struct{}{})
 		f, err := fetalErrVal(openAppend(rd.hFilePath))
 		if err != nil {
 			http.Error(w, "could not write to disk", http.StatusInternalServerError)
@@ -161,18 +163,19 @@ func (rd *readerConf) highlight(w http.ResponseWriter, r *http.Request) {
 		f.Close()
 	}
 
-	// after successful write to disk change in mem variables
-	if del {
-		// in hArr word already deleted
-		delete(rd.hMap, word)
-		h := rd.hIdx[word]
-		delete(rd.hIdx, word)
-		rd.setHIdxArr(hIdxArrDel, &h)
-	} else if add {
-		rd.hMap[word] = struct{}{}
-		rd.hArr = append(rd.hArr, word)
-		rd.indexHiligtedWord(word)
-	}
+	// // after successful write to disk change in mem variables
+	// if del {
+	// 	rd.hMap.Delete(word)
+	// 	// in hArr word already deleted
+	// 	delete(rd.hMap, word)
+	// 	h := rd.hIdx[word]
+	// 	delete(rd.hIdx, word)
+	// 	rd.setHIdxArr(hIdxArrDel, &h)
+	// } else if add {
+	// 	rd.hMap[word] = struct{}{}
+	// 	rd.hArr = append(rd.hArr, word)
+	// 	rd.indexHiligtedWord(word)
+	// }
 
 	w.WriteHeader(http.StatusAccepted)
 }
@@ -195,7 +198,7 @@ func (rd *readerConf) entryEdit(w http.ResponseWriter, r *http.Request) {
 	rd.m.Lock()
 	defer rd.m.Unlock()
 
-	e, found := rd.enMap[sha]
+	e, found := rd.enMap.Get(sha)
 	if !found {
 		http.Error(w, "sha not found", http.StatusBadRequest)
 		return
@@ -205,21 +208,13 @@ func (rd *readerConf) entryEdit(w http.ResponseWriter, r *http.Request) {
 	}
 
 	e.Pin = pin
-	rd.enMap[sha] = e
+	rd.enMap.Set(sha, e)
 
-	for i := range len(rd.enArr) {
-		if rd.enArr[i].Sha == sha {
-			rd.enArr[i].Pin = pin
-			break
-		}
-	}
-	rd.setEnArrRev()
-
-	sb := new(strings.Builder)
-	for _, e := range rd.enArr {
-		sb.WriteString(e.String())
-		sb.WriteByte('\n')
-	}
+	// sb := new(strings.Builder)
+	// for _, e := range *rd.enMap.Entries() {
+	// 	sb.WriteString(e.Value.String())
+	// 	sb.WriteByte('\n')
+	// }
 
 	enTmp := rd.enFilePath + ".tmp"
 	enFile, err := fetalErrVal(os.Create(enTmp))
@@ -227,7 +222,7 @@ func (rd *readerConf) entryEdit(w http.ResponseWriter, r *http.Request) {
 		http.Error(w, "something went wrong", http.StatusInternalServerError)
 		return
 	}
-	if !fetalErrOkD(enFile.WriteString(sb.String())) ||
+	if !fetalErrOkD(enFile.WriteString(rd.enMapStr())) ||
 		!fetalErrOk(enFile.Close()) ||
 		!fetalErrOk(os.Rename(enTmp, rd.enFilePath)) {
 		http.Error(w, "something went wrong", http.StatusInternalServerError)
@@ -249,22 +244,12 @@ func (rd *readerConf) deletePage(w http.ResponseWriter, r *http.Request) {
 
 	d := rd.permDir
 
-	if _, found := rd.enMap[sha]; !found {
+	if rd.enMap.IsSet(sha) {
 		http.Error(w, fmt.Sprintf("could not find: %q", sha), http.StatusBadRequest)
 		return
 	}
 
-	delete(rd.enMap, sha)
-	rd.enArr, _ = removeArrItmFunc(rd.enArr, func(i int) bool {
-		return rd.enArr[i].Sha == sha
-	})
-	rd.setEnArrRev()
-
-	sb := new(strings.Builder)
-	for _, e := range rd.enArr {
-		sb.WriteString(e.String())
-		sb.WriteByte('\n')
-	}
+	rd.enMap.Delete(sha)
 
 	enTmp := rd.enFilePath + ".tmp"
 	enFile, err := fetalErrVal(os.Create(enTmp))
@@ -272,7 +257,7 @@ func (rd *readerConf) deletePage(w http.ResponseWriter, r *http.Request) {
 		http.Error(w, "something went wrong", http.StatusInternalServerError)
 		return
 	}
-	if !fetalErrOkD(enFile.WriteString(sb.String())) ||
+	if !fetalErrOkD(enFile.WriteString(rd.enMapStr())) ||
 		!fetalErrOk(enFile.Close()) ||
 		!fetalErrOk(os.Rename(enTmp, rd.enFilePath)) {
 		http.Error(w, "something went wrong", http.StatusInternalServerError)

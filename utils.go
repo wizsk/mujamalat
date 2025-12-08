@@ -26,6 +26,7 @@ type globalConf struct {
 	deleteSessions bool
 	noCompress     bool
 	migrate        bool
+	indexHi        bool
 }
 
 func parseFlags() *globalConf {
@@ -56,6 +57,8 @@ func parseFlags() *globalConf {
 	showVersion := flag.Bool("v", false, "print version information")
 
 	flag.BoolVar(&conf.verbose, "s", false, "show request logs [be verbose]")
+
+	flag.BoolVar(&conf.indexHi, "index-hi", false, "index higilight list")
 
 	flag.BoolVar(&conf.noCompress, "no-compress", false,
 		"do not compress response (no gzip/br)")
@@ -99,7 +102,7 @@ var tmplFuncs = template.FuncMap{
 		return intToArnum((n + 2) / 2)
 	},
 	// "dec":   func(a, b int) int { return a - b },
-	"arnum": intToArnum,
+	"arnum": intToArnum[int],
 }
 
 // log when error != nil and return true
@@ -212,8 +215,8 @@ func fetalErr(err error) {
 	fetalErrChannel <- err
 }
 
-func intToArnum(n int) string {
-	numStr := strconv.Itoa(n)
+func intToArnum[T int64 | int | uint](n T) string {
+	numStr := strconv.FormatInt(int64(n), 10)
 	res := ""
 	for _, digit := range numStr {
 		if digit >= '0' && digit <= '9' {

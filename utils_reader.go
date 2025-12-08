@@ -160,3 +160,28 @@ func formatInputText(inpt []byte, buf *bytes.Buffer) {
 		buf.Reset()
 	}
 }
+
+func fomatHiIdxPera(buf *bytes.Buffer, splitedLine [][]byte, wordB []byte) {
+	for _, w := range splitedLine {
+		w = bytes.TrimSpace(w)
+		if len(w) == 0 {
+			continue
+		}
+		s := bytes.SplitN(w, []byte(":"), 2)
+		if len(s) != 2 {
+			continue // handle
+		}
+
+		isEq := bytes.Equal(wordB, s[0])
+		if isEq {
+			buf.WriteString(`<span class="hi">`)
+		}
+		buf.Write(s[1])
+		if isEq {
+			buf.WriteString(`</span> `)
+		} else {
+			buf.WriteByte(' ')
+		}
+	}
+	buf.WriteString("<br><br>")
+}

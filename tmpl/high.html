@@ -88,7 +88,8 @@
         {{range .Words}}
         <div class="word">
             <span class="dash">-</span>
-            <a class="word-span" href="/rd/highlist/{{.Oar}}">{{.Oar}}</a>
+
+            <a class="word-span" href="/rd/highlist/{{.Oar}}">{{.Oar}} «{{.Count | arnum}}»</a>
 
             <button data-oar="{{.Oar}}" class="update">
                 <svg xmlns="http://www.w3.org/2000/svg" fill="currentColor" viewBox="0 0 16 16">

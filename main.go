@@ -123,6 +123,9 @@ func main() {
 		return
 	}
 
+	if gc.indexHi {
+	}
+
 	fmt.Println("INFO: Initalizing...")
 	iStart := time.Now()
 	done := make(chan struct{}, 1)
@@ -147,6 +150,7 @@ func main() {
 	go func() {
 		tmpl = ke(openTmpl(debug))
 		rd = newReader(gc, tmpl)
+		rd.indexHiligtedWords()
 		done <- struct{}{}
 	}()
 

@@ -29,6 +29,8 @@ type readerConf struct {
 	enMap      map[string]EntryInfo // sha
 	hMap       map[string]struct{}
 	hArr       []string
+	hIdx       map[string]HiIdx
+	hIdxArr    HiIdxArr
 }
 
 func newReader(gc *globalConf, t templateWraper) *readerConf {

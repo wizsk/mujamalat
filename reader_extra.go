@@ -14,16 +14,46 @@ import (
 )
 
 type HighLightData struct {
-	Words []ReaderWord
+	Words []HighLightWord
+}
+
+type HighLightWord struct {
+	Oar   string
+	Count int
 }
 
 func (rd *readerConf) highlightList(w http.ResponseWriter, r *http.Request) {
+	sort := r.FormValue("sort")
 	rd.m.RLock()
-	rw := make([]ReaderWord, 0, len(rd.hArr))
-	for i := len(rd.hArr) - 1; i > -1; i-- {
-		rw = append(rw, ReaderWord{
-			Oar: rd.hArr[i],
-		})
+	rw := make([]HighLightWord, 0, len(rd.hArr))
+
+	switch sort {
+	case "most":
+		for i := 0; i < len(rd.hIdxArr); i++ {
+			word := rd.hIdxArr[i].Word
+			count := rd.hIdxArr[i].MatchCound
+			rw = append(rw, HighLightWord{
+				Oar:   word,
+				Count: count,
+			})
+		}
+	case "least":
+		for i := len(rd.hIdxArr) - 1; i > -1; i-- {
+			word := rd.hIdxArr[i].Word
+			count := rd.hIdxArr[i].MatchCound
+			rw = append(rw, HighLightWord{
+				Oar:   word,
+				Count: count,
+			})
+		}
+	default:
+		for i := len(rd.hArr) - 1; i > -1; i-- {
+			word := rd.hArr[i]
+			rw = append(rw, HighLightWord{
+				Oar:   word,
+				Count: rd.hIdx[word].MatchCound,
+			})
+		}
 	}
 	rd.m.RUnlock()
 
@@ -41,84 +71,17 @@ func (rd *readerConf) highlightWord(w http.ResponseWriter, r *http.Request) {
 	if word == "" {
 		return
 	}
-	wordB := []byte(word)
-
 	rd.m.RLock()
 	defer rd.m.RUnlock()
-	pera := new(bytes.Buffer)
 
-	buf := getBuf()
-	defer putBuf(buf)
-
-	for _, v := range rd.enArr {
-		fn := filepath.Join(rd.permDir, v.Sha)
-		f, err := os.Open(fn)
-		if err != nil {
-			continue // handle
-		}
-
-		buf.Reset()
-		io.Copy(buf, f)
-		f.Close()
-
-		if !isMJENFile(buf.Bytes()) {
-			continue // handle or not
-		}
-
-		data := buf.Bytes()[len(magicValMJENnl):]
-
-		for l := range bytes.SplitSeq(data, []byte("\n\n")) {
-			l = bytes.TrimSpace(l)
-			if len(l) == 0 {
-				continue
-			}
-
-		inner:
-			for ww := range bytes.SplitSeq(l, []byte("\n")) {
-				ww = bytes.TrimSpace(ww)
-				if len(ww) == 0 {
-					continue
-				}
-				s := bytes.SplitN(ww, []byte(":"), 2)
-				if len(s) != 2 {
-					continue // handle
-				}
-
-				c := string(s[0])
-				if c == word {
-					for w := range bytes.SplitSeq(l, []byte("\n")) {
-						w = bytes.TrimSpace(w)
-						if len(w) == 0 {
-							continue
-						}
-						s := bytes.SplitN(w, []byte(":"), 2)
-						if len(s) != 2 {
-							continue // handle
-						}
-
-						isEq := bytes.Equal(wordB, s[0])
-						if isEq {
-							pera.WriteString(`<span class="hi">`)
-						}
-
-						pera.Write(s[1])
-						if isEq {
-							pera.WriteString(`</span> `)
-						} else {
-							pera.WriteByte(' ')
-						}
-					}
-
-					pera.WriteString("<br><br>")
-					continue inner // just for surity
-				}
-			}
-		}
+	if idx, ok := rd.hIdx[word]; ok {
+		w.Header().Add("Content-Type", "text/html; charset=utf-8")
+		w.Write([]byte(`<style>:root{direction: rtl;.hi {background: #ffbf0099;}</style>`))
+		fmt.Fprintf(w, "<p>موضعات %s</p>", intToArnum(idx.MatchCound))
+		w.Write(idx.Bytes())
+	} else {
+		http.NotFound(w, r)
 	}
-
-	w.Header().Add("Content-Type", "text/html; charset=utf-8")
-	w.Write([]byte(`<style>.hi {background: #ffbf0099;}</style>`))
-	w.Write(bytes.TrimSpace(pera.Bytes()))
 }
 
 func bytesToRune(s []byte, t []rune) []rune {
@@ -197,11 +160,15 @@ func (rd *readerConf) highlight(w http.ResponseWriter, r *http.Request) {
 
 	// after successful write to disk change in mem variables
 	if del {
-		delete(rd.hMap, word)
 		// in hArr word already deleted
+		delete(rd.hMap, word)
+		h := rd.hIdx[word]
+		delete(rd.hIdx, word)
+		rd.setHIdxArr(hIdxArrDel, &h)
 	} else if add {
 		rd.hMap[word] = struct{}{}
 		rd.hArr = append(rd.hArr, word)
+		rd.indexHiligtedWord(word)
 	}
 
 	w.WriteHeader(http.StatusAccepted)

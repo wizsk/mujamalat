@@ -26,20 +26,8 @@ type readerConf struct {
 	permDir    string
 	hFilePath  string
 	enFilePath string
-
-	// enArr    []EntryInfo
-	// enArrRev []EntryInfo
-	// enMap    map[string]EntryInfo                 // sha
-
-	enMap *ordmap.OrderedMap[string, EntryInfo] // sha
-
-	hMap *ordmap.OrderedMap[string, struct{}]
-	// hMap map[string]struct{}
-	// hArr []string
-
-	hIdx *ordmap.OrderedMap[string, HiIdx]
-	// hIdx    map[string]HiIdx
-	// hIdxArr HiIdxArr
+	enMap      *ordmap.OrderedMap[string, EntryInfo] // sha
+	hMap       *ordmap.OrderedMap[string, HiIdx]
 }
 
 func newReader(gc *globalConf, t templateWraper) *readerConf {
@@ -102,20 +90,21 @@ func newReader(gc *globalConf, t templateWraper) *readerConf {
 	if f, err := os.ReadFile(rd.hFilePath); err == nil {
 		sl := bytes.Split(f, []byte("\n"))
 
-		rd.hMap = ordmap.NewWithCap[string, struct{}](len(sl) + ds)
+		rd.hMap = ordmap.NewWithCap[string, HiIdx](len(sl) + ds)
 		// rd.hArr = make([]string, 0, len(sl)+ds)
 
 		for i := range len(sl) {
 			lb := bytes.TrimSpace(sl[i])
 			if len(lb) > 0 {
 				l := string(lb)
-				rd.hMap.Set(l, struct{}{})
+				rd.hMap.Set(l, HiIdx{Word: l})
 			}
 		}
+		rd.indexHiWords()
 	}
 
 	if rd.hMap == nil {
-		rd.hMap = ordmap.NewWithCap[string, struct{}](ds)
+		rd.hMap = ordmap.NewWithCap[string, HiIdx](ds)
 	}
 
 	startCleanTmpPageDataTicker()
@@ -259,4 +248,7 @@ func (rd *readerConf) post(w http.ResponseWriter, r *http.Request) {
 
 	rd.enMap.Set(sha, e)
 	http.Redirect(w, r, url, http.StatusMovedPermanently)
+
+	// update
+	go rd.indexHiEnrySafe(sha)
 }

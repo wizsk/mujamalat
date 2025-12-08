@@ -46,14 +46,14 @@ func (om *OrderedMap[K, V]) GetIdx(idx int) V {
 }
 
 func (om *OrderedMap[K, V]) GetIdxKV(idx int) Entry[K, V] {
+	l := len(om.data)
+	_ = l
 	return om.data[idx]
 }
 
 func (om *OrderedMap[K, V]) IsSet(k K) bool {
-	if _, found := om.index[k]; found {
-		return true
-	}
-	return false
+	_, found := om.index[k]
+	return found
 }
 
 // Delete keeps order (O(n) but stable).

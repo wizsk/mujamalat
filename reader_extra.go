@@ -31,18 +31,18 @@ func (rd *readerConf) highlightList(w http.ResponseWriter, r *http.Request) {
 
 	switch sort {
 	case "most":
-		for i := 0; i < rd.hIdx.Len(); i++ {
-			word := rd.hIdx.GetIdx(i).Word
-			count := rd.hIdx.GetIdx(i).MatchCound
+		for i := 0; i < rd.hMap.Len(); i++ {
+			word := rd.hMap.GetIdx(i).Word
+			count := rd.hMap.GetIdx(i).MatchCound
 			rw = append(rw, HighLightWord{
 				Oar:   word,
 				Count: count,
 			})
 		}
 	case "least":
-		for i := rd.hIdx.Len() - 1; i > -1; i-- {
-			word := rd.hIdx.GetIdx(i).Word
-			count := rd.hIdx.GetIdx(i).MatchCound
+		for i := rd.hMap.Len() - 1; i > -1; i-- {
+			word := rd.hMap.GetIdx(i).Word
+			count := rd.hMap.GetIdx(i).MatchCound
 			rw = append(rw, HighLightWord{
 				Oar:   word,
 				Count: count,
@@ -53,7 +53,7 @@ func (rd *readerConf) highlightList(w http.ResponseWriter, r *http.Request) {
 			word := rd.hMap.GetIdxKV(i).Key
 			rw = append(rw, HighLightWord{
 				Oar:   word,
-				Count: rd.hIdx.GetIdx(i).MatchCound,
+				Count: rd.hMap.GetIdx(i).MatchCound,
 			})
 		}
 	}
@@ -75,7 +75,7 @@ func (rd *readerConf) highlightWord(w http.ResponseWriter, r *http.Request) {
 	rd.m.RLock()
 	defer rd.m.RUnlock()
 
-	if idx, ok := rd.hIdx.Get(word); ok {
+	if idx, ok := rd.hMap.Get(word); ok {
 		readerConf := ReaderData{idx.Word, idx.Peras}
 		tm := TmplData{Curr: "ar_en", Dicts: dicts, DictsMap: dictsMap, RD: readerConf, RDMode: true}
 		if err := rd.t.ExecuteTemplate(w, mainTemplateName, &tm); debug && err != nil {
@@ -152,7 +152,9 @@ func (rd *readerConf) highlight(w http.ResponseWriter, r *http.Request) {
 		}
 	} else {
 		// on add append
-		rd.hMap.Set(word, struct{}{})
+		rd.hMap.Set(word, HiIdx{Word: word})
+		go rd.indexHiWordSafe(word)
+
 		f, err := fetalErrVal(openAppend(rd.hFilePath))
 		if err != nil {
 			http.Error(w, "could not write to disk", http.StatusInternalServerError)
@@ -162,21 +164,6 @@ func (rd *readerConf) highlight(w http.ResponseWriter, r *http.Request) {
 		f.WriteString("\n")
 		f.Close()
 	}
-
-	// // after successful write to disk change in mem variables
-	// if del {
-	// 	rd.hMap.Delete(word)
-	// 	// in hArr word already deleted
-	// 	delete(rd.hMap, word)
-	// 	h := rd.hIdx[word]
-	// 	delete(rd.hIdx, word)
-	// 	rd.setHIdxArr(hIdxArrDel, &h)
-	// } else if add {
-	// 	rd.hMap[word] = struct{}{}
-	// 	rd.hArr = append(rd.hArr, word)
-	// 	rd.indexHiligtedWord(word)
-	// }
-
 	w.WriteHeader(http.StatusAccepted)
 }
 
@@ -236,7 +223,7 @@ func (rd *readerConf) deletePage(w http.ResponseWriter, r *http.Request) {
 	rd.m.Lock()
 	defer rd.m.Unlock()
 
-	sha := strings.TrimSpace(strings.TrimPrefix(r.URL.Path, "/rd/delete/"))
+	sha := r.PathValue("sha")
 	if sha == "" {
 		http.NotFound(w, r)
 		return
@@ -244,7 +231,7 @@ func (rd *readerConf) deletePage(w http.ResponseWriter, r *http.Request) {
 
 	d := rd.permDir
 
-	if rd.enMap.IsSet(sha) {
+	if !rd.enMap.IsSet(sha) {
 		http.Error(w, fmt.Sprintf("could not find: %q", sha), http.StatusBadRequest)
 		return
 	}
@@ -272,6 +259,9 @@ func (rd *readerConf) deletePage(w http.ResponseWriter, r *http.Request) {
 	}
 	w.WriteHeader(http.StatusAccepted)
 	fmt.Fprintf(w, "deleted: %q", sha)
+
+	// when deletePage who knows which page
+	go rd.indexHiWordsSafe()
 }
 
 // if not ok then error will be sent just check if it's nil or not

@@ -151,7 +151,6 @@ func main() {
 	go func() {
 		tmpl = ke(openTmpl(debug))
 		rd = newReader(gc, tmpl)
-		rd.indexHiligtedWords()
 		done <- struct{}{}
 	}()
 
@@ -187,7 +186,7 @@ func main() {
 	mux.HandleFunc("GET /rd/highlist/", rd.highlightList)
 	mux.HandleFunc("GET /rd/rev/", rd.revPage)
 	mux.HandleFunc("POST /rd/rev/", rd.revPagePost)
-	mux.HandleFunc("POST /rd/delete/", rd.deletePage)
+	mux.HandleFunc("POST /rd/delete/{sha}", rd.deletePage)
 
 	mux.Handle("/pub/", servePubData())
 

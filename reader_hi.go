@@ -7,8 +7,6 @@ import (
 	"os"
 	"path/filepath"
 	"strings"
-
-	"github.com/wizsk/mujamalat/ordmap"
 )
 
 type HiIdx struct {
@@ -32,9 +30,23 @@ func (h HiIdxArr) String() string {
 	return sb.String()
 }
 
-func (rd *readerConf) indexHiligtedWords() {
-	rd.hIdx = ordmap.New[string, HiIdx]()
+func (rd *readerConf) indexHiWordsSafe() {
+	rd.m.Lock()
+	defer rd.m.Unlock()
+	rd.indexHiWords()
+}
 
+// it is save to call
+func (rd *readerConf) indexHiWords() {
+	buf := getBuf()
+	defer putBuf(buf)
+
+	for _, v := range *rd.enMap.Entries() {
+		rd.indexHiEnry(v.Value.Sha)
+	}
+}
+
+func (rd *readerConf) indexHiWordSafe(word string) {
 	rd.m.Lock()
 	defer rd.m.Unlock()
 
@@ -42,139 +54,92 @@ func (rd *readerConf) indexHiligtedWords() {
 	defer putBuf(buf)
 
 	for _, v := range *rd.enMap.Entries() {
-		v := v.Value
-
-		fn := filepath.Join(rd.permDir, v.Sha)
-		f, err := os.Open(fn)
-		if err != nil {
-			continue // handle
-		}
-
-		buf.Reset()
-		io.Copy(buf, f)
-		f.Close()
-
-		if !isMJENFile(buf.Bytes()) {
-			continue // handle or not
-		}
-
-		data := buf.Bytes()[len(magicValMJENnl):]
-
-		for l := range bytes.SplitSeq(data, []byte("\n\n")) {
-			l = bytes.TrimSpace(l)
-			if len(l) == 0 {
-				continue
-			}
-			splitedLine := bytes.Split(l, []byte("\n"))
-			for _, ww := range splitedLine {
-				ww = bytes.TrimSpace(ww)
-				if len(ww) == 0 {
-					continue
-				}
-				s := bytes.SplitN(ww, []byte(":"), 2)
-				if len(s) != 2 {
-					continue // handle
-				}
-
-				for _, word := range *rd.hMap.Entries() {
-					word := word.Key
-					wordB := []byte(word)
-					if bytes.Equal(s[0], wordB) {
-						h, ok := rd.hIdx.Get(word)
-						if !ok {
-							h.Word = word
-						}
-						h.MatchCound++
-						h.Peras = append(h.Peras, fomatHiIdxPera(splitedLine, wordB))
-						rd.hIdx.Set(word, h)
-					}
-				}
-			}
-		}
+		rd._indexHiIdx(v.Value.Sha, word)
 	}
 }
 
-type idxArrOpType uint
+func (rd *readerConf) indexHiEnrySafe(sha string) {
+	rd.m.Lock()
+	defer rd.m.Unlock()
 
-const (
-	hIdxArrNew idxArrOpType = iota
-	hIdxArrAdd
-	hIdxArrDel
-)
+	rd._indexHiIdx(sha, "")
+}
 
-// func (rd *readerConf) setHIdxArr(op idxArrOpType, h *HiIdx) {
-// 	switch op {
-// 	case hIdxArrNew:
-// 		rd.hIdxArr = make([]HiIdx, 0, len(rd.hIdx)+50)
-// 		for _, v := range rd.hIdx {
-// 			rd.hIdxArr = append(rd.hIdxArr, v)
-// 		}
-// 	case hIdxArrAdd:
-// 		rd.hIdxArr = append(rd.hIdxArr, *h)
-// 	case hIdxArrDel:
-// 		rd.hIdxArr, _ = removeArrItmFunc(rd.hIdxArr, func(i int) bool {
-// 			return rd.hIdxArr[i].Word == h.Word
-// 		})
-// 		return // no sorting needed
-// 	default:
-// 		panic("wrong op porovided")
-// 	}
-//
-// 	sort.Slice(rd.hIdxArr, func(i, j int) bool {
-// 		return rd.hIdxArr[i].MatchCound > rd.hIdxArr[j].MatchCound
-// 	})
-// }
+func (rd *readerConf) indexHiEnry(sha string) {
+	rd._indexHiIdx(sha, "")
+}
 
-func (rd *readerConf) indexHiligtedWord(word string) {
-	h := HiIdx{Word: word}
-	wordB := []byte(word)
+func (rd *readerConf) _indexHiIdx(sha string, word string) {
+	fn := filepath.Join(rd.permDir, sha)
+	f, err := os.Open(fn)
+	if err != nil {
+		return
+	}
 
 	buf := getBuf()
 	defer putBuf(buf)
 
-	for _, v := range *rd.enMap.Entries() {
-		v := v.Value
-		fn := filepath.Join(rd.permDir, v.Sha)
-		f, err := os.Open(fn)
-		if err != nil {
-			continue // handle
+	buf.Reset()
+	io.Copy(buf, f)
+	f.Close()
+
+	if !isMJENFile(buf.Bytes()) {
+		return
+	}
+
+	data := buf.Bytes()[len(magicValMJENnl):]
+	h, _ := rd.hMap.Get(word)
+	wordB := []byte(word)
+
+	// found in the current pera no need to look further
+	fset := make(map[string]struct{}, rd.hMap.Len())
+
+pera:
+	for l := range bytes.SplitSeq(data, []byte("\n\n")) {
+		l = bytes.TrimSpace(l)
+		if len(l) == 0 {
+			continue
 		}
+		clear(fset)
 
-		buf.Reset()
-		io.Copy(buf, f)
-		f.Close()
+		splitedLine := bytes.Split(l, []byte("\n"))
 
-		if !isMJENFile(buf.Bytes()) {
-			continue // handle or not
-		}
+		for _, ww := range splitedLine {
+			ww = bytes.TrimSpace(ww)
+			if len(ww) == 0 {
+				continue
+			}
+			s := bytes.SplitN(ww, []byte(":"), 2)
+			if len(s) != 2 {
+				continue // handle
+			}
 
-		data := buf.Bytes()[len(magicValMJENnl):]
-
-		for l := range bytes.SplitSeq(data, []byte("\n\n")) {
-			l = bytes.TrimSpace(l)
-			if len(l) == 0 {
+			// single word
+			if len(wordB) != 0 {
+				if bytes.Equal(s[0], wordB) {
+					h.MatchCound++
+					h.Peras = append(h.Peras, fomatHiIdxPera(splitedLine, wordB))
+					continue pera // no need to look at this pera
+				}
 				continue
 			}
 
-			lineSplit := bytes.Split(l, []byte("\n"))
-		inner:
-			for _, ww := range lineSplit {
-				ww = bytes.TrimSpace(ww)
-				if len(ww) == 0 {
-					continue
-				}
-				s := bytes.SplitN(ww, []byte(":"), 2)
-				if len(s) != 2 {
-					continue // handle
-				}
-
-				if bytes.Equal(s[0], wordB) {
+			// full version
+			for _, word := range *rd.hMap.Entries() {
+				word := word.Key
+				wordB := []byte(word)
+				if _, ok := fset[word]; !ok && bytes.Equal(s[0], wordB) {
+					fset[word] = struct{}{}
+					h, ok := rd.hMap.Get(word)
+					if !ok {
+						h.Word = word
+					}
 					h.MatchCound++
-					h.Peras = append(h.Peras, fomatHiIdxPera(lineSplit, wordB))
-					continue inner // no need to look at this pera
+					h.Peras = append(h.Peras, fomatHiIdxPera(splitedLine, wordB))
+					rd.hMap.Set(word, h)
 				}
 			}
 		}
 	}
-	rd.hIdx.Set(word, h)
+	rd.hMap.Set(word, h)
 }

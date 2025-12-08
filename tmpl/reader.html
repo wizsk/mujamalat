@@ -212,9 +212,9 @@
 {{end}}
 
 {{define "reader"}}
-<div id="readerWrapper">
+<div id="readerWrapper" class="{{if .RevMode}}hidden{{end}}">
     <div id="reader">
-        {{range $i, $p := .Peras}}
+        {{range $i, $p := .RD.Peras}}
         <div class="pera">
             {{- if add $i 1 | isodd -}}
             <span class="poem-line-num">{{qasidaLine $i}}- </span>

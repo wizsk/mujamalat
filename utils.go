@@ -103,6 +103,7 @@ var tmplFuncs = template.FuncMap{
 	},
 	// "dec":   func(a, b int) int { return a - b },
 	"arnum": intToArnum[int],
+	"real":  func(v any) string { fmt.Printf("%#v", v); return fmt.Sprintf("%#v", v) },
 }
 
 // log when error != nil and return true

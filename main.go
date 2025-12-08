@@ -184,6 +184,8 @@ func main() {
 	mux.HandleFunc("POST /rd/high", rd.highlight)
 	mux.HandleFunc("GET /rd/highlist/{word}", rd.highlightWord)
 	mux.HandleFunc("GET /rd/highlist/", rd.highlightList)
+	mux.HandleFunc("GET /rd/rev/", rd.revPage)
+	mux.HandleFunc("POST /rd/rev/", rd.revPagePost)
 	mux.HandleFunc("POST /rd/delete/", rd.deletePage)
 
 	mux.Handle("/pub/", servePubData())

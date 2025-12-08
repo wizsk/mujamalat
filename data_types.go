@@ -18,6 +18,8 @@ type TmplData struct {
 	ArEn              []Entry_arEn
 	RD                ReaderData
 	RDMode            bool
+	RevMode           bool // review mode
+	HiIdx             HiIdx
 	DebugMode         bool
 }
 

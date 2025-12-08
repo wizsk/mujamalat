@@ -1,0 +1,57 @@
+<style>
+    #revMode {
+        margin-top: 10vh;
+    }
+
+    center {
+        margin-bottom: 5rem;
+    }
+</style>
+<div id="revMode">
+    <center>
+        {{if (ne .HiIdx.MatchCound 0)}}
+        <p>{{.RD.Title}}</p>
+        <div>
+            <button class="btn" onclick="readerWrapper.classList.toggle('hidden')">
+                افتح القارئ
+            </button>
+            <button class="btn" onclick="know('{{.RD.Title}}')">
+                i know
+            </button>
+            <button class="btn" onclick="window.location.reload()">
+                next
+            </button>
+        </div>
+        {{else}}
+        <p>
+            لا جديد موجود
+        </p>
+        <button class="btn" onclick="reset()">
+            reset
+        </button>
+        {{end}}
+    </center>
+    <hr>
+</div>
+
+<script>
+    function know(w) {
+        postThen(`${window.location.pathname}?known=${w}`,
+            () => window.location.reload());
+    }
+
+    function reset() {
+        postThen(`${window.location.pathname}?reset=true`,
+            () => window.location.reload())
+    }
+
+    function postThen(url, func) {
+        fetch(url, { method: "POST" })
+            .then(((res) => {
+                if (res.ok) { if (func) func(); }
+            })).catch((err) => {
+                console.error(err);
+                alert("Something went wrong");
+            });
+    }
+</script>

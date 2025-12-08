@@ -36,9 +36,14 @@
 </head>
 
 <body>
-    {{if .RDMode}}
-    {{template "reader" .RD}}
+    {{if .RevMode}}
+    {{template "rev.html" .}}
     {{end}}
+
+    {{if .RDMode}}
+    {{template "reader" .}}
+    {{end}}
+
     <div id="dict_container" class="{{if .RDMode}}hidden{{end}}">
         {{template "dict_container.html" .}}
     </div>

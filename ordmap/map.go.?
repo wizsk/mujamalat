@@ -1,0 +1,285 @@
+// package map
+// ordered_map.go
+package main
+
+import (
+	"bytes"
+	"container/list"
+	"encoding/json"
+	"fmt"
+	"sync"
+)
+
+// OrderedMap is a generic ordered map that preserves insertion order.
+// K must be comparable. V can be any type.
+type OrderedMap[K comparable, V any] struct {
+	// entries maps keys to the list element where the element's Value is *entry[K,V].
+	entries map[K]*list.Element
+	order   *list.List // elements hold *entry[K,V]
+}
+
+// entry holds a key/value pair stored in the linked list.
+type entry[K comparable, V any] struct {
+	key   K
+	value V
+}
+
+// NewOrderedMap creates and returns an empty OrderedMap.
+func NewOrderedMap[K comparable, V any]() *OrderedMap[K, V] {
+	return &OrderedMap[K, V]{
+		entries: make(map[K]*list.Element),
+		order:   list.New(),
+	}
+}
+
+// Set inserts or updates the key with value.
+// If key already exists, value is updated but insertion order is preserved (key stays where it was).
+// If you want "move to back" on update, call MoveToBack after Set.
+func (om *OrderedMap[K, V]) Set(key K, value V) {
+	if el, ok := om.entries[key]; ok {
+		// update existing
+		el.Value.(*entry[K, V]).value = value
+		return
+	}
+	// insert new
+	en := &entry[K, V]{key: key, value: value}
+	el := om.order.PushBack(en)
+	om.entries[key] = el
+}
+
+// Get returns value and true if found, otherwise zero value and false.
+func (om *OrderedMap[K, V]) Get(key K) (V, bool) {
+	var zero V
+	if el, ok := om.entries[key]; ok {
+		return el.Value.(*entry[K, V]).value, true
+	}
+	return zero, false
+}
+
+// Delete removes a key (if present). Returns true if removed.
+func (om *OrderedMap[K, V]) Delete(key K) bool {
+	if el, ok := om.entries[key]; ok {
+		om.order.Remove(el)
+		delete(om.entries, key)
+		return true
+	}
+	return false
+}
+
+// Len returns the number of items in the map.
+func (om *OrderedMap[K, V]) Len() int {
+	return len(om.entries)
+}
+
+// Keys returns a slice of keys in insertion order.
+func (om *OrderedMap[K, V]) Keys() []K {
+	out := make([]K, 0, om.Len())
+	for e := om.order.Front(); e != nil; e = e.Next() {
+		out = append(out, e.Value.(*entry[K, V]).key)
+	}
+	return out
+}
+
+// Values returns a slice of values in insertion order.
+func (om *OrderedMap[K, V]) Values() []V {
+	out := make([]V, 0, om.Len())
+	for e := om.order.Front(); e != nil; e = e.Next() {
+		out = append(out, e.Value.(*entry[K, V]).value)
+	}
+	return out
+}
+
+// Iterate calls fn for every key/value in insertion order.
+// If fn returns false, iteration stops early.
+func (om *OrderedMap[K, V]) Iterate(fn func(key K, value V) (cont bool)) {
+	for e := om.order.Front(); e != nil; e = e.Next() {
+		en := e.Value.(*entry[K, V])
+		if !fn(en.key, en.value) {
+			return
+		}
+	}
+}
+
+// MoveToBack moves an existing key to the back (newest position).
+// Returns false if key not found.
+func (om *OrderedMap[K, V]) MoveToBack(key K) bool {
+	if el, ok := om.entries[key]; ok {
+		om.order.MoveToBack(el)
+		return true
+	}
+	return false
+}
+
+// MoveToFront moves an existing key to the front (oldest position).
+// Returns false if key not found.
+func (om *OrderedMap[K, V]) MoveToFront(key K) bool {
+	if el, ok := om.entries[key]; ok {
+		om.order.MoveToFront(el)
+		return true
+	}
+	return false
+}
+
+// Clear removes all entries.
+func (om *OrderedMap[K, V]) Clear() {
+	om.entries = make(map[K]*list.Element)
+	om.order.Init()
+}
+
+// ---------------------------
+// Convenience wrapper for string-keyed ordered map with JSON marshaling
+// ---------------------------
+
+// OrderedStringMap wraps OrderedMap[string, V] and implements json.Marshaler
+// so that when encoded to JSON it becomes a JSON object with keys in insertion order.
+// Note: JSON object keys must be strings, so this helper is convenient.
+type OrderedStringMap[V any] struct {
+	om *OrderedMap[string, V]
+}
+
+// NewOrderedStringMap creates an OrderedStringMap.
+func NewOrderedStringMap[V any]() *OrderedStringMap[V] {
+	return &OrderedStringMap[V]{om: NewOrderedMap[string, V]()}
+}
+
+func (osm *OrderedStringMap[V]) Set(k string, v V)                   { osm.om.Set(k, v) }
+func (osm *OrderedStringMap[V]) Get(k string) (V, bool)              { return osm.om.Get(k) }
+func (osm *OrderedStringMap[V]) Delete(k string) bool                { return osm.om.Delete(k) }
+func (osm *OrderedStringMap[V]) Keys() []string                      { return osm.om.Keys() }
+func (osm *OrderedStringMap[V]) Values() []V                         { return osm.om.Values() }
+func (osm *OrderedStringMap[V]) Len() int                            { return osm.om.Len() }
+func (osm *OrderedStringMap[V]) Iterate(fn func(k string, v V) bool) { osm.om.Iterate(fn) }
+
+// MarshalJSON encodes as a JSON object with keys in insertion order.
+func (osm *OrderedStringMap[V]) MarshalJSON() ([]byte, error) {
+	var buf bytes.Buffer
+	buf.WriteByte('{')
+	first := true
+	enc := json.NewEncoder(&buf)
+	for e := osm.om.order.Front(); e != nil; e = e.Next() {
+		en := e.Value.(*entry[string, V])
+		if !first {
+			buf.WriteByte(',')
+		}
+		// write key as JSON string
+		keyBytes, _ := json.Marshal(en.key)
+		buf.Write(keyBytes)
+		buf.WriteByte(':')
+		// write value (use encoder to ensure proper encoding)
+		if err := enc.Encode(en.value); err != nil {
+			return nil, err
+		}
+		// enc.Encode writes a newline after each value; remove it
+		// remove last byte if it's '\n'
+		if buf.Len() > 0 {
+			b := buf.Bytes()
+			if b[len(b)-1] == '\n' {
+				// truncate last newline
+				buf.Truncate(len(b) - 1)
+			}
+		}
+		first = false
+	}
+	buf.WriteByte('}')
+	return buf.Bytes(), nil
+}
+
+// ---------------------------
+// Thread-safe wrapper
+// ---------------------------
+
+// SafeOrderedMap is a concurrency-safe wrapper around OrderedMap using RWMutex.
+type SafeOrderedMap[K comparable, V any] struct {
+	mu sync.RWMutex
+	om *OrderedMap[K, V]
+}
+
+func NewSafeOrderedMap[K comparable, V any]() *SafeOrderedMap[K, V] {
+	return &SafeOrderedMap[K, V]{om: NewOrderedMap[K, V]()}
+}
+
+func (s *SafeOrderedMap[K, V]) Set(k K, v V) {
+	s.mu.Lock()
+	defer s.mu.Unlock()
+	s.om.Set(k, v)
+}
+
+func (s *SafeOrderedMap[K, V]) Get(k K) (V, bool) {
+	s.mu.RLock()
+	defer s.mu.RUnlock()
+	return s.om.Get(k)
+}
+
+func (s *SafeOrderedMap[K, V]) Delete(k K) bool {
+	s.mu.Lock()
+	defer s.mu.Unlock()
+	return s.om.Delete(k)
+}
+
+func (s *SafeOrderedMap[K, V]) Keys() []K {
+	s.mu.RLock()
+	defer s.mu.RUnlock()
+	return s.om.Keys()
+}
+
+func (s *SafeOrderedMap[K, V]) Iterate(fn func(k K, v V) bool) {
+	s.mu.RLock()
+	defer s.mu.RUnlock()
+	s.om.Iterate(fn)
+}
+
+// ---------------------------
+// Example usage & demo
+// ---------------------------
+
+func main() {
+	fmt.Println("=== Generic OrderedMap example (insertion order preserved) ===")
+	om := NewOrderedMap[string, int]()
+	om.Set("apple", 1)
+	om.Set("banana", 2)
+	om.Set("cherry", 3)
+
+	// update value for banana (does not move it)
+	om.Set("banana", 20)
+
+	fmt.Println("Keys:", om.Keys())
+	fmt.Println("Values:", om.Values())
+
+	// iterate
+	om.Iterate(func(k string, v int) bool {
+		fmt.Printf("%s -> %d\n", k, v)
+		return true
+	})
+
+	// delete
+	om.Delete("banana")
+	fmt.Println("After delete keys:", om.Keys())
+
+	// MoveToBack example (reorder existing key)
+	om.Set("date", 4)
+	om.Set("elderberry", 5)
+	fmt.Println("Before MoveToBack:", om.Keys())
+	om.MoveToBack("apple") // apple becomes newest
+	fmt.Println("After MoveToBack apple:", om.Keys())
+
+	// JSON example with string keys:
+	fmt.Println("\n=== OrderedStringMap JSON example ===")
+	osm := NewOrderedStringMap[any]()
+	osm.Set("first", map[string]any{"x": 1})
+	osm.Set("second", []int{2, 3})
+	osm.Set("third", "value")
+	js, err := json.Marshal(osm)
+	if err != nil {
+		panic(err)
+	}
+	fmt.Println("Ordered JSON:", string(js))
+
+	// Thread-safe usage example:
+	fmt.Println("\n=== SafeOrderedMap example (concurrency-safe) ===")
+	som := NewSafeOrderedMap[string, int]()
+	som.Set("x", 10)
+	som.Set("y", 20)
+	v, ok := som.Get("x")
+	fmt.Println("x:", v, ok)
+	fmt.Println("safe keys:", som.Keys())
+}

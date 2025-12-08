@@ -9,7 +9,6 @@
 
     {{template "common-css"}}
     <style>
-
         .svg-btn {
             all: unset;
             display: flex;
@@ -27,9 +26,10 @@
             --btn-wh: 2.0rem;
             height: var(--btn-wh);
             width: var(--btn-wh);
+
             & svg {
                 --svg-wh: var(--btn-wh);
-                --_s:  calc(var(--svg-wh) - calc(var(--svg-wh)/4));
+                --_s: calc(var(--svg-wh) - calc(var(--svg-wh)/4));
                 width: var(--_s);
                 height: var(--_s);
             }
@@ -60,9 +60,11 @@
             font-size: inherit;
 
             width: 100%;
-            min-height: calc(1.2em * 2); /* 2 rows minimum */
+            min-height: calc(1.2em * 2);
+            /* 2 rows minimum */
             box-sizing: border-box;
-            resize: none; /* Disable native resize on desktop */
+            resize: none;
+            /* Disable native resize on desktop */
 
             background-color: inherit;
             color: inherit;
@@ -120,7 +122,8 @@
         }
 
 
-        #submit, .btn-mt {
+        #submit,
+        .btn-mt {
             --btn-wh: 2.5rem;
         }
 
@@ -159,7 +162,8 @@
         .hist-item-div {
             display: flex;
             align-items: center;
-            justify-items: start; /* this is ignored, so it said. but won't remove for now */
+            justify-items: start;
+            /* this is ignored, so it said. but won't remove for now */
             gap: 5px;
             margin: 0.5rem 0;
         }
@@ -234,7 +238,8 @@
             }
 
             /* bandade solutions for now */
-            #submit, .btn-mt {
+            #submit,
+            .btn-mt {
                 --btn-wh: 3.5rem;
             }
         }
@@ -247,24 +252,32 @@
             <textarea id="txt" rows="4"></textarea>
             <button id="resizeHandle"></button>
         </div>
+        <div>
+            <label for="tmpMode">TMP MODE</label>
+            <input type="checkbox" name="tmpMode" id="tmpMode">
+        </div>
+
         <div id="btn-container">
             <button class="svg-btn" id="submit" type="submit">
 
-                <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" fill="currentColor" class="bi bi-arrow-down-up" viewBox="0 0 16 16">
-                    <path fill-rule="evenodd" d="M1 8a.5.5 0 0 1 .5-.5h11.793l-3.147-3.146a.5.5 0 0 1 .708-.708l4 4a.5.5 0 0 1 0 .708l-4 4a.5.5 0 0 1-.708-.708L13.293 8.5H1.5A.5.5 0 0 1 1 8"/>
+                <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" fill="currentColor"
+                    class="bi bi-arrow-down-up" viewBox="0 0 16 16">
+                    <path fill-rule="evenodd"
+                        d="M1 8a.5.5 0 0 1 .5-.5h11.793l-3.147-3.146a.5.5 0 0 1 .708-.708l4 4a.5.5 0 0 1 0 .708l-4 4a.5.5 0 0 1-.708-.708L13.293 8.5H1.5A.5.5 0 0 1 1 8" />
                 </svg>
             </button>
-            <button class="svg-btn btn-mt" id="tgl-cursor"
-                type="button">
+            <button class="svg-btn btn-mt" id="tgl-cursor" type="button">
                 <svg xmlns="http://www.w3.org/2000/svg" fill="currentColor" viewBox="0 0 16 16">
-                    <path fill-rule="evenodd" d="M11.5 15a.5.5 0 0 0 .5-.5V2.707l3.146 3.147a.5.5 0 0 0 .708-.708l-4-4a.5.5 0 0 0-.708 0l-4 4a.5.5 0 1 0 .708.708L11 2.707V14.5a.5.5 0 0 0 .5.5m-7-14a.5.5 0 0 1 .5.5v11.793l3.146-3.147a.5.5 0 0 1 .708.708l-4 4a.5.5 0 0 1-.708 0l-4-4a.5.5 0 0 1 .708-.708L4 13.293V1.5a.5.5 0 0 1 .5-.5"/>
+                    <path fill-rule="evenodd"
+                        d="M11.5 15a.5.5 0 0 0 .5-.5V2.707l3.146 3.147a.5.5 0 0 0 .708-.708l-4-4a.5.5 0 0 0-.708 0l-4 4a.5.5 0 1 0 .708.708L11 2.707V14.5a.5.5 0 0 0 .5.5m-7-14a.5.5 0 0 1 .5.5v11.793l3.146-3.147a.5.5 0 0 1 .708.708l-4 4a.5.5 0 0 1-.708 0l-4-4a.5.5 0 0 1 .708-.708L4 13.293V1.5a.5.5 0 0 1 .5-.5" />
                 </svg>
             </button>
             <button class="svg-btn btn-mt"
-                onclick="if (txt.value.trim().length > 0 && confirm('هل ترغب أن تسمح؟')) txt.value = ''"
-                type="button">
-                <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" fill="currentColor" class="bi bi-arrow-down-up" viewBox="0 0 16 16">
-                    <path d="M2.5 1a1 1 0 0 0-1 1v1a1 1 0 0 0 1 1H3v9a2 2 0 0 0 2 2h6a2 2 0 0 0 2-2V4h.5a1 1 0 0 0 1-1V2a1 1 0 0 0-1-1H10a1 1 0 0 0-1-1H7a1 1 0 0 0-1 1zm3 4a.5.5 0 0 1 .5.5v7a.5.5 0 0 1-1 0v-7a.5.5 0 0 1 .5-.5M8 5a.5.5 0 0 1 .5.5v7a.5.5 0 0 1-1 0v-7A.5.5 0 0 1 8 5m3 .5v7a.5.5 0 0 1-1 0v-7a.5.5 0 0 1 1 0"/>
+                onclick="if (txt.value.trim().length > 0 && confirm('هل ترغب أن تسمح؟')) txt.value = ''" type="button">
+                <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" fill="currentColor"
+                    class="bi bi-arrow-down-up" viewBox="0 0 16 16">
+                    <path
+                        d="M2.5 1a1 1 0 0 0-1 1v1a1 1 0 0 0 1 1H3v9a2 2 0 0 0 2 2h6a2 2 0 0 0 2-2V4h.5a1 1 0 0 0 1-1V2a1 1 0 0 0-1-1H10a1 1 0 0 0-1-1H7a1 1 0 0 0-1 1zm3 4a.5.5 0 0 1 .5.5v7a.5.5 0 0 1-1 0v-7a.5.5 0 0 1 .5-.5M8 5a.5.5 0 0 1 .5.5v7a.5.5 0 0 1-1 0v-7A.5.5 0 0 1 8 5m3 .5v7a.5.5 0 0 1-1 0v-7a.5.5 0 0 1 1 0" />
                 </svg>
             </button>
         </div>
@@ -288,18 +301,19 @@
         <div id="hist-items">
             {{range $i, $v := .}}
             {{if not $v.Pin}}{{continue}}{{end}}
-            <div class="hist-item-div" data-idx="{{$i}}"
-                data-pin="{{if $v.Pin}}1{{else}}0{{end}}">
+            <div class="hist-item-div" data-idx="{{$i}}" data-pin="{{if $v.Pin}}1{{else}}0{{end}}">
                 <span class="dash">-</span>
                 <a class="hist-item" href="/rd/{{$v.Sha}}">{{.Name}}</a>
                 <button class="svg-btn pin {{if $v.Pin}}pinned{{end}}" data-sha="{{$v.Sha}}" data-name="{{$v.Name}}">
                     <svg xmlns="http://www.w3.org/2000/svg" fill="currentColor" viewBox="0 0 16 16">
-                        <path d="M9.828.722a.5.5 0 0 1 .354.146l4.95 4.95a.5.5 0 0 1 0 .707c-.48.48-1.072.588-1.503.588-.177 0-.335-.018-.46-.039l-3.134 3.134a6 6 0 0 1 .16 1.013c.046.702-.032 1.687-.72 2.375a.5.5 0 0 1-.707 0l-2.829-2.828-3.182 3.182c-.195.195-1.219.902-1.414.707s.512-1.22.707-1.414l3.182-3.182-2.828-2.829a.5.5 0 0 1 0-.707c.688-.688 1.673-.767 2.375-.72a6 6 0 0 1 1.013.16l3.134-3.133a3 3 0 0 1-.04-.461c0-.43.108-1.022.589-1.503a.5.5 0 0 1 .353-.146"/>
+                        <path
+                            d="M9.828.722a.5.5 0 0 1 .354.146l4.95 4.95a.5.5 0 0 1 0 .707c-.48.48-1.072.588-1.503.588-.177 0-.335-.018-.46-.039l-3.134 3.134a6 6 0 0 1 .16 1.013c.046.702-.032 1.687-.72 2.375a.5.5 0 0 1-.707 0l-2.829-2.828-3.182 3.182c-.195.195-1.219.902-1.414.707s.512-1.22.707-1.414l3.182-3.182-2.828-2.829a.5.5 0 0 1 0-.707c.688-.688 1.673-.767 2.375-.72a6 6 0 0 1 1.013.16l3.134-3.133a3 3 0 0 1-.04-.461c0-.43.108-1.022.589-1.503a.5.5 0 0 1 .353-.146" />
                     </svg>
                 </button>
                 <button class="svg-btn del" data-link="/rd/delete/{{$v.Sha}}" data-name="{{$v.Name}}">
                     <svg xmlns="http://www.w3.org/2000/svg" fill="currentColor" viewBox="0 0 16 16">
-                        <path d="M2.5 1a1 1 0 0 0-1 1v1a1 1 0 0 0 1 1H3v9a2 2 0 0 0 2 2h6a2 2 0 0 0 2-2V4h.5a1 1 0 0 0 1-1V2a1 1 0 0 0-1-1H10a1 1 0 0 0-1-1H7a1 1 0 0 0-1 1zm3 4a.5.5 0 0 1 .5.5v7a.5.5 0 0 1-1 0v-7a.5.5 0 0 1 .5-.5M8 5a.5.5 0 0 1 .5.5v7a.5.5 0 0 1-1 0v-7A.5.5 0 0 1 8 5m3 .5v7a.5.5 0 0 1-1 0v-7a.5.5 0 0 1 1 0"/>
+                        <path
+                            d="M2.5 1a1 1 0 0 0-1 1v1a1 1 0 0 0 1 1H3v9a2 2 0 0 0 2 2h6a2 2 0 0 0 2-2V4h.5a1 1 0 0 0 1-1V2a1 1 0 0 0-1-1H10a1 1 0 0 0-1-1H7a1 1 0 0 0-1 1zm3 4a.5.5 0 0 1 .5.5v7a.5.5 0 0 1-1 0v-7a.5.5 0 0 1 .5-.5M8 5a.5.5 0 0 1 .5.5v7a.5.5 0 0 1-1 0v-7A.5.5 0 0 1 8 5m3 .5v7a.5.5 0 0 1-1 0v-7a.5.5 0 0 1 1 0" />
                     </svg>
                 </button>
             </div>
@@ -307,18 +321,19 @@
 
             {{range $i, $v := .}}
             {{if $v.Pin}}{{continue}}{{end}}
-            <div class="hist-item-div" data-idx="{{$i}}"
-                data-pin="{{if $v.Pin}}1{{else}}0{{end}}">
+            <div class="hist-item-div" data-idx="{{$i}}" data-pin="{{if $v.Pin}}1{{else}}0{{end}}">
                 <span class="dash">-</span>
                 <a class="hist-item" href="/rd/{{$v.Sha}}">{{.Name}}</a>
                 <button class="svg-btn pin {{if $v.Pin}}pinned{{end}}" data-sha="{{$v.Sha}}" data-name="{{$v.Name}}">
                     <svg xmlns="http://www.w3.org/2000/svg" fill="currentColor" viewBox="0 0 16 16">
-                        <path d="M9.828.722a.5.5 0 0 1 .354.146l4.95 4.95a.5.5 0 0 1 0 .707c-.48.48-1.072.588-1.503.588-.177 0-.335-.018-.46-.039l-3.134 3.134a6 6 0 0 1 .16 1.013c.046.702-.032 1.687-.72 2.375a.5.5 0 0 1-.707 0l-2.829-2.828-3.182 3.182c-.195.195-1.219.902-1.414.707s.512-1.22.707-1.414l3.182-3.182-2.828-2.829a.5.5 0 0 1 0-.707c.688-.688 1.673-.767 2.375-.72a6 6 0 0 1 1.013.16l3.134-3.133a3 3 0 0 1-.04-.461c0-.43.108-1.022.589-1.503a.5.5 0 0 1 .353-.146"/>
+                        <path
+                            d="M9.828.722a.5.5 0 0 1 .354.146l4.95 4.95a.5.5 0 0 1 0 .707c-.48.48-1.072.588-1.503.588-.177 0-.335-.018-.46-.039l-3.134 3.134a6 6 0 0 1 .16 1.013c.046.702-.032 1.687-.72 2.375a.5.5 0 0 1-.707 0l-2.829-2.828-3.182 3.182c-.195.195-1.219.902-1.414.707s.512-1.22.707-1.414l3.182-3.182-2.828-2.829a.5.5 0 0 1 0-.707c.688-.688 1.673-.767 2.375-.72a6 6 0 0 1 1.013.16l3.134-3.133a3 3 0 0 1-.04-.461c0-.43.108-1.022.589-1.503a.5.5 0 0 1 .353-.146" />
                     </svg>
                 </button>
                 <button class="svg-btn del" data-link="/rd/delete/{{$v.Sha}}" data-name="{{$v.Name}}">
                     <svg xmlns="http://www.w3.org/2000/svg" fill="currentColor" viewBox="0 0 16 16">
-                        <path d="M2.5 1a1 1 0 0 0-1 1v1a1 1 0 0 0 1 1H3v9a2 2 0 0 0 2 2h6a2 2 0 0 0 2-2V4h.5a1 1 0 0 0 1-1V2a1 1 0 0 0-1-1H10a1 1 0 0 0-1-1H7a1 1 0 0 0-1 1zm3 4a.5.5 0 0 1 .5.5v7a.5.5 0 0 1-1 0v-7a.5.5 0 0 1 .5-.5M8 5a.5.5 0 0 1 .5.5v7a.5.5 0 0 1-1 0v-7A.5.5 0 0 1 8 5m3 .5v7a.5.5 0 0 1-1 0v-7a.5.5 0 0 1 1 0"/>
+                        <path
+                            d="M2.5 1a1 1 0 0 0-1 1v1a1 1 0 0 0 1 1H3v9a2 2 0 0 0 2 2h6a2 2 0 0 0 2-2V4h.5a1 1 0 0 0 1-1V2a1 1 0 0 0-1-1H10a1 1 0 0 0-1-1H7a1 1 0 0 0-1 1zm3 4a.5.5 0 0 1 .5.5v7a.5.5 0 0 1-1 0v-7a.5.5 0 0 1 .5-.5M8 5a.5.5 0 0 1 .5.5v7a.5.5 0 0 1-1 0v-7A.5.5 0 0 1 8 5m3 .5v7a.5.5 0 0 1-1 0v-7a.5.5 0 0 1 1 0" />
                     </svg>
                 </button>
                 </button>
@@ -395,6 +410,7 @@
 
     <script>
         const form = document.getElementById("form");
+        const tmpMode = document.getElementById("tmpMode");
         const txt = document.getElementById("txt");
         const hist = document.getElementById("hist");
         const save = document.getElementById("save");
@@ -410,7 +426,8 @@
             const val = txt.value.trim();
             if (val === "") return;
 
-            const url = '/rd/';
+            const url = tmpMode.checked ? '/rd/tmp/' : '/rd/';
+
             fetch(url, {
                 method: "POST",
                 headers: { 'Content-Type': 'text/plain' },
@@ -511,16 +528,16 @@
                 } catch (err) { console.error(err) }
 
                 if (!res || !res.ok || res.status !== 202) {
-                    alert("لم يتمكن من التثبيت/إلغاء التثبيت: "+pName);
+                    alert("لم يتمكن من التثبيت/إلغاء التثبيت: " + pName);
                     return;
                 }
 
                 if (npinned) {
                     p.classList.add("pinned");
-                    p.parentElement.dataset.pin= "1";
+                    p.parentElement.dataset.pin = "1";
                 } else {
                     p.classList.remove("pinned");
-                    p.parentElement.dataset.pin= "0";
+                    p.parentElement.dataset.pin = "0";
                 }
                 sortButtons(histItemsRev);
             });

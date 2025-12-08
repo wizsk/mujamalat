@@ -286,7 +286,8 @@ func (rd *readerConf) deletePage(w http.ResponseWriter, r *http.Request) {
 	fmt.Fprintf(w, "deleted: %q", sha)
 }
 
-func (rc *readerConf) validatePostAnd(w http.ResponseWriter, r *http.Request) (sha, pageName, txt string) {
+// if not ok then error will be sent just check if it's nil or not
+func validatePagePostData(w http.ResponseWriter, r *http.Request) (dataaaa []byte) {
 	ct := r.Header.Get("Content-Type")
 	if ct != "text/plain" {
 		http.Error(w, "Invalid content type. Expected text/plain", http.StatusUnsupportedMediaType)
@@ -298,7 +299,7 @@ func (rc *readerConf) validatePostAnd(w http.ResponseWriter, r *http.Request) (s
 		return
 	}
 
-	data, err := io.ReadAll(io.LimitReader(r.Body, maxtReaderTextSize)) // prevent abuse
+	d, err := io.ReadAll(io.LimitReader(r.Body, maxtReaderTextSize)) // prevent abuse
 	if err != nil {
 		http.Error(w, "Error reading body", http.StatusBadRequest)
 		return
@@ -306,7 +307,16 @@ func (rc *readerConf) validatePostAnd(w http.ResponseWriter, r *http.Request) (s
 	r.Body.Close()
 
 	// for getting corrent sha
-	data = cleanSpacesInPlace(data)
+	d = cleanSpacesInPlace(d)
+	if len(d) == 0 {
+		http.Error(w, "No data provided", http.StatusBadRequest)
+		return
+	}
+
+	return d
+}
+func (rc *readerConf) validatePostAnd(w http.ResponseWriter, r *http.Request) (sha, pageName, txt string) {
+	data := validatePagePostData(w, r)
 	if len(data) == 0 {
 		return
 	}
@@ -315,7 +325,7 @@ func (rc *readerConf) validatePostAnd(w http.ResponseWriter, r *http.Request) (s
 	defer putBuf(buf)
 
 	sha = fmt.Sprintf("%x", sha256.Sum256(data))
-	pageName = rc.postPageName(data)
+	pageName = rc.postPageName(bytes.NewReader(data))
 
 	formatInputText(data, buf)
 	if buf.Len() > 0 {
@@ -324,9 +334,9 @@ func (rc *readerConf) validatePostAnd(w http.ResponseWriter, r *http.Request) (s
 	return
 }
 
-func (rc *readerConf) postPageName(data []byte) string {
+func (rc *readerConf) postPageName(r io.Reader) string {
 	pageName := ""
-	sc := bufio.NewScanner(bytes.NewReader(data))
+	sc := bufio.NewScanner(r)
 	for sc.Scan() {
 		l := bytes.TrimSpace(sc.Bytes())
 		if len(l) > 0 {

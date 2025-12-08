@@ -110,6 +110,7 @@ func newReader(gc *globalConf, t templateWraper) *readerConf {
 		rd.hArr = make([]string, 0, ds)
 	}
 
+	startCleanTmpPageDataTicker()
 	return &rd
 }
 

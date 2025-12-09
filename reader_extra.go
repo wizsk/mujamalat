@@ -10,7 +10,6 @@ import (
 	"os"
 	"path/filepath"
 	"strings"
-	"unicode/utf8"
 )
 
 type HighLightData struct {
@@ -87,20 +86,6 @@ func (rd *readerConf) highlightWord(w http.ResponseWriter, r *http.Request) {
 	}
 }
 
-func bytesToRune(s []byte, t []rune) []rune {
-	if rc := utf8.RuneCount(s); len(t) < rc {
-		t = make([]rune, rc)
-	}
-	i := 0
-	for len(s) > 0 {
-		r, l := utf8.DecodeRune(s)
-		t[i] = r
-		i++
-		s = s[l:]
-	}
-	return t
-}
-
 func (rd *readerConf) highlight(w http.ResponseWriter, r *http.Request) {
 	word := keepOnlyArabic(r.FormValue("w"))
 	if word == "" {
@@ -152,7 +137,8 @@ func (rd *readerConf) highlight(w http.ResponseWriter, r *http.Request) {
 		}
 	} else {
 		// on add append
-		rd.hMap.Set(word, HiIdx{Word: word})
+		h := HiIdx{Word: word}
+		rd.hMap.Set(word, h)
 		go rd.indexHiWordSafe(word)
 
 		f, err := fetalErrVal(openAppend(rd.hFilePath))
@@ -160,7 +146,7 @@ func (rd *readerConf) highlight(w http.ResponseWriter, r *http.Request) {
 			http.Error(w, "could not write to disk", http.StatusInternalServerError)
 			return // err
 		}
-		f.WriteString(word)
+		f.WriteString(h.String())
 		f.WriteString("\n")
 		f.Close()
 	}
@@ -210,6 +196,7 @@ func (rd *readerConf) entryEdit(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 	if !fetalErrOkD(enFile.WriteString(rd.enMapStr())) ||
+		!fetalErrOkD(enFile.WriteString("\n")) ||
 		!fetalErrOk(enFile.Close()) ||
 		!fetalErrOk(os.Rename(enTmp, rd.enFilePath)) {
 		http.Error(w, "something went wrong", http.StatusInternalServerError)
@@ -245,6 +232,7 @@ func (rd *readerConf) deletePage(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 	if !fetalErrOkD(enFile.WriteString(rd.enMapStr())) ||
+		!fetalErrOkD(enFile.WriteString("\n")) ||
 		!fetalErrOk(enFile.Close()) ||
 		!fetalErrOk(os.Rename(enTmp, rd.enFilePath)) {
 		http.Error(w, "something went wrong", http.StatusInternalServerError)

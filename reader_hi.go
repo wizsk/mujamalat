@@ -6,19 +6,44 @@ import (
 	"io"
 	"os"
 	"path/filepath"
+	"strconv"
 	"strings"
 
 	"github.com/wizsk/mujamalat/ordmap"
 )
 
 type HiIdx struct {
-	Word       string
+	Word        string
+	LastSeen    int64
+	WillBeShown int64
+
 	MatchCound int
 	Peras      [][]ReaderWord
 }
 
 func (h *HiIdx) String() string {
-	return fmt.Sprintf("%s:%d:%v", h.Word, h.MatchCound, h.Peras)
+	return fmt.Sprintf("%d:%d:%s", h.LastSeen, h.WillBeShown, h.Word)
+}
+
+func (rd *readerConf) loadHilightedWords() {
+	const ds = 100
+	rd.hMap = ordmap.NewWithCap[string, HiIdx](ds)
+
+	if f, err := os.ReadFile(rd.hFilePath); err == nil {
+		for l := range bytes.SplitSeq(f, []byte("\n")) {
+			lb := bytes.TrimSpace(l)
+			if sp := bytes.SplitN(lb, []byte(":"), 3); len(sp) == 3 {
+				h := HiIdx{Word: string(sp[2])}
+				h.LastSeen, _ = strconv.ParseInt(string(sp[0]), 10, 64)
+				h.WillBeShown, _ = strconv.ParseInt(string(sp[1]), 10, 64)
+				rd.hMap.Set(h.Word, h)
+			} else if len(lb) > 0 {
+				l := string(lb)
+				rd.hMap.Set(l, HiIdx{Word: l})
+			}
+		}
+		rd.indexHiWords()
+	}
 }
 
 type HiIdxArr []HiIdx

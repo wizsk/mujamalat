@@ -86,27 +86,7 @@ func newReader(gc *globalConf, t templateWraper) *readerConf {
 		}
 	}
 
-	const ds = 100
-	if f, err := os.ReadFile(rd.hFilePath); err == nil {
-		sl := bytes.Split(f, []byte("\n"))
-
-		rd.hMap = ordmap.NewWithCap[string, HiIdx](len(sl) + ds)
-		// rd.hArr = make([]string, 0, len(sl)+ds)
-
-		for i := range len(sl) {
-			lb := bytes.TrimSpace(sl[i])
-			if len(lb) > 0 {
-				l := string(lb)
-				rd.hMap.Set(l, HiIdx{Word: l})
-			}
-		}
-		rd.indexHiWords()
-	}
-
-	if rd.hMap == nil {
-		rd.hMap = ordmap.NewWithCap[string, HiIdx](ds)
-	}
-
+	rd.loadHilightedWords()
 	startCleanTmpPageDataTicker()
 	return &rd
 }
@@ -233,12 +213,6 @@ func (rd *readerConf) post(w http.ResponseWriter, r *http.Request) {
 		http.Error(w, "coun't write to disk", http.StatusInternalServerError)
 		return
 	}
-	str := "0:" + sha + ":" + pageName + "\n"
-	if !fetalErrOkD(entries.WriteString(str)) {
-		http.Error(w, "coun't write to disk", http.StatusInternalServerError)
-		return
-	}
-	entries.Close()
 
 	e := EntryInfo{
 		Pin:  false,
@@ -246,8 +220,15 @@ func (rd *readerConf) post(w http.ResponseWriter, r *http.Request) {
 		Name: pageName,
 	}
 
+	str := e.String() + "\n"
+	if !fetalErrOkD(entries.WriteString(str)) {
+		http.Error(w, "coun't write to disk", http.StatusInternalServerError)
+		return
+	}
+	entries.Close()
+
 	rd.enMap.Set(sha, e)
-	http.Redirect(w, r, url, http.StatusMovedPermanently)
+	http.Redirect(w, r, url, http.StatusSeeOther)
 
 	// update
 	go rd.indexHiEnrySafe(sha)

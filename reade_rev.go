@@ -28,7 +28,7 @@ func (rd *readerConf) revPage(w http.ResponseWriter, r *http.Request) {
 		}
 	}
 
-	if idx.MatchCound != 0 {
+	if idx.Word != "" {
 		revPageData.words[idx.Word] = struct{}{}
 		revPageData.wStack = append(revPageData.wStack, idx.Word)
 	}

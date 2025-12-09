@@ -26,7 +26,6 @@ type globalConf struct {
 	deleteSessions bool
 	noCompress     bool
 	migrate        bool
-	indexHi        bool
 }
 
 func parseFlags() *globalConf {
@@ -41,7 +40,7 @@ func parseFlags() *globalConf {
 		fmt.Sprintf("port number for the server (defaut: %d-%d)",
 			portRangeStart, portrangeEnd))
 
-	flag.StringVar(&conf.permDir, "hist-dir", "",
+	flag.StringVar(&conf.permDir, "save-dir", "",
 		"where the program will save all the nessesary data. For example: pages,"+
 			" highligted words etc. (Dir is created if not exists)")
 
@@ -57,8 +56,6 @@ func parseFlags() *globalConf {
 	showVersion := flag.Bool("v", false, "print version information")
 
 	flag.BoolVar(&conf.verbose, "s", false, "show request logs [be verbose]")
-
-	flag.BoolVar(&conf.indexHi, "index-hi", false, "index higilight list")
 
 	flag.BoolVar(&conf.noCompress, "no-compress", false,
 		"do not compress response (no gzip/br)")
@@ -349,35 +346,4 @@ func copyFile(src, dst string) error {
 	}
 
 	return nil
-}
-
-func removeArrItm[T comparable](a []T, itm T) ([]T, bool) {
-	for i := range len(a) {
-		if a[i] == itm {
-			return append(a[:i], a[i+1:]...), true
-		}
-	}
-	return a, false
-}
-
-func removeArrItmFunc[T any](a []T, cmp func(int) bool) ([]T, bool) {
-	for i := range len(a) {
-		if cmp(i) {
-			return append(a[:i], a[i+1:]...), true
-		}
-	}
-	return a, false
-}
-
-// shallow copy
-func copyRev[T any](dst, src []T) []T {
-	if dst == nil {
-		dst = make([]T, 0, len(src))
-	} else {
-		dst = dst[:0]
-	}
-	for i := len(src) - 1; i > -1; i-- {
-		dst = append(dst, src[i])
-	}
-	return dst
 }

@@ -338,6 +338,7 @@ function getScrollLSN() {
   return `${window.location.pathname}-scroll`;
 }
 
+// {{if not .RevMode}}
 let saveTimeOutScroll;
 window.addEventListener("scroll", () => {
   clearTimeout(saveTimeOutScroll);
@@ -361,6 +362,7 @@ window.addEventListener("load", () => {
     }, 50);
   }
 });
+// {{end}}
 
 if ("wakeLock" in navigator) {
   async function requestWakeLock() {

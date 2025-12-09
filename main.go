@@ -124,9 +124,6 @@ func main() {
 		return
 	}
 
-	if gc.indexHi {
-	}
-
 	fmt.Println("INFO: Initalizing...")
 	iStart := time.Now()
 	done := make(chan struct{}, 1)

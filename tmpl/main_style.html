@@ -56,6 +56,12 @@
 		font-weight: 100 900;
 	}
 
+	@font-face {
+		font-family: "inter";
+		src: url("/pub/fonts/Inter-VariableFont.woff2") format('woff2-variations');
+		font-weight: 100 900;
+	}
+
 	:root {
 		direction: rtl;
 		font-family: 'font';
@@ -94,15 +100,12 @@
 		--max-width: 35em;
 		margin: 0 auto;
 		background-color: var(--bg);
-	}
 
-	@media (max-width: 768px) {
-		body {
+		@media (width < 768px) {
 			--font-size: 1.2em;
 			font-size: var(--font-size);
 		}
 	}
-
 
 	.hidden {
 		display: none !important;
@@ -130,6 +133,33 @@
 		outline: 0;
 	}
 
+	input[type="checkbox"] {
+		accent-color: var(--accent);
+	}
+
+	/* Remove spinner buttons (Chrome, Edge, Safari) */
+	input[type=number]::-webkit-inner-spin-button,
+	input[type=number]::-webkit-outer-spin-button {
+		-webkit-appearance: none;
+		margin: 0;
+	}
+
+	/* Remove spinner buttons (Firefox) */
+	input[type=number] {
+		-moz-appearance: textfield;
+	}
+
+	select {
+		font-family: inherit;
+		font-size: inherit;
+		padding: 0.1rem 0.5rem;
+		border-radius: var(--border-radious);
+		background-color: var(--bg);
+		color: var(--color);
+		border: 1px solid #ccc;
+	}
+
+
 	.btn {
 		font-size: inherit;
 		font-family: inherit;
@@ -139,12 +169,6 @@
 		color: var(--bg);
 		border: none;
 		cursor: pointer;
-	}
-
-
-	.overlay-bg {
-		backdrop-filter: blur(2px);
-		background-color: rgba(0, 0, 0, 0.5);
 	}
 </style>
 {{end}}
@@ -275,24 +299,26 @@
 		background-color: var(--accent-dark);
 		color: #fff;
 		padding: 0;
-		width: 2.5rem;
-		height: 2.5rem;
+		--svg-wh: 2.5rem;
+		width: var(--svg-wh);
+		height: var(--svg-wh);
 		border-radius: var(--border-radious);
 		border: none;
 		cursor: pointer;
 		display: flex;
 		align-items: center;
 		justify-content: center;
-		box-shadow: 0 2px 4px rgba(0, 0, 0, 0.15);
-	}
+		/* box-shadow: 0 2px 4px rgba(0, 0, 0, 0.15); */
 
-	.svg-btn:hover {
-		background-color: var(--accent);
-	}
+		svg {
+			--_wh: calc(var(--svg-wh) - calc(var(--svg-wh)/5));
+			width: var(--_wh);
+			height: var(--_wh);
+		}
 
-	.svg-btn svg {
-		width: 2rem;
-		height: 2rem;
+		&:hover {
+			background-color: var(--accent);
+		}
 	}
 
 	#overlay {

@@ -101,19 +101,6 @@
             margin: 1rem 0;
         }
 
-        select {
-            font-family: inherit;
-            font-size: inherit;
-            padding: 0.1rem 0.5rem;
-            border-radius: var(--border-radious);
-            background-color: var(--bg);
-            color: var(--color);
-            border: 1px solid #ccc;
-        }
-
-        input[type="checkbox"] {
-            accent-color: var(--accent);
-        }
 
         /* reader menu btn*/
         .rm-btn {
@@ -212,7 +199,10 @@
 {{end}}
 
 {{define "reader"}}
+
+{{if .RevMode}}
 <div id="readerWrapper" class="{{if .RevMode}}hidden{{end}}">
+    <hr>{{end}}
     <div id="reader">
         {{range $i, $p := .RD.Peras}}
         <div class="pera">

@@ -36,7 +36,7 @@ func (rd *readerConf) revPage(w http.ResponseWriter, r *http.Request) {
 	})
 	idx := HiIdx{}
 
-	curr := time.Now().Add(time.Hour * 24 * 10).Unix()
+	curr := time.Now().Add(time.Hour * 24 * 100).Unix()
 	if len(hM) > 0 {
 		sort.Slice(hM, func(i, j int) bool { return hM[i].Future < hM[j].Future })
 		for _, v := range hM {

@@ -4,8 +4,33 @@ import (
 	"bytes"
 	"fmt"
 	"testing"
+	"time"
 )
 
+func TestDurToDHM(t *testing.T) {
+	oneDay := time.Hour * 24
+	cases := []struct {
+		in time.Duration
+		ex string
+	}{
+		{
+			in: oneDay,
+			ex: "1d",
+		},
+		{
+			in: oneDay + time.Hour + time.Minute,
+			ex: "1d 1h 1m",
+		},
+	}
+	for i, c := range cases {
+		r := durToDHM(c.in)
+		if r != c.ex {
+			t.Logf("case: %d:%q", i, c.in)
+			t.Logf("ex:%q != got:%q", c.ex, r)
+			t.FailNow()
+		}
+	}
+}
 func TestCleanSpacesInPlace(t *testing.T) {
 	cases := []struct{ in, ex string }{
 		{

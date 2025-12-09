@@ -128,7 +128,7 @@ func durToDHM(d time.Duration) (r string) {
 	}
 	if hours > 0 {
 		r += " "
-		r += strconv.Itoa(int(days))
+		r += strconv.Itoa(int(hours))
 		r += "h"
 	}
 	if minutes > 0 {
@@ -136,7 +136,7 @@ func durToDHM(d time.Duration) (r string) {
 		r += strconv.Itoa(int(minutes))
 		r += "m"
 	}
-	return
+	return r
 }
 
 // log when error != nil and return true

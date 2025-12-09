@@ -145,7 +145,7 @@ func (om *OrderedMap[K, V]) ValuesFiltered(f func(Entry[K, V]) bool) []V {
 			i++
 		}
 	}
-	return vals
+	return vals[:i]
 }
 
 // Iter returns a channel that can be ranged over

@@ -12,15 +12,33 @@
         {{if (ne .HiIdx.MatchCound 0)}}
         <p>{{.RD.Title}}</p>
         <div>
-            <button class="btn" onclick="readerWrapper.classList.toggle('hidden')">
-                افتح القارئ
-            </button>
-            <button class="btn" onclick="know('{{.RD.Title}}')">
-                i know
-            </button>
-            <button class="btn" onclick="window.location.reload()">
+            <div>
+
+                <button class="btn" onclick="readerWrapper.classList.toggle('hidden')">
+                    افتح القارئ
+                </button>
+
+                <button class="btn" onclick="dontShow()">
+                    لا تظهر
+                </button>
+                <!-- <button class="btn" onclick="window.location.reload()">
                 next
-            </button>
+            </button> -->
+            </div>
+            <br>
+            <div>
+                <label for="afterSelect">Days</label>
+                <select name="Days" id="afterSelect">
+                    <!-- <option value="1">1</option>
+                    <option value="2">2</option>
+                    <option value="3">3</option>
+                    <option value="4">4</option>
+                    <option value="5">5</option> -->
+                </select>
+                <button class="btn" onclick="showAfter()">
+                    show after
+                </button>
+            </div>
         </div>
         {{else}}
         <p>
@@ -35,13 +53,24 @@
 </div>
 
 <script>
-    function know(w) {
-        postThen(`${window.location.pathname}?known=${w}`,
+    const word = "{{.RD.Title}}";
+    const afterSelect = document.getElementById("afterSelect");
+
+    for (let i = 1; i < 31; i++) {
+        const o = document.createElement("option");
+        o.value = `${i}`;
+        o.innerText = `${i}`;
+        afterSelect.appendChild(o)
+    }
+
+    function showAfter(w) {
+        const days = afterSelect.value;
+        postThen(`${window.location.pathname}?w=${word}&after=${days}`,
             () => window.location.reload());
     }
 
-    function reset() {
-        postThen(`${window.location.pathname}?reset=true`,
+    function dontShow() {
+        postThen(`${window.location.pathname}?w=${word}&dontshow=true`,
             () => window.location.reload())
     }
 

@@ -4,6 +4,7 @@ import (
 	"bytes"
 	"fmt"
 	"io"
+	"net/http"
 	"os"
 	"path/filepath"
 	"strconv"
@@ -13,16 +14,20 @@ import (
 )
 
 type HiIdx struct {
-	Word        string
-	LastSeen    int64
-	WillBeShown int64
+	Word     string
+	Future   int64
+	DontShow bool
 
 	MatchCound int
 	Peras      [][]ReaderWord
 }
 
 func (h *HiIdx) String() string {
-	return fmt.Sprintf("%d:%d:%s", h.LastSeen, h.WillBeShown, h.Word)
+	d := "0"
+	if h.DontShow {
+		d = "1"
+	}
+	return fmt.Sprintf("%s:%d:%s", d, h.Future, h.Word)
 }
 
 func (rd *readerConf) loadHilightedWords() {
@@ -34,8 +39,8 @@ func (rd *readerConf) loadHilightedWords() {
 			lb := bytes.TrimSpace(l)
 			if sp := bytes.SplitN(lb, []byte(":"), 3); len(sp) == 3 {
 				h := HiIdx{Word: string(sp[2])}
-				h.LastSeen, _ = strconv.ParseInt(string(sp[0]), 10, 64)
-				h.WillBeShown, _ = strconv.ParseInt(string(sp[1]), 10, 64)
+				h.DontShow = sp[0][0] == byte('1')
+				h.Future, _ = strconv.ParseInt(string(sp[1]), 10, 64)
 				rd.hMap.Set(h.Word, h)
 			} else if len(lb) > 0 {
 				l := string(lb)
@@ -55,6 +60,27 @@ func (h HiIdxArr) String() string {
 		sb.WriteByte('\n')
 	}
 	return sb.String()
+}
+
+func (rd *readerConf) saveHMap(w http.ResponseWriter) (ok bool) {
+	tmpFile := rd.hFilePath + ".tmp"
+	f, err := fetalErrVal(os.Create(tmpFile))
+	if err != nil {
+		http.Error(w, "could not write to disk", http.StatusInternalServerError)
+		return // err
+	}
+
+	if !fetalErrOkD(f.WriteString(rd.hiMapStr())) ||
+		!fetalErrOkD(f.WriteString("\n")) ||
+		!fetalErrOk(f.Close()) {
+		return
+	}
+
+	if !fetalErrOk(os.Rename(tmpFile, rd.hFilePath)) {
+		http.Error(w, "server err", http.StatusInternalServerError)
+		return
+	}
+	return true
 }
 
 func (rd *readerConf) indexHiWordsSafe() {

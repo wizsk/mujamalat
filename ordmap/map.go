@@ -135,6 +135,19 @@ func (om *OrderedMap[K, V]) ValuesRev() []V {
 	return vals
 }
 
+// Values returns ordered values.
+func (om *OrderedMap[K, V]) ValuesFiltered(f func(Entry[K, V]) bool) []V {
+	vals := make([]V, len(om.data))
+	i := 0
+	for _, e := range om.data {
+		if !f(e) {
+			vals[i] = e.Value
+			i++
+		}
+	}
+	return vals
+}
+
 // Iter returns a channel that can be ranged over
 func (m *OrderedMap[K, V]) Iter() <-chan Entry[K, V] {
 	ch := make(chan Entry[K, V], len(m.data)) // buffered to avoid goroutine blocking

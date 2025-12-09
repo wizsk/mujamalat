@@ -116,23 +116,7 @@ func (rd *readerConf) highlight(w http.ResponseWriter, r *http.Request) {
 
 	if del {
 		rd.hMap.Delete(word)
-
-		tmpFile := rd.hFilePath + ".tmp"
-		f, err := fetalErrVal(os.Create(tmpFile))
-		if err != nil {
-			http.Error(w, "could not write to disk", http.StatusInternalServerError)
-			return // err
-		}
-
-		if !fetalErrOkD(f.WriteString(rd.hiMapStr())) {
-			f.Close()
-			return
-		}
-		f.WriteString("\n")
-		f.Close()
-
-		if !fetalErrOk(os.Rename(tmpFile, rd.hFilePath)) {
-			http.Error(w, "server err", http.StatusInternalServerError)
+		if !rd.saveHMap(w) {
 			return
 		}
 	} else {

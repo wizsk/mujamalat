@@ -1,0 +1,56 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Document</title>
+    <style>
+        :root {
+            direction: rtl;
+        }
+
+        td {
+            padding: 1rem 1rem;
+        }
+
+        table {
+            text-align: center;
+
+            .time-stamp {
+                direction: rtl;
+            }
+        }
+
+        table thead,
+        tr:nth-child(even) {
+            background-color:
+                color-mix(in srgb, var(--accent, blue), transparent 90%);
+        }
+    </style>
+</head>
+
+<body>
+    <center>
+        <table>
+            <thead>
+                <td>
+                    الكلمة
+                </td>
+                <td>Due</td>
+                <td>
+                    لا تظهر
+                </td>
+            </thead>
+            {{range .}}
+            <tr>
+                <td>{{.Word}}</td>
+                <td class="time-stamp">{{.Future | fmtUnix}}</td>
+                <td>{{.DontShow}}</td>
+            </tr>
+            {{end}}
+        </table>
+    </center>
+</body>
+
+</html>

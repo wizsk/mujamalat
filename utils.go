@@ -103,7 +103,40 @@ var tmplFuncs = template.FuncMap{
 	},
 	// "dec":   func(a, b int) int { return a - b },
 	"arnum": intToArnum[int],
-	"real":  func(v any) string { fmt.Printf("%#v", v); return fmt.Sprintf("%#v", v) },
+	"fmtUnix": func(v int64) string {
+		if v == 0 {
+			return "..."
+		}
+		t := time.Unix(v, 0)
+		r := durToDHM(time.Until(t))
+		return t.Format(time.DateTime) + " (" + r + ")"
+	},
+}
+
+func durToDHM(d time.Duration) (r string) {
+	d.Round(time.Minute)
+	days := d / (time.Hour * 24)
+	d -= days * time.Hour * 24
+
+	hours := d / time.Hour
+	d -= hours * time.Hour
+
+	minutes := d / time.Minute
+	if days > 0 {
+		r += strconv.Itoa(int(days))
+		r += "d"
+	}
+	if hours > 0 {
+		r += " "
+		r += strconv.Itoa(int(days))
+		r += "h"
+	}
+	if minutes > 0 {
+		r += " "
+		r += strconv.Itoa(int(minutes))
+		r += "m"
+	}
+	return
 }
 
 // log when error != nil and return true
@@ -188,10 +221,7 @@ func p(err error) {
 
 // if true then no err; and discurd the val
 func fetalErrOkD[T any](_ T, err error) bool {
-	if err != nil {
-		return false
-	}
-	return true
+	return fetalErrOk(err)
 }
 
 // if true then no err

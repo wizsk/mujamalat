@@ -186,6 +186,7 @@ func main() {
 	mux.HandleFunc("GET /rd/highlist/", rd.highlightList)
 	mux.HandleFunc("GET /rd/rev/", rd.revPage)
 	mux.HandleFunc("POST /rd/rev/", rd.revPagePost)
+	mux.HandleFunc("GET /rd/rev/list", rd.revPageList)
 	mux.HandleFunc("POST /rd/delete/{sha}", rd.deletePage)
 
 	mux.Handle("/pub/", servePubData())

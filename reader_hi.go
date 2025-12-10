@@ -30,6 +30,12 @@ func (h *HiIdx) String() string {
 	return fmt.Sprintf("%s:%d:%s", d, h.Future, h.Word)
 }
 
+// I will compare only stuff I need
+func (a *HiIdx) Cmp(b HiIdx) bool {
+	return a.Word == b.Word && a.Future == b.Future &&
+		a.DontShow == b.DontShow
+}
+
 func (rd *readerConf) loadHilightedWords() {
 	const ds = 100
 	rd.hMap = ordmap.NewWithCap[string, HiIdx](ds)
@@ -90,11 +96,14 @@ func (rd *readerConf) indexHiWordsSafe() {
 }
 
 func (rd *readerConf) indexHiWords() {
-	rd.hMap.CngData(func(e ordmap.Entry[string, HiIdx]) ordmap.Entry[string, HiIdx] {
-		e.Value.MatchCound = 0
-		e.Value.Peras = e.Value.Peras[0:]
-		return e
-	})
+	rd.hMap.UpdateDatas(
+		func(e ordmap.Entry[string, HiIdx]) ordmap.Entry[string, HiIdx] {
+			e.Value.MatchCound = 0
+			e.Value.Peras = e.Value.Peras[0:]
+			return e
+		},
+		func(o, n HiIdx) bool { return o.Cmp(n) },
+	)
 
 	buf := getBuf()
 	defer putBuf(buf)

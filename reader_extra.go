@@ -31,8 +31,8 @@ func (rd *readerConf) highlightList(w http.ResponseWriter, r *http.Request) {
 	switch sort {
 	case "most":
 		for i := 0; i < rd.hMap.Len(); i++ {
-			word := rd.hMap.GetIdx(i).Word
-			count := rd.hMap.GetIdx(i).MatchCound
+			word := rd.hMap.GetIdxUnsafe(i).Word
+			count := rd.hMap.GetIdxUnsafe(i).MatchCound
 			rw = append(rw, HighLightWord{
 				Oar:   word,
 				Count: count,
@@ -40,8 +40,8 @@ func (rd *readerConf) highlightList(w http.ResponseWriter, r *http.Request) {
 		}
 	case "least":
 		for i := rd.hMap.Len() - 1; i > -1; i-- {
-			word := rd.hMap.GetIdx(i).Word
-			count := rd.hMap.GetIdx(i).MatchCound
+			word := rd.hMap.GetIdxUnsafe(i).Word
+			count := rd.hMap.GetIdxUnsafe(i).MatchCound
 			rw = append(rw, HighLightWord{
 				Oar:   word,
 				Count: count,
@@ -49,10 +49,10 @@ func (rd *readerConf) highlightList(w http.ResponseWriter, r *http.Request) {
 		}
 	default:
 		for i := rd.hMap.Len() - 1; i > -1; i-- {
-			word := rd.hMap.GetIdxKV(i).Key
+			word := rd.hMap.GetIdxKVUnsafe(i).Key
 			rw = append(rw, HighLightWord{
 				Oar:   word,
-				Count: rd.hMap.GetIdx(i).MatchCound,
+				Count: rd.hMap.GetIdxUnsafe(i).MatchCound,
 			})
 		}
 	}

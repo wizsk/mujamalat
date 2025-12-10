@@ -1,39 +1,53 @@
 package ordmap
 
+type Options[K comparable] struct {
+	AllowZeroKey bool
+}
+
 type Entry[K comparable, V any] struct {
 	Key   K
 	Value V
 }
 
 type OrderedMap[K comparable, V any] struct {
-	index map[K]int     // key → index in slice
-	data  []Entry[K, V] // ordered storage
+	index     map[K]int     // key → index in slice
+	data      []Entry[K, V] // ordered storage
+	listeners []func(Event[K, V])
+	allowZero bool
 }
 
-func New[K comparable, V any]() *OrderedMap[K, V] {
-	return NewWithCap[K, V](0)
+func NewWithOptionsAndCap[K comparable, V any](cap int, opt Options[K]) *OrderedMap[K, V] {
+	return &OrderedMap[K, V]{
+		index:     make(map[K]int, cap),
+		data:      make([]Entry[K, V], 0, cap),
+		allowZero: opt.AllowZeroKey,
+	}
 }
 
 func NewWithCap[K comparable, V any](c int) *OrderedMap[K, V] {
-	return &OrderedMap[K, V]{
-		index: make(map[K]int, c),
-		data:  make([]Entry[K, V], 0, c),
-	}
+	return NewWithOptionsAndCap[K, V](c, Options[K]{})
+}
+
+func New[K comparable, V any]() *OrderedMap[K, V] {
+	return NewWithOptionsAndCap[K, V](0, Options[K]{})
 }
 
 // Set inserts or updates (preserves order).
 func (om *OrderedMap[K, V]) Set(k K, v V) {
-	if isZero(k) {
+	if !om.allowZero && isZero(k) {
 		return
 	}
 
 	if idx, found := om.index[k]; found {
+		old := om.data[idx].Value
 		om.data[idx].Value = v
+		om.emit(Event[K, V]{Type: EventUpdate, Key: k, OldValue: old, NewValue: v})
 		return
 	}
 
 	om.data = append(om.data, Entry[K, V]{k, v})
 	om.index[k] = len(om.data) - 1
+	om.emit(Event[K, V]{Type: EventInsert, Key: k, NewValue: v})
 }
 
 // Get returns the value for a key.
@@ -45,13 +59,30 @@ func (om *OrderedMap[K, V]) Get(k K) (V, bool) {
 	return zero, false
 }
 
-func (om *OrderedMap[K, V]) GetIdx(idx int) V {
+func (om *OrderedMap[K, V]) GetIdx(idx int) (V, bool) {
+	if idx < 0 || len(om.data) < idx {
+		var z V
+		return z, false
+	}
+	return om.data[idx].Value, true
+}
+
+// no bound checks
+func (om *OrderedMap[K, V]) GetIdxUnsafe(idx int) V {
 	return om.data[idx].Value
 }
 
-func (om *OrderedMap[K, V]) GetIdxKV(idx int) Entry[K, V] {
-	l := len(om.data)
-	_ = l
+func (om *OrderedMap[K, V]) GetIdxKV(idx int) (Entry[K, V], bool) {
+	if idx < 0 || len(om.data) < idx {
+		var e Entry[K, V]
+		return e, false
+	}
+
+	return om.data[idx], true
+}
+
+// no bound checks
+func (om *OrderedMap[K, V]) GetIdxKVUnsafe(idx int) Entry[K, V] {
 	return om.data[idx]
 }
 
@@ -67,6 +98,7 @@ func (om *OrderedMap[K, V]) Delete(k K) bool {
 		return false
 	}
 
+	old := om.data[idx].Value
 	// remove Entry at idx by shifting left
 	copy(om.data[idx:], om.data[idx+1:])
 	om.data = om.data[:len(om.data)-1]
@@ -78,6 +110,7 @@ func (om *OrderedMap[K, V]) Delete(k K) bool {
 	}
 
 	delete(om.index, k)
+	om.emit(Event[K, V]{Type: EventDelete, Key: k, OldValue: old})
 	return true
 }
 
@@ -85,12 +118,42 @@ func (om *OrderedMap[K, V]) Reset() {
 	if om.data != nil {
 		om.data = om.data[:0]
 		clear(om.index)
+		om.emit(Event[K, V]{Type: EventReset})
 	}
 }
 
-func (om *OrderedMap[K, V]) CngData(cng func(Entry[K, V]) Entry[K, V]) {
-	for i, e := range om.data {
-		om.data[i] = cng(e)
+// cmp is nil then EventUpdate wont be called,
+// except on key change.
+//
+// cmp(o, n) is like: o == n
+func (om *OrderedMap[K, V]) UpdateDatas(
+	up func(Entry[K, V]) Entry[K, V],
+	cmp func(o, n V) bool,
+) {
+	if len(om.data) == 0 {
+		return
+	} else if cmp == nil {
+		cmp = func(_, _ V) bool { return false }
+	}
+
+	for i, oe := range om.data {
+		ne := up(oe)
+
+		if ne.Key != oe.Key {
+			delete(om.index, oe.Key)
+			om.index[ne.Key] = i
+		}
+
+		om.data[i] = ne
+
+		if ne.Key != oe.Key || !cmp(oe.Value, ne.Value) {
+			om.emit(Event[K, V]{
+				Type:     EventUpdate,
+				Key:      ne.Key,
+				OldValue: oe.Value,
+				NewValue: ne.Value,
+			})
+		}
 	}
 }
 

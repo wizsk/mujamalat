@@ -2,21 +2,27 @@ package main
 
 import (
 	"net/http"
-	"sort"
 	"strconv"
+	"sync"
 	"time"
-
-	"github.com/wizsk/mujamalat/ordmap"
 )
 
-// var revPageData = struct {
-// 	words  map[string]struct{}
-// 	wStack []string
-// 	kWords map[string]struct{}
-// }{
-// 	words:  make(map[string]struct{}),
-// 	kWords: make(map[string]struct{}),
-// }
+var (
+	hiWordPool = sync.Pool{
+		New: func() any { return make([]HiWord, 50) },
+	}
+)
+
+// Acquire a buffer
+func getHiWord() []HiWord {
+	b := hiWordPool.Get().([]HiWord)
+	return b
+}
+
+// Return buffer to pool
+func putHiWord(b []HiWord) {
+	hiWordPool.Put(b)
+}
 
 func (rd *readerConf) revPageList(w http.ResponseWriter, r *http.Request) {
 	rd.RLock()
@@ -31,22 +37,17 @@ func (rd *readerConf) revPage(w http.ResponseWriter, r *http.Request) {
 	rd.RLock()
 	defer rd.RUnlock()
 
-	hM := rd.hMap.ValuesFiltered(func(e ordmap.Entry[string, HiIdx]) bool {
-		return e.Value.DontShow
-	})
-	idx := HiIdx{}
-
-	curr := time.Now().Add(time.Hour * 24 * 100).Unix()
-	if len(hM) > 0 {
-		sort.Slice(hM, func(i, j int) bool { return hM[i].Future < hM[j].Future })
-		for _, v := range hM {
-			if v.Future < curr {
-				idx = v
-				break
-			} else if v.Future > curr {
-				break
-			}
+	curr := time.Now().Unix() // .Add(time.Hour * 24 * 100).Unix()
+	hw, _ := rd.hRevMap.GetFirst(func(e HiWord) bool {
+		if e.DontShow {
+			return false
 		}
+		return e.Future < curr
+	})
+
+	idx := HiIdx{}
+	if hw.Word != "" {
+		idx, _ = rd.hMap.Get(hw.Word)
 	}
 
 	readerConf := ReaderData{idx.Word, idx.Peras.Data}
@@ -77,10 +78,11 @@ func (rd *readerConf) revPagePost(w http.ResponseWriter, r *http.Request) {
 			http.Error(w, "Bad amount of days", http.StatusBadGateway)
 			return
 		}
-		add := (time.Hour * 24 * time.Duration(days))
+		add := time.Hour * 24 * time.Duration(days)
 		h.Future = time.Now().Add(add).Unix()
 		rd.hMap.Set(word, h)
 		rd.saveHMap(w)
+
 	case r.FormValue("dontshow") != "":
 		if r.FormValue("dontshow") == "true" {
 			h.DontShow = true
@@ -89,6 +91,7 @@ func (rd *readerConf) revPagePost(w http.ResponseWriter, r *http.Request) {
 		}
 		rd.hMap.Set(word, h)
 		rd.saveHMap(w)
+
 	default:
 		http.Error(w, "ILLIGAL", http.StatusBadGateway)
 	}

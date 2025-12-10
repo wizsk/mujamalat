@@ -200,12 +200,23 @@ func (om *OrderedMap[K, V]) ValuesRev() []V {
 	return vals
 }
 
+func (om *OrderedMap[K, V]) GetFirst(match func(V) bool) (V, bool) {
+	for _, e := range om.data {
+		if match(e.Value) {
+			return e.Value, true
+		}
+	}
+
+	var v V
+	return v, false
+}
+
 // Values returns ordered values.
-func (om *OrderedMap[K, V]) ValuesFiltered(f func(Entry[K, V]) bool) []V {
+func (om *OrderedMap[K, V]) ValuesFiltered(keep func(Entry[K, V]) bool) []V {
 	vals := make([]V, len(om.data))
 	i := 0
 	for _, e := range om.data {
-		if !f(e) {
+		if keep(e) {
 			vals[i] = e.Value
 			i++
 		}

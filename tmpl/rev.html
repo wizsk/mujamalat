@@ -127,7 +127,7 @@
     }
 </style>
 <div id="revMode">
-    {{if (ne .HiIdx.MatchCound 0)}}
+    {{if .RD.Title}}
     <div id="title">{{.RD.Title}}</div>
 
     <dialog id="selectCustomAfterDailouge">
@@ -186,7 +186,7 @@
         </div>
         <hr>
         <div class="bottom">
-            <button class="svg-btn"
+            <button class="svg-btn {{if (eq .HiIdx.Peras.MatchCound 0)}}hidden{{end}}"
                 onclick="readerWrapper.classList.toggle('hidden'); readerWrapper.scrollIntoView({ behavior: 'smooth'});">
                 <svg xmlns="http://www.w3.org/2000/svg" fill="currentColor" class="bi bi-eye-slash-fill"
                     viewBox="0 0 16 16">
@@ -218,9 +218,9 @@
     <p>
         لا جديد موجود
     </p>
-    <button class="btn" onclick="reset()">
+    <!-- <button class="btn" onclick="reset()">
         reset
-    </button>
+    </button> -->
     {{end}}
 </div>
 
@@ -239,6 +239,9 @@
         if (e.key === "Enter")
             customAfter();
     });
+
+    customAfterSelect.addEventListener("change",
+        () => customAfterInput.value = "");
 
     function customAfter() {
         let val = customAfterInput.value.trim();

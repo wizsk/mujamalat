@@ -40,10 +40,10 @@ func (h *HiIdx) String() string {
 	return fmt.Sprintf("%s:%d:%s", d, h.Future, h.Word)
 }
 
-// I will compare only stuff I need
+// this maybe used to determine if the hRevMap needs chenging.
 func (a *HiIdx) Cmp(b HiIdx) bool {
 	return a.Word == b.Word && a.Future == b.Future &&
-		a.DontShow == b.DontShow
+		a.Past == b.Past && a.DontShow == b.DontShow
 }
 
 type HiIdxArr []HiIdx
@@ -105,14 +105,12 @@ func (rd *readerConf) loadHilightedWords() {
 	rd.hMap.OnChange(func(e ordmap.Event[string, HiIdx]) {
 		switch e.Type {
 		case ordmap.EventInsert:
+		case ordmap.EventUpdate:
 			rd.hRevMap.Set(e.Key, e.NewValue.HiWord)
 			rd.hRevMap.Sort(hRevSortFunc)
 
 		case ordmap.EventDelete:
 			rd.hRevMap.Delete(e.Key)
-
-		case ordmap.EventUpdate:
-			rd.hRevMap.Set(e.Key, e.NewValue.HiWord)
 
 		case ordmap.EventReset:
 			// don't care for now

@@ -5,6 +5,7 @@ import (
 	"os"
 	"path/filepath"
 	"sync"
+	"time"
 
 	"github.com/wizsk/mujamalat/ordmap"
 )
@@ -73,21 +74,14 @@ func newReader(gc *globalConf, t templateWraper) *readerConf {
 		os.Exit(1)
 	}
 
-	if t != nil {
-		hFilePathOld := rd.hFilePath + ".old"
-		if _, err := os.Stat(rd.hFilePath); err == nil {
-			if err := copyFile(rd.hFilePath, hFilePathOld); err != nil {
-				fmt.Printf(
-					"FETAL: highlight history file  could not be backedup to %q\nerr: %s\n",
-					hFilePathOld, err)
-				os.Exit(1)
-			}
-			fmt.Printf("INFO: highlight history file backedup to %q\n", hFilePathOld)
-		}
+	if _, err := os.Stat(rd.hFilePath); t != nil && err == nil {
+		copyFile(rd.hFilePath, rd.hFilePath+".old")
 	}
 
+	then := time.Now()
 	rd.loadHilightedWords()
 	rd.addOnChangeListeners()
+	fmt.Println("INFO: Highlight info loadtime:", time.Since(then).String())
 
 	startCleanTmpPageDataTicker()
 	return &rd

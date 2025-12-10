@@ -71,9 +71,6 @@ func (rd *readerConf) loadHilightedWords() {
 				rd.hMap.Set(h.Word, h)
 				rd.hRev.Set(h.Word, h)
 				rd.hIdx.Set(h.Word, HiIdx{Word: h.Word})
-			} else if len(lb) > 0 {
-				l := string(lb)
-				rd.hMap.Set(l, HiWord{Word: l})
 			}
 		}
 		// after successfull read idex hIdx

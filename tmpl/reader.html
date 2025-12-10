@@ -299,6 +299,12 @@
     <a class="readerMenuAnker" href="/rd/">- انتقل إلى مدخل القارئ</a>
     <a class="readerMenuAnker" href="/"> - انتقل إلى القواميس</a>
     <a class="readerMenuAnker" href="/rd/highlist/">- اذهب إلى قائمة الكلمات المميزة</a>
+    {{if .RevMode}}
+    <a class="readerMenuAnker" href="/rd/rev/list">- اذهب إلى قائمة الكلمات</a>
+    {{else}}
+    <a class="readerMenuAnker" href="/rd/rev/">- اذهب إلى قائمة المراجعة</a>
+    <a class="readerMenuAnker" href="/rd/rev/list">- اذهب إلى قائمة الكلمات</a>
+    {{end}}
     <button class="btn close" onclick="window.history.back()">
         اغلق
     </button>

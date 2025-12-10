@@ -62,23 +62,25 @@ func (rd *readerConf) revPagePost(w http.ResponseWriter, r *http.Request) {
 	switch {
 	case r.FormValue("after") != "":
 		after := r.FormValue("after")
-		days := 0
-		var add time.Duration
 		now := time.Now()
-		if after != "r" {
-			days, _ = strconv.Atoi(after)
+
+		switch after {
+		case "r": // retry in 10 min
+			h.Future = now.Add(time.Minute * 10).Unix()
+			h.Past = 0
+		case "reset": //
+			h.Past = 0
+			h.Future = 0
+
+		default:
+			days, _ := strconv.Atoi(after)
 			if days < 1 || days > 30 {
 				http.Error(w, "Bad amount of days", http.StatusBadGateway)
 				return
 			}
-			add = time.Hour * 24 * time.Duration(days)
 			h.Past = now.Unix()
-		} else {
-			add = time.Minute * 10
-			h.Past = 0 // sohat it resets
+			h.Future = now.Add(time.Hour * 24 * time.Duration(days)).Unix()
 		}
-
-		h.Future = now.Add(add).Unix()
 
 		rd.hMap.Set(h.Word, h)
 		rd.saveHMap(w)

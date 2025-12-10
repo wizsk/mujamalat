@@ -5,21 +5,26 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Document</title>
+    {{template "common-css"}}
     <style>
         :root {
-            direction: rtl;
+            direction: ltr;
+        }
+
+        body {
+            padding: 1rem;
+            font-family: 'inter';
+            width: 100vw;
         }
 
         td {
-            padding: 1rem 1rem;
+            padding: .5rem 1rem;
+            white-space: nowrap;
         }
 
         table {
             text-align: center;
-
-            .time-stamp {
-                direction: rtl;
-            }
+            overflow: scroll;
         }
 
         table thead,
@@ -27,33 +32,118 @@
             background-color:
                 color-mix(in srgb, var(--accent, blue), transparent 90%);
         }
+
+        #ed {
+            >div {
+                display: flex;
+                flex-direction: column;
+                gap: 1rem;
+                min-width: 500px;
+
+                div {
+                    display: flex;
+                    align-items: center;
+                    flex-direction: row;
+                    gap: 1rem;
+                }
+            }
+        }
     </style>
 </head>
 
 <body>
-    <center>
+    <div style="margin: 1rem;">
+        <div>Style isnt an issue</div>
+        <a style="display: block;" href="/rd/rev/">اذهب إلى قائمة المراجعة</a>
+    </div>
+    <div>
+
         <table>
             <thead>
-                <td>
-                    الكلمة
-                </td>
-                <td>seen at</td>
+                <td>Word</td>
                 <td>Due at</td>
-                <td>
-                    لا تظهر
-                </td>
+                <td>Seen at</td>
+                <td>Viablitily</td>
+                <td>Edit</td>
             </thead>
             {{range .}}
             <tr>
                 <td>{{.Word}}</td>
-                <td class="time-stamp">{{.Past | fmtUnix}}</td>
                 <td class="time-stamp">{{.Future | fmtUnix}}</td>
-                <td>{{.DontShow}}</td>
+                <td class="time-stamp">{{.Past | fmtUnix}}</td>
+                <td data-isHidden="{{.Word}}">{{if .DontShow}}Hidden{{else}}Shown{{end}}</td>
+                <td>
+                    <button onclick="edOpen('{{.Word}}', '{{.DontShow}}',
+                        '{{.Future | fmtUnix}}', parseInt('{{.Past}}'), parseInt('{{.Future}}'))">
+                        Edit
+                    </button>
+                </td>
             </tr>
             {{end}}
         </table>
-        <td class="time-stamp">{{.Word | fmtUnix}}</td>
-    </center>
+    </div>
+    <dialog id="ed">
+        <div>
+            <div id="word"></div>
+            <div>
+                <label for="dontShow">Viablitily touggle:</label>
+                <button id="hideTgl"></button>
+            </div>
+            <div>
+                <div>Will be shown: <span id="willBeShown"></span></div>
+                <button id="reset">Reset</button>
+            </div>
+
+            <button onclick="ed.close();">Close</button>
+        </div>
+    </dialog>
+
+    <script>
+        const ed = document.getElementById("ed");
+        const word = document.getElementById("word");
+        const hideTgl = document.getElementById("hideTgl");
+        const wbs = document.getElementById("willBeShown");
+        const wReset = document.getElementById("reset");
+
+        function edOpen(_word, donthowShowStr, willBeShown, past, future) {
+            word.innerText = _word;
+            let noshow = donthowShowStr == "true";
+            hideTgl.innerText = noshow ? "Show" : "Hide";
+
+            wReset.onclick = () => {
+                postThen(`${window.location.pathname}?w=${_word}&after=reset`,
+                    () => {
+                        noshow = !noshow;
+                        alert(`The word "${_word}": reseted. reaload to see`)
+                    });
+            }
+
+            hideTgl.onclick = () => {
+                postThen(`${window.location.pathname}?w=${_word}&dontshow=${noshow ? "false" : "true"}`,
+                    () => {
+                        noshow = !noshow;
+                        alert(`The word "${_word}": ${noshow ? "will be shown" : "is hidden"}. reaload to see`)
+                        // document.querySelector(`[data-isHidden="${_word}"]`).innerText = noshow ? "Shown" : "Hidden"
+                        hideTgl.innerText = noshow ? "Show" : "Hide";
+                    });
+            }
+
+            wbs.innerText = willBeShown;
+
+            ed.showModal();
+        }
+
+        function postThen(url, func) {
+            fetch(url, { method: "POST" })
+                .then(((res) => {
+                    if (res.ok) { if (func) func(); }
+                })).catch((err) => {
+                    console.error(err);
+                    alert("Something went wrong (check console)");
+                });
+        }
+
+    </script>
 </body>
 
 </html>

@@ -17,9 +17,14 @@ type HiIdx struct {
 	Word     string
 	Future   int64
 	DontShow bool
+	Peras    HiIdxPera
+}
 
+type HiIdxPera struct {
 	MatchCound int
-	Peras      [][]ReaderWord
+	// index of that file(sha) occurence int the Data
+	Index map[string][]int
+	Data  [][]ReaderWord
 }
 
 func (h *HiIdx) String() string {
@@ -92,22 +97,11 @@ func (rd *readerConf) saveHMap(w http.ResponseWriter) (ok bool) {
 func (rd *readerConf) indexHiWordsSafe() {
 	rd.m.Lock()
 	defer rd.m.Unlock()
+
 	rd.indexHiWords()
 }
 
 func (rd *readerConf) indexHiWords() {
-	rd.hMap.UpdateDatas(
-		func(e ordmap.Entry[string, HiIdx]) ordmap.Entry[string, HiIdx] {
-			e.Value.MatchCound = 0
-			e.Value.Peras = e.Value.Peras[0:]
-			return e
-		},
-		func(o, n HiIdx) bool { return o.Cmp(n) },
-	)
-
-	buf := getBuf()
-	defer putBuf(buf)
-
 	for _, v := range *rd.enMap.Entries() {
 		rd.indexHiEnry(v.Value.Sha)
 	}
@@ -116,9 +110,6 @@ func (rd *readerConf) indexHiWords() {
 func (rd *readerConf) indexHiWordSafe(word string) {
 	rd.m.Lock()
 	defer rd.m.Unlock()
-
-	buf := getBuf()
-	defer putBuf(buf)
 
 	for _, v := range *rd.enMap.Entries() {
 		rd._indexHiIdx(v.Value.Sha, word)
@@ -129,11 +120,47 @@ func (rd *readerConf) indexHiEnrySafe(sha string) {
 	rd.m.Lock()
 	defer rd.m.Unlock()
 
-	rd._indexHiIdx(sha, "")
+	rd.indexHiEnry(sha)
 }
 
 func (rd *readerConf) indexHiEnry(sha string) {
 	rd._indexHiIdx(sha, "")
+}
+
+func (rd *readerConf) indexHiEnryUpdateAfterDelSafe(sha string) {
+	rd.m.Lock()
+	defer rd.m.Unlock()
+
+	rd.indexHiEnryUpdateAfterDel(sha)
+}
+
+// TODO: this can be more optimized (ig)
+func (rd *readerConf) indexHiEnryUpdateAfterDel(sha string) {
+	rd.hMap.UpdateDatas(
+		func(e ordmap.Entry[string, HiIdx]) ordmap.Entry[string, HiIdx] {
+			sIdxs, ok := e.Value.Peras.Index[sha]
+			if !ok || len(sIdxs) == 0 {
+				return e
+			}
+
+			i := 0
+			curr := sIdxs[i]
+			for next := sIdxs[i]; next < len(e.Value.Peras.Data); {
+				if len(sIdxs) > i && next == sIdxs[i] {
+					i++
+					next++
+					e.Value.Peras.MatchCound--
+					continue
+				}
+				e.Value.Peras.Data[curr] = e.Value.Peras.Data[next]
+				curr++
+				next++
+			}
+			e.Value.Peras.Data = e.Value.Peras.Data[:curr]
+			return e
+		},
+		func(o, n HiIdx) bool { return o.Cmp(n) },
+	)
 }
 
 func (rd *readerConf) _indexHiIdx(sha string, word string) {
@@ -184,8 +211,8 @@ pera:
 			// single word
 			if len(wordB) != 0 {
 				if bytes.Equal(s[0], wordB) {
-					h.MatchCound++
-					h.Peras = append(h.Peras, fomatHiIdxPera(splitedLine, wordB))
+					h.fomatAndSetPera(sha, splitedLine, wordB)
+					// h will be set at the end of the func
 					continue pera // no need to look at this pera
 				}
 				continue
@@ -199,14 +226,15 @@ pera:
 					fset[word] = struct{}{}
 					h, ok := rd.hMap.Get(word)
 					if !ok {
-						h.Word = word
+						h.Word = word // just incase
 					}
-					h.MatchCound++
-					h.Peras = append(h.Peras, fomatHiIdxPera(splitedLine, wordB))
+					h.fomatAndSetPera(sha, splitedLine, wordB)
 					rd.hMap.Set(word, h)
 				}
 			}
 		}
 	}
-	rd.hMap.Set(word, h)
+	if word != "" {
+		rd.hMap.Set(word, h)
+	}
 }

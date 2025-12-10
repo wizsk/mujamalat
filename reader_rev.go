@@ -49,7 +49,7 @@ func (rd *readerConf) revPage(w http.ResponseWriter, r *http.Request) {
 		}
 	}
 
-	readerConf := ReaderData{idx.Word, idx.Peras}
+	readerConf := ReaderData{idx.Word, idx.Peras.Data}
 	tm := TmplData{Curr: "ar_en", Dicts: dicts, DictsMap: dictsMap, RD: readerConf, RDMode: true}
 	tm.RevMode = true
 	tm.HiIdx = idx

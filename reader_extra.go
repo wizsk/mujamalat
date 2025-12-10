@@ -32,7 +32,7 @@ func (rd *readerConf) highlightList(w http.ResponseWriter, r *http.Request) {
 	case "most":
 		for i := 0; i < rd.hMap.Len(); i++ {
 			word := rd.hMap.GetIdxUnsafe(i).Word
-			count := rd.hMap.GetIdxUnsafe(i).MatchCound
+			count := rd.hMap.GetIdxUnsafe(i).Peras.MatchCound
 			rw = append(rw, HighLightWord{
 				Oar:   word,
 				Count: count,
@@ -41,7 +41,7 @@ func (rd *readerConf) highlightList(w http.ResponseWriter, r *http.Request) {
 	case "least":
 		for i := rd.hMap.Len() - 1; i > -1; i-- {
 			word := rd.hMap.GetIdxUnsafe(i).Word
-			count := rd.hMap.GetIdxUnsafe(i).MatchCound
+			count := rd.hMap.GetIdxUnsafe(i).Peras.MatchCound
 			rw = append(rw, HighLightWord{
 				Oar:   word,
 				Count: count,
@@ -52,7 +52,7 @@ func (rd *readerConf) highlightList(w http.ResponseWriter, r *http.Request) {
 			word := rd.hMap.GetIdxKVUnsafe(i).Key
 			rw = append(rw, HighLightWord{
 				Oar:   word,
-				Count: rd.hMap.GetIdxUnsafe(i).MatchCound,
+				Count: rd.hMap.GetIdxUnsafe(i).Peras.MatchCound,
 			})
 		}
 	}
@@ -75,7 +75,7 @@ func (rd *readerConf) highlightWord(w http.ResponseWriter, r *http.Request) {
 	defer rd.m.RUnlock()
 
 	if idx, ok := rd.hMap.Get(word); ok {
-		readerConf := ReaderData{idx.Word, idx.Peras}
+		readerConf := ReaderData{idx.Word, idx.Peras.Data}
 		tm := TmplData{Curr: "ar_en", Dicts: dicts, DictsMap: dictsMap, RD: readerConf, RDMode: true}
 		if err := rd.t.ExecuteTemplate(w, mainTemplateName, &tm); debug && err != nil {
 			lg.Println(err)
@@ -233,7 +233,7 @@ func (rd *readerConf) deletePage(w http.ResponseWriter, r *http.Request) {
 	fmt.Fprintf(w, "deleted: %q", sha)
 
 	// when deletePage who knows which page
-	go rd.indexHiWordsSafe()
+	go rd.indexHiEnryUpdateAfterDelSafe(sha)
 }
 
 // if not ok then error will be sent just check if it's nil or not

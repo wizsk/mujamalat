@@ -152,7 +152,7 @@ func formatInputText(inpt []byte, buf *bytes.Buffer) {
 	}
 }
 
-func fomatHiIdxPera(splitedLine [][]byte, wordB []byte) []ReaderWord {
+func (hi *HiIdx) fomatAndSetPera(sha string, splitedLine [][]byte, wordB []byte) {
 	res := []ReaderWord{}
 	for _, w := range splitedLine {
 		w = bytes.TrimSpace(w)
@@ -171,5 +171,12 @@ func fomatHiIdxPera(splitedLine [][]byte, wordB []byte) []ReaderWord {
 			IsHi: bytes.Equal(wordB, s[0]),
 		})
 	}
-	return res
+
+	newIdx := len(hi.Peras.Data)
+	hi.Peras.Data = append(hi.Peras.Data, res)
+	if hi.Peras.Index == nil {
+		hi.Peras.Index = make(map[string][]int, 50)
+	}
+	hi.Peras.Index[sha] = append(hi.Peras.Index[sha], newIdx)
+	hi.Peras.MatchCound++
 }

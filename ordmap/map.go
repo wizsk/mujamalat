@@ -1,5 +1,7 @@
 package ordmap
 
+import "sort"
+
 type Options[K comparable] struct {
 	AllowZeroKey bool
 }
@@ -209,6 +211,12 @@ func (om *OrderedMap[K, V]) ValuesFiltered(f func(Entry[K, V]) bool) []V {
 		}
 	}
 	return vals[:i]
+}
+
+func (m *OrderedMap[K, V]) Sort(s func(a Entry[K, V], b Entry[K, V]) bool) {
+	sort.Slice(m.data, func(i, j int) bool {
+		return s(m.data[i], m.data[j])
+	})
 }
 
 // Iter returns a channel that can be ranged over

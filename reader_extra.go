@@ -121,7 +121,7 @@ func (rd *readerConf) highlight(w http.ResponseWriter, r *http.Request) {
 		}
 	} else {
 		// on add append
-		h := HiIdx{Word: word}
+		h := NewHiIdx(word)
 		rd.hMap.Set(word, h)
 		go rd.indexHiWordSafe(word)
 

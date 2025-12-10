@@ -28,6 +28,7 @@ type readerConf struct {
 	enFilePath string
 	enMap      *ordmap.OrderedMap[string, EntryInfo] // sha
 	hMap       *ordmap.OrderedMap[string, HiIdx]
+	hRevMap    *ordmap.OrderedMap[string, HiWord]
 }
 
 func newReader(gc *globalConf, t templateWraper) *readerConf {

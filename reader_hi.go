@@ -13,11 +13,11 @@ import (
 	"github.com/wizsk/mujamalat/ordmap"
 )
 
-type HiIdx struct {
+type HiWord struct {
 	Word     string
 	Future   int64
+	Past     int64
 	DontShow bool
-	Peras    HiIdxPera
 }
 
 type HiIdxPera struct {
@@ -25,6 +25,11 @@ type HiIdxPera struct {
 	// index of that file(sha) occurence int the Data
 	Index map[string][]int
 	Data  [][]ReaderWord
+}
+
+type HiIdx struct {
+	HiWord
+	Peras HiIdxPera
 }
 
 func (h *HiIdx) String() string {
@@ -41,27 +46,6 @@ func (a *HiIdx) Cmp(b HiIdx) bool {
 		a.DontShow == b.DontShow
 }
 
-func (rd *readerConf) loadHilightedWords() {
-	const ds = 100
-	rd.hMap = ordmap.NewWithCap[string, HiIdx](ds)
-
-	if f, err := os.ReadFile(rd.hFilePath); err == nil {
-		for l := range bytes.SplitSeq(f, []byte("\n")) {
-			lb := bytes.TrimSpace(l)
-			if sp := bytes.SplitN(lb, []byte(":"), 3); len(sp) == 3 {
-				h := HiIdx{Word: string(sp[2])}
-				h.DontShow = sp[0][0] == byte('1')
-				h.Future, _ = strconv.ParseInt(string(sp[1]), 10, 64)
-				rd.hMap.Set(h.Word, h)
-			} else if len(lb) > 0 {
-				l := string(lb)
-				rd.hMap.Set(l, HiIdx{Word: l})
-			}
-		}
-		rd.indexHiWords()
-	}
-}
-
 type HiIdxArr []HiIdx
 
 func (h HiIdxArr) String() string {
@@ -71,6 +55,84 @@ func (h HiIdxArr) String() string {
 		sb.WriteByte('\n')
 	}
 	return sb.String()
+}
+
+func NewHiIdxAllWithPeras(w string, f, p int64, ds bool, pera HiIdxPera) HiIdx {
+	return HiIdx{
+		HiWord{w, f, p, ds},
+		pera,
+	}
+}
+
+func NewHiIdxAll(w string, f, p int64, ds bool) HiIdx {
+	return NewHiIdxAllWithPeras(w, f, p, ds, HiIdxPera{})
+}
+
+func NewHiIdx(w string) HiIdx {
+	return NewHiIdxAll(w, 0, 0, false)
+}
+
+func (rd *readerConf) loadHilightedWords() {
+	const ds = 100
+	rd.hMap = ordmap.NewWithCap[string, HiIdx](ds)
+
+	if f, err := os.ReadFile(rd.hFilePath); err == nil {
+		for l := range bytes.SplitSeq(f, []byte("\n")) {
+			lb := bytes.TrimSpace(l)
+			if sp := bytes.SplitN(lb, []byte(":"), 3); len(sp) == 3 {
+				h := NewHiIdx(string(sp[2]))
+				h.DontShow = sp[0][0] == byte('1')
+				h.Future, _ = strconv.ParseInt(string(sp[1]), 10, 64)
+				rd.hMap.Set(h.Word, h)
+			} else if len(lb) > 0 {
+				l := string(lb)
+				rd.hMap.Set(l, NewHiIdx(l))
+			}
+		}
+		rd.indexHiWords()
+	}
+
+	hMapLen := rd.hMap.Len()
+	rd.hRevMap = ordmap.NewWithCap[string, HiWord](ds + hMapLen)
+	if hMapLen > 0 {
+		vals := rd.hMap.Values()
+		for _, v := range vals {
+			rd.hRevMap.Set(v.Word, v.HiWord)
+		}
+		rd.hRevMap.Sort(hRevSortFunc)
+	}
+
+	rd.hMap.OnChange(func(e ordmap.Event[string, HiIdx]) {
+		switch e.Type {
+		case ordmap.EventInsert:
+			rd.hRevMap.Set(e.Key, e.NewValue.HiWord)
+			rd.hRevMap.Sort(hRevSortFunc)
+
+		case ordmap.EventDelete:
+			rd.hRevMap.Delete(e.Key)
+
+		case ordmap.EventUpdate:
+			rd.hRevMap.Set(e.Key, e.NewValue.HiWord)
+
+		case ordmap.EventReset:
+			// don't care for now
+		}
+	})
+}
+
+func hRevSortFunc(a, b ordmap.Entry[string, HiWord]) bool {
+	if a.Value.DontShow != b.Value.DontShow {
+		return !a.Value.DontShow && b.Value.DontShow
+	}
+
+	aZero := a.Value.Future == 0
+	bZero := b.Value.Future == 0
+	if aZero != bZero {
+		// zero goes last
+		return !aZero && bZero
+	}
+
+	return a.Value.Future < b.Value.Future
 }
 
 func (rd *readerConf) saveHMap(w http.ResponseWriter) (ok bool) {

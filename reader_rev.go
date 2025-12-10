@@ -22,8 +22,8 @@ func (rd *readerConf) revPageList(w http.ResponseWriter, r *http.Request) {
 	rd.RLock()
 	defer rd.RUnlock()
 
-	hM := rd.hMap.Values()
-	sort.Slice(hM, func(i, j int) bool { return hM[i].Future < hM[j].Future })
+	hM := rd.hRevMap.Values()
+	// sort.Slice(hM, func(i, j int) bool { return hM[i].Future < hM[j].Future })
 	rd.t.ExecuteTemplate(w, "rev_list.html", hM)
 }
 

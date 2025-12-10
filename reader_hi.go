@@ -95,8 +95,8 @@ func (rd *readerConf) saveHMap(w http.ResponseWriter) (ok bool) {
 }
 
 func (rd *readerConf) indexHiWordsSafe() {
-	rd.m.Lock()
-	defer rd.m.Unlock()
+	rd.Lock()
+	defer rd.Unlock()
 
 	rd.indexHiWords()
 }
@@ -108,8 +108,8 @@ func (rd *readerConf) indexHiWords() {
 }
 
 func (rd *readerConf) indexHiWordSafe(word string) {
-	rd.m.Lock()
-	defer rd.m.Unlock()
+	rd.Lock()
+	defer rd.Unlock()
 
 	for _, v := range *rd.enMap.Entries() {
 		rd._indexHiIdx(v.Value.Sha, word)
@@ -117,8 +117,8 @@ func (rd *readerConf) indexHiWordSafe(word string) {
 }
 
 func (rd *readerConf) indexHiEnrySafe(sha string) {
-	rd.m.Lock()
-	defer rd.m.Unlock()
+	rd.Lock()
+	defer rd.Unlock()
 
 	rd.indexHiEnry(sha)
 }
@@ -128,8 +128,8 @@ func (rd *readerConf) indexHiEnry(sha string) {
 }
 
 func (rd *readerConf) indexHiEnryUpdateAfterDelSafe(sha string) {
-	rd.m.Lock()
-	defer rd.m.Unlock()
+	rd.Lock()
+	defer rd.Unlock()
 
 	rd.indexHiEnryUpdateAfterDel(sha)
 }

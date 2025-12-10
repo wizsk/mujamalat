@@ -19,8 +19,8 @@ import (
 // }
 
 func (rd *readerConf) revPageList(w http.ResponseWriter, r *http.Request) {
-	rd.m.RLock()
-	defer rd.m.RUnlock()
+	rd.RLock()
+	defer rd.RUnlock()
 
 	hM := rd.hMap.Values()
 	sort.Slice(hM, func(i, j int) bool { return hM[i].Future < hM[j].Future })
@@ -28,8 +28,8 @@ func (rd *readerConf) revPageList(w http.ResponseWriter, r *http.Request) {
 }
 
 func (rd *readerConf) revPage(w http.ResponseWriter, r *http.Request) {
-	rd.m.RLock()
-	defer rd.m.RUnlock()
+	rd.RLock()
+	defer rd.RUnlock()
 
 	hM := rd.hMap.ValuesFiltered(func(e ordmap.Entry[string, HiIdx]) bool {
 		return e.Value.DontShow
@@ -59,8 +59,8 @@ func (rd *readerConf) revPage(w http.ResponseWriter, r *http.Request) {
 }
 
 func (rd *readerConf) revPagePost(w http.ResponseWriter, r *http.Request) {
-	rd.m.Lock()
-	defer rd.m.Unlock()
+	rd.Lock()
+	defer rd.Unlock()
 
 	word := r.FormValue("w")
 	h, ok := rd.hMap.Get(word)

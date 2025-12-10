@@ -23,8 +23,8 @@ type HighLightWord struct {
 
 func (rd *readerConf) highlightList(w http.ResponseWriter, r *http.Request) {
 	sort := r.FormValue("sort")
-	rd.m.RLock()
-	defer rd.m.RUnlock()
+	rd.RLock()
+	defer rd.RUnlock()
 
 	rw := make([]HighLightWord, 0, rd.hMap.Len())
 
@@ -71,8 +71,8 @@ func (rd *readerConf) highlightWord(w http.ResponseWriter, r *http.Request) {
 	if word == "" {
 		return
 	}
-	rd.m.RLock()
-	defer rd.m.RUnlock()
+	rd.RLock()
+	defer rd.RUnlock()
 
 	if idx, ok := rd.hMap.Get(word); ok {
 		readerConf := ReaderData{idx.Word, idx.Peras.Data}
@@ -101,8 +101,8 @@ func (rd *readerConf) highlight(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	rd.m.Lock()
-	defer rd.m.Unlock()
+	rd.Lock()
+	defer rd.Unlock()
 
 	found := rd.hMap.IsSet(word)
 	if (found && add) || (!found && del) {
@@ -152,8 +152,8 @@ func (rd *readerConf) entryEdit(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	rd.m.Lock()
-	defer rd.m.Unlock()
+	rd.Lock()
+	defer rd.Unlock()
 
 	e, found := rd.enMap.Get(sha)
 	if !found {
@@ -191,8 +191,8 @@ func (rd *readerConf) entryEdit(w http.ResponseWriter, r *http.Request) {
 }
 
 func (rd *readerConf) deletePage(w http.ResponseWriter, r *http.Request) {
-	rd.m.Lock()
-	defer rd.m.Unlock()
+	rd.Lock()
+	defer rd.Unlock()
 
 	sha := r.PathValue("sha")
 	if sha == "" {

@@ -21,7 +21,7 @@ const (
 )
 
 type readerConf struct {
-	m          sync.RWMutex
+	sync.RWMutex
 	t          templateWraper
 	permDir    string
 	hFilePath  string
@@ -93,8 +93,8 @@ func newReader(gc *globalConf, t templateWraper) *readerConf {
 
 func (rd *readerConf) page(w http.ResponseWriter, r *http.Request) {
 	t := rd.t
-	rd.m.RLock()
-	defer rd.m.RUnlock()
+	rd.RLock()
+	defer rd.RUnlock()
 
 	h := strings.TrimPrefix(r.URL.Path, "/rd/")
 	if h == "" {
@@ -180,8 +180,8 @@ func (rd *readerConf) post(w http.ResponseWriter, r *http.Request) {
 
 	d := rd.permDir
 
-	rd.m.Lock()
-	defer rd.m.Unlock()
+	rd.Lock()
+	defer rd.Unlock()
 
 	if mkHistDirAll(d, w) {
 		return

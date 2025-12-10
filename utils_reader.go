@@ -43,7 +43,11 @@ func (rd *readerConf) loadEntieslist() error {
 	s := bufio.NewScanner(file)
 	const itmc = 3 // entries items count
 	for i := 0; s.Scan(); i++ {
-		b := bytes.SplitN(s.Bytes(), []byte{':'}, itmc)
+		l := bytes.TrimSpace(s.Bytes())
+		if len(l) == 0 {
+			continue
+		}
+		b := bytes.SplitN(l, []byte{':'}, itmc)
 		if len(b) != itmc || len(b[0]) != 1 {
 			lg.Printf("Warn: malformed data:%s:%d: %s", fileName, i, s.Text())
 			continue
@@ -57,7 +61,6 @@ func (rd *readerConf) loadEntieslist() error {
 
 		rd.enMap.Set(e.Sha, e)
 	}
-
 	return nil
 }
 

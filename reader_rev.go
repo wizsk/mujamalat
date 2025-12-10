@@ -6,24 +6,9 @@ import (
 	"time"
 )
 
-/* // TODO: use it to save mem alloc
-var (
-	hiWordPool = sync.Pool{
-		New: func() any { return make([]HiWord, 50) },
-	}
-)
-
-// Acquire a buffer
-func getHiWord() []HiWord {
-	b := hiWordPool.Get().([]HiWord)
-	return b
+type RevData struct {
+	IV [2]int
 }
-
-// Return buffer to pool
-func putHiWord(b []HiWord) {
-	hiWordPool.Put(b)
-}
-*/
 
 func (rd *readerConf) revPageList(w http.ResponseWriter, r *http.Request) {
 	rd.RLock()
@@ -37,13 +22,20 @@ func (rd *readerConf) revPage(w http.ResponseWriter, r *http.Request) {
 	rd.RLock()
 	defer rd.RUnlock()
 
-	curr := time.Now().Unix() // .Add(time.Hour * 24 * 100).Unix()
+	curr := time.Now().Unix()
 	hw, found := rd.hRev.GetFirst(func(e HiWord) bool {
 		return !e.DontShow && e.Future < curr
 	})
 
+	rv := RevData{IV: [2]int{1, 3}}
 	idx := HiIdx{}
 	if found {
+		if hw.Future != 0 && hw.Past != 0 && hw.Future > hw.Past {
+			days := int((hw.Future - hw.Past) / (3600 * 24))
+			for i, s := range []int{2, 3} {
+				rv.IV[i] = days * s
+			}
+		}
 		idx, _ = rd.hIdx.Get(hw.Word)
 	}
 
@@ -51,6 +43,7 @@ func (rd *readerConf) revPage(w http.ResponseWriter, r *http.Request) {
 	tm := TmplData{Curr: "ar_en", Dicts: dicts, DictsMap: dictsMap, RD: readerConf, RDMode: true}
 	tm.RevMode = true
 	tm.HiIdx = idx
+	tm.RevData = rv
 	if err := rd.t.ExecuteTemplate(w, mainTemplateName, &tm); debug && err != nil {
 		lg.Println(err)
 	}
@@ -68,16 +61,23 @@ func (rd *readerConf) revPagePost(w http.ResponseWriter, r *http.Request) {
 
 	switch {
 	case r.FormValue("after") != "":
+		after := r.FormValue("after")
 		days := 0
-		days, err := strconv.Atoi(r.FormValue("after"))
-		if err != nil || days < 1 || days > 30 {
-			http.Error(w, "Bad amount of days", http.StatusBadGateway)
-			return
-		}
+		var add time.Duration
 		now := time.Now()
-		add := time.Hour * 24 * time.Duration(days)
+		if after != "r" {
+			days, _ = strconv.Atoi(after)
+			if days < 1 || days > 30 {
+				http.Error(w, "Bad amount of days", http.StatusBadGateway)
+				return
+			}
+			add = time.Hour * 24 * time.Duration(days)
+			h.Past = now.Unix()
+		} else {
+			add = time.Minute * 10
+			h.Past = 0 // sohat it resets
+		}
 
-		h.Past = now.Unix()
 		h.Future = now.Add(add).Unix()
 
 		rd.hMap.Set(h.Word, h)

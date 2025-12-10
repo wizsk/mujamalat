@@ -17,9 +17,10 @@ type TmplData struct {
 	Hanswehr          []Entry_eng
 	ArEn              []Entry_arEn
 	RD                ReaderData
+	HiIdx             HiIdx
 	RDMode            bool
 	RevMode           bool // review mode
-	HiIdx             HiIdx
+	RevData           RevData
 	DebugMode         bool
 }
 

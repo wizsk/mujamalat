@@ -170,15 +170,14 @@
             بعد عدد الأيام
         </div>
         <div class="top">
-            <button class="btn" onclick="showAfter(1)">
-                1
+            <button class="btn" onclick="showAfter(-1)">
+                R
             </button>
-            <button class="btn" onclick="showAfter(3)">
-                3
+            {{range .RevData.IV}}
+            <button class="btn" onclick="showAfter(parseInt('{{.}}'))">
+                {{.}}
             </button>
-            <button class="btn" onclick="showAfter(5)">
-                5
-            </button>
+            {{end}}
             <button class="btn" onclick="customAfterInput.value = ''; selectCustomAfterDailouge.showModal()">
                 -
             </button>
@@ -216,9 +215,11 @@
 </div>
 
 {{if not .RD.Title}}
-<p>
-    لا جديد موجود
-</p>
+<center>
+    <p>
+        لا جديد موجود
+    </p>
+</center>
 <!-- <button class="btn" onclick="reset()">
         reset
     </button> -->
@@ -230,7 +231,10 @@
     const customAfterSelect = document.getElementById("selectCustomAfterDailougeSelect")
     const customAfterInput = document.getElementById("selectCustomAfterDailougeInput")
 
-    function showAfter(days) {
+    function showAfter(d) {
+        let days;
+        if (d < 0) days = 'r';
+        else days = d;
         postThen(`${window.location.pathname}?w=${word}&after=${days}`,
             () => window.location.reload());
     }

@@ -104,9 +104,22 @@ var tmplFuncs = template.FuncMap{
 		if v == 0 {
 			return "..."
 		}
+
 		t := time.Unix(v, 0)
-		r := durToDHM(time.Until(t))
-		return t.Format(time.DateTime) + " (" + r + ")"
+		var d time.Duration
+		past := ""
+		if v < time.Now().Unix() {
+			d = time.Since(t)
+			past = "ago"
+		} else {
+			d = time.Until(t)
+		}
+		r := durToDHM(d)
+		dateTime := t.Format(time.DateTime)
+		if r == "" {
+			return dateTime
+		}
+		return fmt.Sprintf("%s (%s %s)", dateTime, r, past)
 	},
 }
 

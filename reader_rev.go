@@ -3,10 +3,10 @@ package main
 import (
 	"net/http"
 	"strconv"
-	"sync"
 	"time"
 )
 
+/* // TODO: use it to save mem alloc
 var (
 	hiWordPool = sync.Pool{
 		New: func() any { return make([]HiWord, 50) },
@@ -23,13 +23,13 @@ func getHiWord() []HiWord {
 func putHiWord(b []HiWord) {
 	hiWordPool.Put(b)
 }
+*/
 
 func (rd *readerConf) revPageList(w http.ResponseWriter, r *http.Request) {
 	rd.RLock()
 	defer rd.RUnlock()
 
-	hM := rd.hRevMap.Values()
-	// sort.Slice(hM, func(i, j int) bool { return hM[i].Future < hM[j].Future })
+	hM := rd.hRev.Values()
 	rd.t.ExecuteTemplate(w, "rev_list.html", hM)
 }
 
@@ -38,19 +38,16 @@ func (rd *readerConf) revPage(w http.ResponseWriter, r *http.Request) {
 	defer rd.RUnlock()
 
 	curr := time.Now().Unix() // .Add(time.Hour * 24 * 100).Unix()
-	hw, _ := rd.hRevMap.GetFirst(func(e HiWord) bool {
-		if e.DontShow {
-			return false
-		}
-		return e.Future < curr
+	hw, found := rd.hRev.GetFirst(func(e HiWord) bool {
+		return !e.DontShow && e.Future < curr
 	})
 
 	idx := HiIdx{}
-	if hw.Word != "" {
-		idx, _ = rd.hMap.Get(hw.Word)
+	if found {
+		idx, _ = rd.hIdx.Get(hw.Word)
 	}
 
-	readerConf := ReaderData{idx.Word, idx.Peras.Data}
+	readerConf := ReaderData{idx.Word, idx.Peras}
 	tm := TmplData{Curr: "ar_en", Dicts: dicts, DictsMap: dictsMap, RD: readerConf, RDMode: true}
 	tm.RevMode = true
 	tm.HiIdx = idx
@@ -63,8 +60,7 @@ func (rd *readerConf) revPagePost(w http.ResponseWriter, r *http.Request) {
 	rd.Lock()
 	defer rd.Unlock()
 
-	word := r.FormValue("w")
-	h, ok := rd.hMap.Get(word)
+	h, ok := rd.hMap.Get(r.FormValue("w"))
 	if !ok {
 		http.Error(w, "No valid word provided", http.StatusBadGateway)
 		return
@@ -78,9 +74,13 @@ func (rd *readerConf) revPagePost(w http.ResponseWriter, r *http.Request) {
 			http.Error(w, "Bad amount of days", http.StatusBadGateway)
 			return
 		}
+		now := time.Now()
 		add := time.Hour * 24 * time.Duration(days)
-		h.Future = time.Now().Add(add).Unix()
-		rd.hMap.Set(word, h)
+
+		h.Past = now.Unix()
+		h.Future = now.Add(add).Unix()
+
+		rd.hMap.Set(h.Word, h)
 		rd.saveHMap(w)
 
 	case r.FormValue("dontshow") != "":
@@ -89,7 +89,9 @@ func (rd *readerConf) revPagePost(w http.ResponseWriter, r *http.Request) {
 		} else {
 			h.DontShow = false
 		}
-		rd.hMap.Set(word, h)
+		h.Past = time.Now().Unix()
+		h.Future = 0
+		rd.hMap.Set(h.Word, h)
 		rd.saveHMap(w)
 
 	default:

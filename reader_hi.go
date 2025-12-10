@@ -8,114 +8,81 @@ import (
 	"os"
 	"path/filepath"
 	"strconv"
-	"strings"
 
 	"github.com/wizsk/mujamalat/ordmap"
 )
 
 type HiWord struct {
 	Word     string
-	Future   int64
-	Past     int64
+	Future   int64 // will be shown
+	Past     int64 // last modified aka seen
 	DontShow bool
 }
 
-type HiIdxPera struct {
-	MatchCound int
-	// index of that file(sha) occurence int the Data
-	Index map[string][]int
-	Data  [][]ReaderWord
-}
-
 type HiIdx struct {
-	HiWord
-	Peras HiIdxPera
+	Word string
+
+	// index of that file(sha) occurence int the Data
+	Index      map[string][]int
+	MatchCound int
+	Peras      [][]ReaderWord
 }
 
-func (h *HiIdx) String() string {
+func (h *HiWord) String() string {
 	d := "0"
 	if h.DontShow {
 		d = "1"
 	}
-	return fmt.Sprintf("%s:%d:%s", d, h.Future, h.Word)
+	return fmt.Sprintf("%s:%d:%d:%s", d, h.Past, h.Future, h.Word)
 }
 
-// this maybe used to determine if the hRevMap needs chenging.
-func (a *HiIdx) Cmp(b HiIdx) bool {
+// this maybe used to determine if the hRev needs chenging.
+func (a *HiWord) Cmp(b HiWord) bool {
 	return a.Word == b.Word && a.Future == b.Future &&
 		a.Past == b.Past && a.DontShow == b.DontShow
 }
 
-type HiIdxArr []HiIdx
-
-func (h HiIdxArr) String() string {
-	sb := strings.Builder{}
-	for _, v := range h {
-		sb.WriteString(v.String())
-		sb.WriteByte('\n')
-	}
-	return sb.String()
-}
-
-func NewHiIdxAllWithPeras(w string, f, p int64, ds bool, pera HiIdxPera) HiIdx {
-	return HiIdx{
-		HiWord{w, f, p, ds},
-		pera,
-	}
-}
-
-func NewHiIdxAll(w string, f, p int64, ds bool) HiIdx {
-	return NewHiIdxAllWithPeras(w, f, p, ds, HiIdxPera{})
-}
-
-func NewHiIdx(w string) HiIdx {
-	return NewHiIdxAll(w, 0, 0, false)
-}
+// type HiIdxArr []HiIdx
+//
+// func (h HiIdxArr) String() string {
+// 	sb := strings.Builder{}
+// 	for _, v := range h {
+// 		sb.WriteString(v.String())
+// 		sb.WriteByte('\n')
+// 	}
+// 	return sb.String()
+// }
 
 func (rd *readerConf) loadHilightedWords() {
 	const ds = 100
-	rd.hMap = ordmap.NewWithCap[string, HiIdx](ds)
+	rd.hMap = ordmap.NewWithCap[string, HiWord](ds)
+	rd.hIdx = ordmap.NewWithCap[string, HiIdx](ds)
+	rd.hRev = ordmap.NewWithCap[string, HiWord](ds)
 
 	if f, err := os.ReadFile(rd.hFilePath); err == nil {
 		for l := range bytes.SplitSeq(f, []byte("\n")) {
 			lb := bytes.TrimSpace(l)
-			if sp := bytes.SplitN(lb, []byte(":"), 3); len(sp) == 3 {
-				h := NewHiIdx(string(sp[2]))
+			if sp := bytes.SplitN(lb, []byte(":"), 4); len(sp) == 4 {
+				h := HiWord{Word: string(sp[3])}
 				h.DontShow = sp[0][0] == byte('1')
-				h.Future, _ = strconv.ParseInt(string(sp[1]), 10, 64)
+				h.Past, _ = strconv.ParseInt(string(sp[1]), 10, 64)
+				h.Future, _ = strconv.ParseInt(string(sp[2]), 10, 64)
+
 				rd.hMap.Set(h.Word, h)
+				rd.hRev.Set(h.Word, h)
+				rd.hIdx.Set(h.Word, HiIdx{Word: h.Word})
 			} else if len(lb) > 0 {
 				l := string(lb)
-				rd.hMap.Set(l, NewHiIdx(l))
+				rd.hMap.Set(l, HiWord{Word: l})
 			}
 		}
+		// after successfull read idex hIdx
 		rd.indexHiWords()
 	}
 
-	hMapLen := rd.hMap.Len()
-	rd.hRevMap = ordmap.NewWithCap[string, HiWord](ds + hMapLen)
-	if hMapLen > 0 {
-		vals := rd.hMap.Values()
-		for _, v := range vals {
-			rd.hRevMap.Set(v.Word, v.HiWord)
-		}
-		rd.hRevMap.Sort(hRevSortFunc)
+	if rd.hRev.Len() > 0 {
+		rd.hRev.Sort(hRevSortFunc)
 	}
-
-	rd.hMap.OnChange(func(e ordmap.Event[string, HiIdx]) {
-		switch e.Type {
-		case ordmap.EventInsert:
-		case ordmap.EventUpdate:
-			rd.hRevMap.Set(e.Key, e.NewValue.HiWord)
-			rd.hRevMap.Sort(hRevSortFunc)
-
-		case ordmap.EventDelete:
-			rd.hRevMap.Delete(e.Key)
-
-		case ordmap.EventReset:
-			// don't care for now
-		}
-	})
 }
 
 func hRevSortFunc(a, b ordmap.Entry[string, HiWord]) bool {
@@ -196,30 +163,29 @@ func (rd *readerConf) indexHiEnryUpdateAfterDelSafe(sha string) {
 
 // TODO: this can be more optimized (ig)
 func (rd *readerConf) indexHiEnryUpdateAfterDel(sha string) {
-	rd.hMap.UpdateDatas(
+	rd.hIdx.UpdateDatas(
 		func(e ordmap.Entry[string, HiIdx]) ordmap.Entry[string, HiIdx] {
-			sIdxs, ok := e.Value.Peras.Index[sha]
+			sIdxs, ok := e.Value.Index[sha]
 			if !ok || len(sIdxs) == 0 {
 				return e
 			}
-
 			i := 0
 			curr := sIdxs[i]
-			for next := sIdxs[i]; next < len(e.Value.Peras.Data); {
+			for next := sIdxs[i]; next < len(e.Value.Peras); {
 				if len(sIdxs) > i && next == sIdxs[i] {
 					i++
 					next++
-					e.Value.Peras.MatchCound--
+					e.Value.MatchCound--
 					continue
 				}
-				e.Value.Peras.Data[curr] = e.Value.Peras.Data[next]
+				e.Value.Peras[curr] = e.Value.Peras[next]
 				curr++
 				next++
 			}
-			e.Value.Peras.Data = e.Value.Peras.Data[:curr]
+			e.Value.Peras = e.Value.Peras[:curr]
 			return e
 		},
-		func(o, n HiIdx) bool { return o.Cmp(n) },
+		nil,
 	)
 }
 
@@ -242,7 +208,7 @@ func (rd *readerConf) _indexHiIdx(sha string, word string) {
 	}
 
 	data := buf.Bytes()[len(magicValMJENnl):]
-	h, _ := rd.hMap.Get(word)
+	h, _ := rd.hIdx.Get(word)
 	wordB := []byte(word)
 
 	// found in the current pera no need to look further
@@ -279,22 +245,19 @@ pera:
 			}
 
 			// full version
-			for _, word := range *rd.hMap.Entries() {
-				word := word.Key
+			for _, e := range *rd.hIdx.Entries() {
+				word := e.Key
 				wordB := []byte(word)
 				if _, ok := fset[word]; !ok && bytes.Equal(s[0], wordB) {
 					fset[word] = struct{}{}
-					h, ok := rd.hMap.Get(word)
-					if !ok {
-						h.Word = word // just incase
-					}
+					h := e.Value
 					h.fomatAndSetPera(sha, splitedLine, wordB)
-					rd.hMap.Set(word, h)
+					rd.hIdx.Set(word, h)
 				}
 			}
 		}
 	}
 	if word != "" {
-		rd.hMap.Set(word, h)
+		rd.hIdx.Set(word, h)
 	}
 }

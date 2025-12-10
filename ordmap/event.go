@@ -1,5 +1,7 @@
 package ordmap
 
+import "fmt"
+
 type EventType int
 
 const (
@@ -14,6 +16,23 @@ type Event[K comparable, V any] struct {
 	Key      K
 	OldValue V
 	NewValue V
+}
+
+func (e *Event[K, V]) String() string {
+	t := ""
+	switch e.Type {
+	case EventInsert:
+		t = "Insert"
+	case EventUpdate:
+		t = "Update"
+	case EventDelete:
+		t = "Delete"
+	case EventReset:
+		t = "Reset"
+	}
+
+	return fmt.Sprintf("%s: %v: old[%v] new[%v]",
+		t, e.Key, e.OldValue, e.NewValue)
 }
 
 func (om *OrderedMap[K, V]) OnChange(fn func(Event[K, V])) {

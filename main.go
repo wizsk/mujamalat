@@ -173,18 +173,21 @@ func main() {
 	mux.HandleFunc("/", dc.mainPage)
 	mux.HandleFunc("/content", dc.api)
 
-	mux.HandleFunc("POST /rd/", rd.post)
 	mux.HandleFunc("GET /rd/", rd.page)
+	mux.HandleFunc("POST /rd/", rd.post)
+	mux.HandleFunc("POST /rd/delete/{sha}", rd.deletePage)
+	mux.HandleFunc("POST /rd/entryEdit", rd.entryEdit)
+
 	mux.HandleFunc("GET /rd/tmp/{sha}", rd.tmpPage)
 	mux.HandleFunc("POST /rd/tmp/", rd.tmpPagePost)
-	mux.HandleFunc("POST /rd/entryEdit", rd.entryEdit)
-	mux.HandleFunc("POST /rd/high", rd.highlight)
+
 	mux.HandleFunc("GET /rd/highlist/{word}", rd.highlightWord)
 	mux.HandleFunc("GET /rd/highlist/", rd.highlightList)
+	mux.HandleFunc("POST /rd/high", rd.highlightPost)
+
 	mux.HandleFunc("GET /rd/rev/", rd.revPage)
-	mux.HandleFunc("POST /rd/rev/", rd.revPagePost)
 	mux.HandleFunc("GET /rd/rev/list", rd.revPageList)
-	mux.HandleFunc("POST /rd/delete/{sha}", rd.deletePage)
+	mux.HandleFunc("POST /rd/rev/", rd.revPagePost)
 
 	mux.Handle("/pub/", servePubData())
 

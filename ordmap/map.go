@@ -1,6 +1,8 @@
 package ordmap
 
-import "sort"
+import (
+	"sort"
+)
 
 type Options[K comparable] struct {
 	AllowZeroKey bool
@@ -50,6 +52,13 @@ func (om *OrderedMap[K, V]) Set(k K, v V) {
 	om.data = append(om.data, Entry[K, V]{k, v})
 	om.index[k] = len(om.data) - 1
 	om.emit(Event[K, V]{Type: EventInsert, Key: k, NewValue: v})
+}
+
+func (om *OrderedMap[K, V]) SetIfEmpty(k K, v V) {
+	if _, found := om.index[k]; found {
+		return
+	}
+	om.Set(k, v)
 }
 
 // Get returns the value for a key.
@@ -228,6 +237,10 @@ func (m *OrderedMap[K, V]) Sort(s func(a Entry[K, V], b Entry[K, V]) bool) {
 	sort.Slice(m.data, func(i, j int) bool {
 		return s(m.data[i], m.data[j])
 	})
+	clear(m.index)
+	for i, v := range m.data {
+		m.index[v.Key] = i
+	}
 }
 
 // Iter returns a channel that can be ranged over

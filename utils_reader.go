@@ -175,11 +175,11 @@ func (hi *HiIdx) fomatAndSetPera(sha string, splitedLine [][]byte, wordB []byte)
 		})
 	}
 
-	newIdx := len(hi.Peras.Data)
-	hi.Peras.Data = append(hi.Peras.Data, res)
-	if hi.Peras.Index == nil {
-		hi.Peras.Index = make(map[string][]int, 50)
+	newIdx := len(hi.Peras)
+	hi.Peras = append(hi.Peras, res)
+	if hi.Index == nil {
+		hi.Index = make(map[string][]int, 50)
 	}
-	hi.Peras.Index[sha] = append(hi.Peras.Index[sha], newIdx)
-	hi.Peras.MatchCound++
+	hi.Index[sha] = append(hi.Index[sha], newIdx)
+	hi.MatchCound++
 }

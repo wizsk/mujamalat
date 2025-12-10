@@ -126,8 +126,7 @@
         }
     }
 </style>
-<div id="revMode">
-    {{if .RD.Title}}
+<div id="revMode" class="{{if not .RD.Title}}hidden{{end}}">
     <div id="title">{{.RD.Title}}</div>
 
     <dialog id="selectCustomAfterDailouge">
@@ -186,7 +185,7 @@
         </div>
         <hr>
         <div class="bottom">
-            <button class="svg-btn {{if (eq .HiIdx.Peras.MatchCound 0)}}hidden{{end}}"
+            <button class="svg-btn {{if (eq .HiIdx.MatchCound 0)}}hidden{{end}}"
                 onclick="readerWrapper.classList.toggle('hidden'); readerWrapper.scrollIntoView({ behavior: 'smooth'});">
                 <svg xmlns="http://www.w3.org/2000/svg" fill="currentColor" class="bi bi-eye-slash-fill"
                     viewBox="0 0 16 16">
@@ -214,15 +213,16 @@
             </button>
         </div>
     </div>
-    {{else}}
-    <p>
-        لا جديد موجود
-    </p>
-    <!-- <button class="btn" onclick="reset()">
+</div>
+
+{{if not .RD.Title}}
+<p>
+    لا جديد موجود
+</p>
+<!-- <button class="btn" onclick="reset()">
         reset
     </button> -->
-    {{end}}
-</div>
+{{end}}
 
 <script>
     const word = "{{.RD.Title}}";

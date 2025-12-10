@@ -37,6 +37,7 @@
                 <td>
                     الكلمة
                 </td>
+                <td>seen at</td>
                 <td>Due at</td>
                 <td>
                     لا تظهر
@@ -45,6 +46,7 @@
             {{range .}}
             <tr>
                 <td>{{.Word}}</td>
+                <td class="time-stamp">{{.Past | fmtUnix}}</td>
                 <td class="time-stamp">{{.Future | fmtUnix}}</td>
                 <td>{{.DontShow}}</td>
             </tr>

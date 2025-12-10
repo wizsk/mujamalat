@@ -29,30 +29,30 @@ func (rd *readerConf) highlightList(w http.ResponseWriter, r *http.Request) {
 	rw := make([]HighLightWord, 0, rd.hMap.Len())
 
 	switch sort {
-	case "most":
-		for i := 0; i < rd.hMap.Len(); i++ {
-			word := rd.hMap.GetIdxUnsafe(i).Word
-			count := rd.hMap.GetIdxUnsafe(i).Peras.MatchCound
-			rw = append(rw, HighLightWord{
-				Oar:   word,
-				Count: count,
-			})
-		}
-	case "least":
-		for i := rd.hMap.Len() - 1; i > -1; i-- {
-			word := rd.hMap.GetIdxUnsafe(i).Word
-			count := rd.hMap.GetIdxUnsafe(i).Peras.MatchCound
-			rw = append(rw, HighLightWord{
-				Oar:   word,
-				Count: count,
-			})
-		}
+	// case "most":
+	// 	for i := 0; i < rd.hMap.Len(); i++ {
+	// 		word := rd.hMap.GetIdxUnsafe(i).Word
+	// 		count := rd.hIdx.GetIdxUnsafe(i).Peras.MatchCound
+	// 		rw = append(rw, HighLightWord{
+	// 			Oar:   word,
+	// 			Count: count,
+	// 		})
+	// 	}
+	// case "least":
+	// 	for i := rd.hMap.Len() - 1; i > -1; i-- {
+	// 		word := rd.hMap.GetIdxUnsafe(i).Word
+	// 		count := rd.hMap.GetIdxUnsafe(i).Peras.MatchCound
+	// 		rw = append(rw, HighLightWord{
+	// 			Oar:   word,
+	// 			Count: count,
+	// 		})
+	// 	}
 	default:
 		for i := rd.hMap.Len() - 1; i > -1; i-- {
 			word := rd.hMap.GetIdxKVUnsafe(i).Key
 			rw = append(rw, HighLightWord{
 				Oar:   word,
-				Count: rd.hMap.GetIdxUnsafe(i).Peras.MatchCound,
+				Count: rd.hIdx.GetIdxUnsafe(i).MatchCound,
 			})
 		}
 	}
@@ -74,8 +74,8 @@ func (rd *readerConf) highlightWord(w http.ResponseWriter, r *http.Request) {
 	rd.RLock()
 	defer rd.RUnlock()
 
-	if idx, ok := rd.hMap.Get(word); ok {
-		readerConf := ReaderData{idx.Word, idx.Peras.Data}
+	if idx, ok := rd.hIdx.Get(word); ok {
+		readerConf := ReaderData{idx.Word, idx.Peras}
 		tm := TmplData{Curr: "ar_en", Dicts: dicts, DictsMap: dictsMap, RD: readerConf, RDMode: true}
 		if err := rd.t.ExecuteTemplate(w, mainTemplateName, &tm); debug && err != nil {
 			lg.Println(err)
@@ -86,7 +86,7 @@ func (rd *readerConf) highlightWord(w http.ResponseWriter, r *http.Request) {
 	}
 }
 
-func (rd *readerConf) highlight(w http.ResponseWriter, r *http.Request) {
+func (rd *readerConf) highlightPost(w http.ResponseWriter, r *http.Request) {
 	word := keepOnlyArabic(r.FormValue("w"))
 	if word == "" {
 		http.Error(w, "bad request", http.StatusBadRequest)
@@ -121,9 +121,8 @@ func (rd *readerConf) highlight(w http.ResponseWriter, r *http.Request) {
 		}
 	} else {
 		// on add append
-		h := NewHiIdx(word)
+		h := HiWord{Word: word}
 		rd.hMap.Set(word, h)
-		go rd.indexHiWordSafe(word)
 
 		f, err := fetalErrVal(openAppend(rd.hFilePath))
 		if err != nil {
@@ -231,9 +230,6 @@ func (rd *readerConf) deletePage(w http.ResponseWriter, r *http.Request) {
 	}
 	w.WriteHeader(http.StatusAccepted)
 	fmt.Fprintf(w, "deleted: %q", sha)
-
-	// when deletePage who knows which page
-	go rd.indexHiEnryUpdateAfterDelSafe(sha)
 }
 
 // if not ok then error will be sent just check if it's nil or not

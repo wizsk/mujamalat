@@ -121,25 +121,28 @@ var tmplFuncs = template.FuncMap{
 	// "dec":   func(a, b int) int { return a - b },
 	"arnum": intToArnum[int],
 	"fmtUnix": func(v int64) string {
-		if v == 0 {
-			return "..."
+		if v <= 0 {
+			return ""
 		}
 
 		t := time.Unix(v, 0)
 		var d time.Duration
-		past := ""
+		past := false
 		if v < time.Now().Unix() {
 			d = time.Since(t)
-			past = "ago"
+			past = true
 		} else {
 			d = time.Until(t)
 		}
 		r := durToDHM(d)
-		dateTime := t.Format(time.DateTime)
+		if past {
+			r += " ago"
+		}
+		dateTime := t.Format("02/01/06 3:04 PM")
 		if r == "" {
 			return dateTime
 		}
-		return fmt.Sprintf("%s (%s %s)", dateTime, r, past)
+		return fmt.Sprintf("%s (%s)", dateTime, r)
 	},
 }
 

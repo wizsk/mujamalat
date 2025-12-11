@@ -4,170 +4,423 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <script defer src="/pub/alpine.min.js"></script>
-
-    <title>Document</title>
-    {{template "common-css"}}
+    <title>Word Review Table</title>
+    <script defer src="https://cdn.jsdelivr.net/npm/alpinejs@3.x.x/dist/cdn.min.js"></script>
     <style>
-        :root {
-            direction: ltr;
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
         }
 
         body {
+            font-family: system-ui, -apple-system, sans-serif;
+            background: #f5f5f5;
+            color: #333;
             padding: 1rem;
-            font-family: 'inter';
-            width: 100vw;
+            min-height: 100vh;
         }
 
-        td {
-            padding: .5rem 1rem;
+        .header-section {
+            text-align: center;
+            max-width: 1200px;
+            margin: 0 auto 1rem;
+        }
+
+        .header-text {
+            font-size: 1.1rem;
+            color: #555;
+            margin-bottom: 0.5rem;
+        }
+
+        .nav-link {
+            display: inline-block;
+            padding: 0.75rem 1.5rem;
+            background: #2c3e50;
+            color: white;
+            text-decoration: none;
+            border-radius: 6px;
+            transition: background 0.2s;
+            font-weight: 500;
+        }
+
+        .nav-link:hover {
+            background: #34495e;
+        }
+
+        .table-container {
+            max-width: 1200px;
+            margin: 2rem auto;
+            background: white;
+            border-radius: 8px;
+            /* box-shadow: 0 2px 8px rgba(0,0,0,0.1); */
+            overflow: hidden;
+        }
+
+        .table-scroll {
+            overflow-x: auto;
+            overflow-y: visible;
+            -webkit-overflow-scrolling: touch;
+        }
+
+        .word-table {
+            width: 100%;
+            border-collapse: collapse;
+            min-width: 600px;
+        }
+
+        .table-header {
+            background: #2c3e50;
+            color: white;
+        }
+
+        .table-header th {
+            padding: 1rem;
+            font-weight: 600;
+            font-size: 0.9rem;
+            text-transform: uppercase;
+            letter-spacing: 0.5px;
             white-space: nowrap;
         }
 
-        table {
+        .table-body tr {
+            border-bottom: 1px solid #e0e0e0;
+            transition: background 0.2s;
+        }
+
+        .table-body tr:hover {
+            background: #f8f9fa;
+        }
+
+        .table-body tr:last-child {
+            border-bottom: none;
+        }
+
+        .table-cell {
+            padding: 1rem;
+            font-size: 0.95rem;
+            white-space: nowrap;
+        }
+
+        .cell-word {
+            font-weight: 500;
+            color: #2c3e50;
+            min-width: 150px;
+        }
+
+        .cell-date {
+            color: #555;
+            font-variant-numeric: tabular-nums;
+        }
+
+        .cell-status {
+            color: #555;
+        }
+
+        .cell-action {
             text-align: center;
-            overflow: scroll;
         }
 
-        table thead,
-        tr:nth-child(even) {
-            background-color:
-                color-mix(in srgb, var(--accent, blue), transparent 90%);
+        .btn {
+            padding: 0.5rem 1rem;
+            border: none;
+            border-radius: 4px;
+            cursor: pointer;
+            font-size: 0.9rem;
+            font-weight: 500;
+            transition: all 0.2s;
+            white-space: nowrap;
         }
 
-        #ed {
+        .btn:active {
+            transform: scale(0.98);
+        }
 
-            >div {
-                display: flex;
-                flex-direction: column;
-                gap: 1rem;
-                min-width: 500px;
+        .btn:disabled {
+            opacity: 0.6;
+            cursor: not-allowed;
+        }
 
-                div {
-                    display: flex;
-                    align-items: center;
-                    flex-direction: row;
-                    gap: 1rem;
-                }
+        .btn-primary {
+            background: #3498db;
+            color: white;
+        }
+
+        .btn-primary:hover:not(:disabled) {
+            background: #2980b9;
+        }
+
+        .btn-danger {
+            background: #e74c3c;
+            color: white;
+        }
+
+        .btn-danger:hover:not(:disabled) {
+            background: #c0392b;
+        }
+
+        .btn-secondary {
+            background: #95a5a6;
+            color: white;
+        }
+
+        .btn-secondary:hover:not(:disabled) {
+            background: #7f8c8d;
+        }
+
+        .modal {
+            border: none;
+            border-radius: 12px;
+            padding: 0;
+            box-shadow: 0 10px 40px rgba(0, 0, 0, 0.2);
+            max-width: 500px;
+            width: 90%;
+        }
+
+        .modal::backdrop {
+            background: rgba(0, 0, 0, 0.5);
+        }
+
+        .modal-content {
+            padding: 2rem;
+        }
+
+        .modal-title {
+            margin-bottom: 1.5rem;
+            color: #2c3e50;
+            font-size: 1.5rem;
+            word-break: break-word;
+        }
+
+        .modal-section {
+            margin: 1.5rem 0;
+            padding: 1rem;
+            background: #f8f9fa;
+            border-radius: 6px;
+        }
+
+        .modal-label {
+            display: block;
+            margin-bottom: 0.5rem;
+            font-weight: 500;
+            color: #555;
+        }
+
+        .modal-value {
+            font-weight: 600;
+            color: #2c3e50;
+        }
+
+        .modal-actions {
+            background: none !important;
+            padding: 0 !important;
+            margin-top: 2rem !important;
+        }
+
+        .modal-actions .btn {
+            width: 100%;
+        }
+
+        /* Scroll indicator for mobile */
+        .table-scroll::after {
+            content: '';
+            position: absolute;
+            top: 0;
+            right: 0;
+            bottom: 0;
+            width: 40px;
+            pointer-events: none;
+            opacity: 0;
+            transition: opacity 0.3s;
+        }
+
+        @media (max-width: 768px) {
+            .table-scroll::after {
+                opacity: 1;
             }
+
+            .word-table {
+                font-size: 0.85rem;
+            }
+
+            .table-cell {
+                padding: 0.75rem 0.5rem;
+            }
+
+            .table-header th {
+                padding: 0.75rem 0.5rem;
+            }
+
+            .modal-content {
+                padding: 1.5rem;
+            }
+
+            .header-section {
+                padding: 0 0.5rem;
+            }
+        }
+
+        @media (hover: none) {
+            .table-scroll {
+                scrollbar-width: thin;
+                scrollbar-color: #cbd5e0 #f7fafc;
+            }
+
+            .table-scroll::-webkit-scrollbar {
+                height: 8px;
+            }
+
+            .table-scroll::-webkit-scrollbar-track {
+                background: #f7fafc;
+            }
+
+            .table-scroll::-webkit-scrollbar-thumb {
+                background: #cbd5e0;
+                border-radius: 4px;
+            }
+        }
+
+        dialog[open] {
+            position: fixed;
+            top: 50%;
+            left: 50%;
+            transform: translate(-50%, -50%);
+            margin: 0;
         }
     </style>
 </head>
 
-<body x-data="{ modalInfo: { } }">
-    <div style="margin: 1rem;">
-        <div>Style isnt an issue</div>
-        <a style="display: block;" href="/rd/rev/">اذهب إلى قائمة المراجعة</a>
+<body x-data="wordTable()">
+    <div class="header-section">
+        <a class="nav-link" href="/rd/rev/">اذهب إلى قائمة المراجعة</a>
     </div>
-    <div>
-        <table>
-            <thead>
-                <td>Word</td>
-                <td>Due at</td>
-                <td>Seen at</td>
-                <td>Viablitily</td>
-                <td>Edit</td>
-            </thead>
-            {{range .}}
-            <tr x-data="{
-                word: '{{.Word}}',
-                dontShow: {{.DontShow}},
-                future: '{{.Future | fmtUnix}}',
-                past: '{{.Past | fmtUnix}}',
-            }">
-                <td>{{.Word}}</td>
-                <td class="time-stamp" x-text="future"></td>
-                <td class="time-stamp" x-text="past"></td>
-                <td x-text="dontShow ? 'Hidden' : 'Shown'"></td>
-                <td>
-                    <button @click="modalInfo = $data; $refs.modal.showModal()">
-                        Edit
-                    </button>
-                </td>
-            </tr>
-            {{end}}
-        </table>
-    </div>
-    <dialog id="ed" x-ref="modal">
-        <div>
-            <div x-text="modalInfo.word"></div>
-            <div>
-                <label for="hideTgl">Viablitily touggle:</label>
-                <button id="hideTgl" x-text="modalInfo.dontShow ? 'Show' : 'Hide'" @click="
-                            updating = true; // disable immediately
-                            modalInfo.dontShow = !modalInfo.dontShow;
 
-                            fetch(`${window.location.pathname}?w=${encodeURIComponent(modalInfo.word)}&dontshow=${modalInfo.dontShow ? 'false' : 'true'}`, {
-                                method: 'POST'
-                            })
-                            .then(res => {
-                                if (res.status === 202) {
-                                    // server accepted, update button text
-                                    modalInfo.dontShow = modalInfo.dontShow; // already toggled locally
-                                } else {
-                                    // revert toggle if server rejected
-                                    modalInfo.dontShow = !modalInfo.dontShow;
-                                    console.error('Server did not accept the change');
-                                }
-                            })
-                            .catch(err => {
-                                // revert toggle if error
-                                modalInfo.dontShow = !modalInfo.dontShow;
-                                console.error(err);
-                            })
-                            .finally(() => updating = false); // re-enable
-                    "></button>
-            </div>
-            <div>
-                <div>Will be shown: <span x-text="modalInfo.future"></span></div>
-                <button id="reset" @click="modalInfo.future = '...'">Reset</button>
+    <div class="table-container">
+        <div class="table-scroll">
+            <table class="word-table" style="text-align: center;">
+                <thead class="table-header">
+                    <tr>
+                        <th>Word</th>
+                        <th>Due at</th>
+                        <th>Seen at</th>
+                        <th>Visibility</th>
+                        <th>Edit</th>
+                    </tr>
+                </thead>
+                <tbody class="table-body">
+                    <template x-for="row in words" :key="row.word">
+                        <tr>
+                            <td class="table-cell cell-word" x-text="row.word"></td>
+                            <td class="table-cell cell-date" x-text="row.future ? row.future : '...'"></td>
+                            <td class="table-cell cell-date" x-text="row.past ? row.past : '...'"></td>
+                            <td class="table-cell cell-status" x-text="row.dontShow ? 'Hidden' : 'Shown'"></td>
+                            <td class="table-cell cell-action">
+                                <button class="btn btn-primary" @click="openModal(row)">Edit</button>
+                            </td>
+                        </tr>
+                    </template>
+                </tbody>
+            </table>
+        </div>
+    </div>
+
+    <dialog class="modal" x-ref="modal" @click="if($event.target === $el) closeModal()">
+        <div class="modal-content" x-show="selectedWord">
+            <h3 class="modal-title" x-text="selectedWord?.word"></h3>
+
+            <div class="modal-section">
+                <label class="modal-label">Visibility toggle:</label>
+                <button class="btn btn-danger" :disabled="visibilityLoading" @click="toggleVisibility()"
+                    x-text="visibilityLoading ? 'Updating…' : (selectedWord?.dontShow ? 'Show' : 'Hide')">
+                </button>
             </div>
 
-            <form method="dialog">
-                <button>Close</button>
-            </form>
+            <div class="modal-section">
+                <div class="modal-label">Will be shown: <span class="modal-value"
+                        x-text="selectedWord?.future || 'Not set'"></span></div>
+                <button class="btn btn-primary" :disabled="futureLoading" @click="resetFuture()"
+                    x-text="futureLoading ? 'Resetting…' : 'Reset'">
+                </button>
+            </div>
+
+            <div class="modal-actions">
+                <button class="btn btn-secondary" @click="closeModal()">Close</button>
+            </div>
         </div>
     </dialog>
 
     <script>
-        // const ed = document.getElementById("ed");
-        // const word = document.getElementById("word");
-        // const hideTgl = document.getElementById("hideTgl");
-        // const wbs = document.getElementById("willBeShown");
-        // const wReset = document.getElementById("reset");
+        function wordTable() {
+            return {
+                words: [
+                    // {{range $index, $element := .}}
+                    {
+                        word: '{{.Word}}',
+                        future: '{{.Future | fmtUnix}}',
+                        past: '{{.Past | fmtUnix}}',
+                        dontShow: '{{.DontShow}}' == 'true',
+                    },
+                    // {{end}}
+                ],
+                selectedWord: null,
+                visibilityLoading: false,
+                futureLoading: false,
 
-        // function edOpen(_word, donthowShowStr, willBeShown, past, future) {
-        //     word.innerText = _word;
-        //     let noshow = donthowShowStr == "true";
-        //     hideTgl.innerText = noshow ? "Show" : "Hide";
+                openModal(row) {
+                    this.selectedWord = row;
+                    this.$refs.modal.showModal();
+                },
 
-        //     wReset.onclick = () => {
-        //         postThen(`${window.location.pathname}?w=${_word}&after=reset`,
-        //             () => {
-        //                 noshow = !noshow;
-        //                 alert(`The word "${_word}": reseted. reaload to see`)
-        //             });
-        //     }
+                closeModal() {
+                    this.$refs.modal.close();
+                    this.selectedWord = null;
+                },
 
-        //     hideTgl.onclick = () => {
-        //         postThen(`${window.location.pathname}?w=${_word}&dontshow=${noshow ? "false" : "true"}`,
-        //             () => {
-        //                 noshow = !noshow;
-        //                 alert(`The word "${_word}": ${noshow ? "will be shown" : "is hidden"}. reaload to see`)
-        //                 // document.querySelector(`[data-isHidden="${_word}"]`).innerText = noshow ? "Shown" : "Hidden"
-        //                 hideTgl.innerText = noshow ? "Show" : "Hide";
-        //             });
-        //     }
+                async toggleVisibility() {
+                    if (this.visibilityLoading || !this.selectedWord) return;
 
-        //     wbs.innerText = willBeShown;
+                    this.visibilityLoading = true;
+                    const original = this.selectedWord.dontShow;
+                    this.selectedWord.dontShow = !original;
 
-        //     ed.showModal();
-        // }
+                    const url = `${window.location.href}?w=${encodeURIComponent(this.selectedWord.word)}&dontshow=${this.selectedWord.dontShow}`;
 
-        function post(perm) {
-            return fetch(`${window.location.href}?${perm}`, { method: "POST" })
+                    try {
+                        const res = await fetch(url, { method: 'POST' });
+                        if (res.status !== 202) {
+                            this.selectedWord.dontShow = original;
+                        }
+                    } catch (error) {
+                        console.error('Toggle failed:', error);
+                        this.selectedWord.dontShow = original;
+                    } finally {
+                        this.visibilityLoading = false;
+                    }
+                },
+
+                async resetFuture() {
+                    if (this.futureLoading || !this.selectedWord) return;
+
+                    this.futureLoading = true;
+                    const original = this.selectedWord.future;
+                    this.selectedWord.future = '';
+
+                    const url = `${window.location.href}?w=${encodeURIComponent(this.selectedWord.word)}&after=reset`;
+
+                    try {
+                        const res = await fetch(url, { method: 'POST' });
+                        if (res.status !== 202) {
+                            this.selectedWord.future = original;
+                        }
+                    } catch (error) {
+                        console.error('Reset failed:', error);
+                        this.selectedWord.future = original;
+                    } finally {
+                        this.futureLoading = false;
+                    }
+                }
+            }
         }
-
     </script>
 </body>
 

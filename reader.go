@@ -11,10 +11,11 @@ import (
 )
 
 const (
-	pageNameMaxLen     = 100
-	maxtReaderTextSize = 5 * 1024 * 1024 // limit: 5MB for example
-	entriesFileName    = "entries"
-	highlightsFileName = "highlighted"
+	pageNameMaxLen        = 100
+	maxtReaderTextSize    = 5 * 1024 * 1024 // limit: 5MB for example
+	entriesFileName       = "entries"
+	highlightsFileName    = "highlighted"
+	highlightsIdxFileName = "highlighted_index.json"
 )
 
 type readerConf struct {
@@ -28,7 +29,11 @@ type readerConf struct {
 
 	hMap *ordmap.OrderedMap[string, HiWord]
 	hRev *ordmap.OrderedMap[string, HiWord] // the main purpose of it is to keep the. rev means review
-	hIdx *ordmap.OrderedMap[string, HiIdx]
+
+	// it's expensive to calculate
+	hIdx         *ordmap.OrderedMap[string, HiIdx]
+	hIdxFilePath string
+	hIdxFileMtx  sync.Mutex
 }
 
 func newReader(gc *globalConf, t templateWraper) *readerConf {
@@ -64,6 +69,7 @@ func newReader(gc *globalConf, t templateWraper) *readerConf {
 
 	rd.enFilePath = filepath.Join(n, entriesFileName)
 	rd.hFilePath = filepath.Join(n, highlightsFileName)
+	rd.hIdxFilePath = filepath.Join(n, highlightsIdxFileName)
 
 	if gc.deleteSessions {
 		return &rd
@@ -80,8 +86,16 @@ func newReader(gc *globalConf, t templateWraper) *readerConf {
 
 	then := time.Now()
 	rd.loadHilightedWords()
+
+	// after successfull read idex hIdx
+	if rd.hMap.Len() > 0 {
+		then = time.Now()
+		rd.indexHiWordsForFirstRun()
+		fmt.Println("INFO: Indexing took", time.Since(then))
+	}
+
 	rd.addOnChangeListeners()
-	fmt.Println("INFO: Highlight info loadtime:", time.Since(then).String())
+	fmt.Println("INFO: highlight and indexing loadtime:", time.Since(then).String())
 
 	startCleanTmpPageDataTicker()
 	return &rd
@@ -96,8 +110,10 @@ func (rd *readerConf) addOnChangeListeners() {
 
 			fallthrough
 		case ordmap.EventUpdate:
+			n := time.Now()
 			rd.hRev.Set(e.Key, e.NewValue)
 			rd.hRev.Sort(hRevSortFunc)
+			fmt.Println("time took for sorting after cng:", time.Since(n))
 
 		case ordmap.EventDelete:
 			rd.hIdx.Delete(e.Key)

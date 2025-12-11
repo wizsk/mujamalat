@@ -7,7 +7,9 @@ import (
 	"net/http"
 	"os"
 	"path/filepath"
+	"runtime"
 	"strconv"
+	"time"
 
 	"github.com/wizsk/mujamalat/ordmap"
 )
@@ -58,8 +60,10 @@ func (rd *readerConf) loadHilightedWords() {
 	rd.hMap = ordmap.NewWithCap[string, HiWord](ds)
 	rd.hIdx = ordmap.NewWithCap[string, HiIdx](ds)
 	rd.hRev = ordmap.NewWithCap[string, HiWord](ds)
+	var n time.Time
 
 	if f, err := os.ReadFile(rd.hFilePath); err == nil {
+		n = time.Now()
 		for l := range bytes.SplitSeq(f, []byte("\n")) {
 			lb := bytes.TrimSpace(l)
 			if sp := bytes.SplitN(lb, []byte(":"), 4); len(sp) == 4 {
@@ -73,19 +77,22 @@ func (rd *readerConf) loadHilightedWords() {
 				rd.hIdx.Set(h.Word, HiIdx{Word: h.Word})
 			}
 		}
-		// after successfull read idex hIdx
-		rd.indexHiWords()
+		fmt.Println("INFO: Hilight loop took:", time.Since(n))
 	}
 
-	if rd.hRev.Len() > 0 {
+	if rd.hMap.Len() > 0 {
+		n = time.Now()
 		rd.hRev.Sort(hRevSortFunc)
+		fmt.Println("INFO: sort took: ", time.Since(n))
 	}
+	fmt.Println("INFO: loaded words:", rd.hMap.Len())
 }
 
 func hRevSortFunc(a, b ordmap.Entry[string, HiWord]) bool {
-	if a.Value.DontShow != b.Value.DontShow {
-		return !a.Value.DontShow && b.Value.DontShow
-	}
+	// if i don't remove this the order wont be preserved
+	// if a.Value.DontShow != b.Value.DontShow {
+	// 	return !a.Value.DontShow && b.Value.DontShow
+	// }
 
 	aZero := a.Value.Future == 0
 	bZero := b.Value.Future == 0
@@ -118,25 +125,131 @@ func (rd *readerConf) saveHMap(w http.ResponseWriter) (ok bool) {
 	return true
 }
 
-func (rd *readerConf) indexHiWordsSafe() {
-	rd.Lock()
-	defer rd.Unlock()
+// this is for the 1st run
+var indexHiLock = struct {
+	// sync.Mutex
+	Called bool
+}{}
 
-	rd.indexHiWords()
+func (rd *readerConf) HiIdxNewArrFromMap() []HiIdx {
+	him := make([]HiIdx, rd.hIdx.Len())
+	for i, e := range *rd.hIdx.Entries() {
+		him[i] = HiIdx{Word: e.Key, Index: map[string][]int{}, Peras: [][]ReaderWord{}}
+	}
+	return him
 }
 
-func (rd *readerConf) indexHiWords() {
-	for _, v := range *rd.enMap.Entries() {
-		rd.indexHiEnry(v.Value.Sha)
+func (rd *readerConf) indexHiWordsForFirstRun() {
+	if indexHiLock.Called {
+		panic("indexHiWordsForFirstRun: was already called")
 	}
+	indexHiLock.Called = true
+
+	// if r, err := os.Open(rd.hIdxFilePath); err == nil {
+	// 	hiWordC := rd.hMap.Len()
+	// 	vals := make([]HiIdx, 0, rd.hIdx.Len())
+	// 	if err = json.NewDecoder(r).Decode(&vals); err == nil && len(vals) > 0 {
+	// 		for _, v := range vals {
+	// 			rd.hIdx.Set(v.Word, v)
+	// 		}
+	// 	}
+	// 	if len(vals) > 0 {
+	// 		fmt.Printf("INFO: Loaded %d values out of %d", len(vals), hiWordC)
+	// 		return
+	// 	}
+	// }
+
+	rd.RLock()
+	defer rd.RUnlock()
+
+	maxWorkers := min(runtime.NumCPU()*2, rd.enMap.Len())
+	jobs := make(chan string, maxWorkers)
+	done := make(chan []HiIdx)
+
+	for range min(maxWorkers, rd.enMap.Len()) {
+		narr := rd.HiIdxNewArrFromMap()
+		go func() {
+			for sha := range jobs {
+				_, val := rd.__indexHiIdx(sha, "", narr)
+				done <- val
+			}
+		}()
+	}
+
+	go func() {
+		for _, f := range *rd.enMap.Entries() {
+			jobs <- f.Value.Sha
+		}
+		close(jobs)
+	}()
+
+	collction := make([][]HiIdx, 0, rd.enMap.Len())
+	for range rd.enMap.Len() {
+		collction = append(collction, <-done)
+	}
+
+	mp := make(map[string]HiIdx, rd.hIdx.Len())
+	for _, val2 := range collction {
+		for _, val := range val2 {
+			h := mp[val.Word]
+			for k, v := range h.Index {
+				v = append(v, val.Index[k]...)
+				h.Index[k] = v
+			}
+			h.MatchCound += val.MatchCound
+			h.Peras = append(h.Peras, val.Peras...)
+			mp[val.Word] = h
+		}
+	}
+
+	for k, v := range mp {
+		rd.hIdx.Set(k, v)
+	}
+
+	// go func() {
+	// 	fmt.Println("INFO: Cashing HiIdx")
+	// 	rd.cacheHIdx()
+	// }()
 }
 
 func (rd *readerConf) indexHiWordSafe(word string) {
-	rd.Lock()
-	defer rd.Unlock()
+	rd.RLock()
+	defer rd.RUnlock()
 
-	for _, v := range *rd.enMap.Entries() {
-		rd._indexHiIdx(v.Value.Sha, word)
+	maxWorkers := runtime.NumCPU() * 2
+	jobs := make(chan string, maxWorkers)
+	done := make(chan HiIdx)
+
+	for range maxWorkers {
+		go func() {
+			for sha := range jobs {
+				val, _ := rd.__indexHiIdx(sha, word, nil)
+				done <- val
+			}
+		}()
+	}
+
+	go func() {
+		for _, f := range *rd.enMap.Entries() {
+			jobs <- f.Value.Sha
+		}
+		close(jobs)
+	}()
+
+	collction := make([]HiIdx, 0, rd.enMap.Len())
+	for v := range done {
+		collction = append(collction, v)
+	}
+
+	for _, val := range collction {
+		h, _ := rd.hIdx.Get(val.Word)
+		for k, v := range h.Index {
+			v = append(v, val.Index[k]...)
+			h.Index[k] = v
+		}
+		h.MatchCound += val.MatchCound
+		h.Peras = append(h.Peras, val.Peras...)
+		rd.hIdx.Set(h.Word, h)
 	}
 }
 
@@ -148,7 +261,10 @@ func (rd *readerConf) indexHiEnrySafe(sha string) {
 }
 
 func (rd *readerConf) indexHiEnry(sha string) {
-	rd._indexHiIdx(sha, "")
+	_, arr := rd.__indexHiIdx(sha, "", rd.HiIdxNewArrFromMap())
+	for _, v := range arr {
+		rd.hIdx.Set(v.Word, v)
+	}
 }
 
 func (rd *readerConf) indexHiEnryUpdateAfterDelSafe(sha string) {
@@ -186,7 +302,17 @@ func (rd *readerConf) indexHiEnryUpdateAfterDel(sha string) {
 	)
 }
 
-func (rd *readerConf) _indexHiIdx(sha string, word string) {
+// it takes a sha (aka an entry file)
+//
+// if the word is provided then it will index only that word and the arrr
+// will be ignored
+//
+// other wise the harr will be populated
+func (rd *readerConf) __indexHiIdx(sha string, word string, harr []HiIdx) (h HiIdx, him []HiIdx) {
+	if word == "" && len(harr) == 0 {
+		return
+	}
+
 	fn := filepath.Join(rd.permDir, sha)
 	f, err := os.Open(fn)
 	if err != nil {
@@ -205,8 +331,16 @@ func (rd *readerConf) _indexHiIdx(sha string, word string) {
 	}
 
 	data := buf.Bytes()[len(magicValMJENnl):]
-	h, _ := rd.hIdx.Get(word)
 	wordB := []byte(word)
+
+	if word != "" {
+		h.Word = word
+	} else {
+		him = make([]HiIdx, rd.hIdx.Len())
+		for i, e := range *rd.hIdx.Entries() {
+			him[i] = HiIdx{Word: e.Key, Index: map[string][]int{}, Peras: [][]ReaderWord{}}
+		}
+	}
 
 	// found in the current pera no need to look further
 	fset := make(map[string]struct{}, rd.hMap.Len())
@@ -242,19 +376,19 @@ pera:
 			}
 
 			// full version
-			for _, e := range *rd.hIdx.Entries() {
-				word := e.Key
+			for i, e := range him {
+				word := e.Word
 				wordB := []byte(word)
 				if _, ok := fset[word]; !ok && bytes.Equal(s[0], wordB) {
 					fset[word] = struct{}{}
-					h := e.Value
-					h.fomatAndSetPera(sha, splitedLine, wordB)
-					rd.hIdx.Set(word, h)
+					e.fomatAndSetPera(sha, splitedLine, wordB)
+					him[i] = e
 				}
 			}
 		}
 	}
 	if word != "" {
-		rd.hIdx.Set(word, h)
+		return h, nil
 	}
+	return HiIdx{}, him
 }

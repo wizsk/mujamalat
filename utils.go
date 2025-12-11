@@ -17,9 +17,11 @@ import (
 	"time"
 )
 
+// every value should be passed by value
 type globalConf struct {
 	port           string
 	verbose        bool
+	debug          bool
 	pass           string
 	permDir        string
 	tmpMode        bool
@@ -28,7 +30,7 @@ type globalConf struct {
 	migrate        bool
 }
 
-func parseFlags() *globalConf {
+func parseFlags() globalConf {
 	conf := globalConf{}
 
 	if dynamicVersion {
@@ -57,6 +59,8 @@ func parseFlags() *globalConf {
 
 	flag.BoolVar(&conf.verbose, "s", false, "show request logs [be verbose]")
 
+	flag.BoolVar(&conf.debug, "debug", false, "touggle debug logs")
+
 	flag.BoolVar(&conf.noCompress, "no-compress", false,
 		"do not compress response (no gzip/br)")
 
@@ -66,6 +70,12 @@ func parseFlags() *globalConf {
 	os.Args[0] = progName
 
 	flag.Parse()
+
+	if debug && conf.debug {
+		conf.debug = false
+	} else if debug {
+		conf.debug = true
+	}
 
 	if *showVersion {
 		printVersion()
@@ -89,7 +99,17 @@ func parseFlags() *globalConf {
 		}
 	}
 
-	return &conf
+	return conf
+}
+
+// debug printf
+func (gc *globalConf) dpf(format string, args ...any) {
+	if gc.debug {
+		if len(format) > 0 && format[len(format)-1] != '\n' {
+			format += "\n"
+		}
+		fmt.Printf("DEBUG: "+format, args...)
+	}
 }
 
 var tmplFuncs = template.FuncMap{

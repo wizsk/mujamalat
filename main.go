@@ -165,6 +165,10 @@ func main() {
 		fmt.Println("INFO: Server text responses will be compressed with br or gzip")
 	}
 
+	if gc.debug {
+		fmt.Println("INFO: debug logs will shown")
+	}
+
 	fmt.Println("INFO: Initalizaion done in:",
 		time.Since(iStart).String())
 

@@ -20,6 +20,8 @@ const (
 
 type readerConf struct {
 	sync.RWMutex
+
+	gc      globalConf
 	t       templateWraper
 	permDir string
 
@@ -36,9 +38,11 @@ type readerConf struct {
 	hIdxFileMtx  sync.Mutex
 }
 
-func newReader(gc *globalConf, t templateWraper) *readerConf {
-	rd := readerConf{t: t}
-
+func newReader(gc globalConf, t templateWraper) *readerConf {
+	rd := readerConf{
+		gc: gc,
+		t:  t,
+	}
 	n := ""
 	var err error
 
@@ -103,6 +107,7 @@ func newReader(gc *globalConf, t templateWraper) *readerConf {
 
 func (rd *readerConf) addOnChangeListeners() {
 	rd.hMap.OnChange(func(e ordmap.Event[string, HiWord]) {
+		n := time.Now()
 		switch e.Type {
 		case ordmap.EventInsert:
 			rd.hIdx.SetIfEmpty(e.Key, HiIdx{Word: e.Key})
@@ -110,10 +115,12 @@ func (rd *readerConf) addOnChangeListeners() {
 
 			fallthrough
 		case ordmap.EventUpdate:
-			n := time.Now()
+			if rd.gc.verbose {
+				n = time.Now()
+			}
 			rd.hRev.Set(e.Key, e.NewValue)
 			rd.hRev.Sort(hRevSortFunc)
-			fmt.Println("time took for sorting after cng:", time.Since(n))
+			rd.gc.dpf("hRev sorting after cng: %s", time.Since(n))
 
 		case ordmap.EventDelete:
 			rd.hIdx.Delete(e.Key)

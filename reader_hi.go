@@ -191,7 +191,10 @@ func (rd *readerConf) indexHiWordsForFirstRun() {
 	mp := make(map[string]HiIdx, rd.hIdx.Len())
 	for _, val2 := range collction {
 		for _, val := range val2 {
-			h := mp[val.Word]
+			h, found := mp[val.Word]
+			if !found {
+				h.Word = val.Word
+			}
 			for k, v := range h.Index {
 				v = append(v, val.Index[k]...)
 				h.Index[k] = v

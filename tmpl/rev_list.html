@@ -4,6 +4,8 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <script defer src="/pub/alpine.min.js"></script>
+
     <title>Document</title>
     {{template "common-css"}}
     <style>
@@ -34,6 +36,7 @@
         }
 
         #ed {
+
             >div {
                 display: flex;
                 flex-direction: column;
@@ -51,13 +54,12 @@
     </style>
 </head>
 
-<body>
+<body x-data="{ modalInfo: { } }">
     <div style="margin: 1rem;">
         <div>Style isnt an issue</div>
         <a style="display: block;" href="/rd/rev/">اذهب إلى قائمة المراجعة</a>
     </div>
     <div>
-
         <table>
             <thead>
                 <td>Word</td>
@@ -67,14 +69,18 @@
                 <td>Edit</td>
             </thead>
             {{range .}}
-            <tr>
+            <tr x-data="{
+                word: '{{.Word}}',
+                dontShow: {{.DontShow}},
+                future: '{{.Future | fmtUnix}}',
+                past: '{{.Past | fmtUnix}}',
+            }">
                 <td>{{.Word}}</td>
-                <td class="time-stamp">{{.Future | fmtUnix}}</td>
-                <td class="time-stamp">{{.Past | fmtUnix}}</td>
-                <td data-isHidden="{{.Word}}">{{if .DontShow}}Hidden{{else}}Shown{{end}}</td>
+                <td class="time-stamp" x-text="future"></td>
+                <td class="time-stamp" x-text="past"></td>
+                <td x-text="dontShow ? 'Hidden' : 'Shown'"></td>
                 <td>
-                    <button onclick="edOpen('{{.Word}}', '{{.DontShow}}',
-                        '{{.Future | fmtUnix}}', parseInt('{{.Past}}'), parseInt('{{.Future}}'))">
+                    <button @click="modalInfo = $data; $refs.modal.showModal()">
                         Edit
                     </button>
                 </td>
@@ -82,65 +88,84 @@
             {{end}}
         </table>
     </div>
-    <dialog id="ed">
+    <dialog id="ed" x-ref="modal">
         <div>
-            <div id="word"></div>
+            <div x-text="modalInfo.word"></div>
             <div>
-                <label for="dontShow">Viablitily touggle:</label>
-                <button id="hideTgl"></button>
+                <label for="hideTgl">Viablitily touggle:</label>
+                <button id="hideTgl" x-text="modalInfo.dontShow ? 'Show' : 'Hide'" @click="
+                            updating = true; // disable immediately
+                            modalInfo.dontShow = !modalInfo.dontShow;
+
+                            fetch(`${window.location.pathname}?w=${encodeURIComponent(modalInfo.word)}&dontshow=${modalInfo.dontShow ? 'false' : 'true'}`, {
+                                method: 'POST'
+                            })
+                            .then(res => {
+                                if (res.status === 202) {
+                                    // server accepted, update button text
+                                    modalInfo.dontShow = modalInfo.dontShow; // already toggled locally
+                                } else {
+                                    // revert toggle if server rejected
+                                    modalInfo.dontShow = !modalInfo.dontShow;
+                                    console.error('Server did not accept the change');
+                                }
+                            })
+                            .catch(err => {
+                                // revert toggle if error
+                                modalInfo.dontShow = !modalInfo.dontShow;
+                                console.error(err);
+                            })
+                            .finally(() => updating = false); // re-enable
+                    "></button>
             </div>
             <div>
-                <div>Will be shown: <span id="willBeShown"></span></div>
-                <button id="reset">Reset</button>
+                <div>Will be shown: <span x-text="modalInfo.future"></span></div>
+                <button id="reset" @click="modalInfo.future = '...'">Reset</button>
             </div>
 
-            <button onclick="ed.close();">Close</button>
+            <form method="dialog">
+                <button>Close</button>
+            </form>
         </div>
     </dialog>
 
     <script>
-        const ed = document.getElementById("ed");
-        const word = document.getElementById("word");
-        const hideTgl = document.getElementById("hideTgl");
-        const wbs = document.getElementById("willBeShown");
-        const wReset = document.getElementById("reset");
+        // const ed = document.getElementById("ed");
+        // const word = document.getElementById("word");
+        // const hideTgl = document.getElementById("hideTgl");
+        // const wbs = document.getElementById("willBeShown");
+        // const wReset = document.getElementById("reset");
 
-        function edOpen(_word, donthowShowStr, willBeShown, past, future) {
-            word.innerText = _word;
-            let noshow = donthowShowStr == "true";
-            hideTgl.innerText = noshow ? "Show" : "Hide";
+        // function edOpen(_word, donthowShowStr, willBeShown, past, future) {
+        //     word.innerText = _word;
+        //     let noshow = donthowShowStr == "true";
+        //     hideTgl.innerText = noshow ? "Show" : "Hide";
 
-            wReset.onclick = () => {
-                postThen(`${window.location.pathname}?w=${_word}&after=reset`,
-                    () => {
-                        noshow = !noshow;
-                        alert(`The word "${_word}": reseted. reaload to see`)
-                    });
-            }
+        //     wReset.onclick = () => {
+        //         postThen(`${window.location.pathname}?w=${_word}&after=reset`,
+        //             () => {
+        //                 noshow = !noshow;
+        //                 alert(`The word "${_word}": reseted. reaload to see`)
+        //             });
+        //     }
 
-            hideTgl.onclick = () => {
-                postThen(`${window.location.pathname}?w=${_word}&dontshow=${noshow ? "false" : "true"}`,
-                    () => {
-                        noshow = !noshow;
-                        alert(`The word "${_word}": ${noshow ? "will be shown" : "is hidden"}. reaload to see`)
-                        // document.querySelector(`[data-isHidden="${_word}"]`).innerText = noshow ? "Shown" : "Hidden"
-                        hideTgl.innerText = noshow ? "Show" : "Hide";
-                    });
-            }
+        //     hideTgl.onclick = () => {
+        //         postThen(`${window.location.pathname}?w=${_word}&dontshow=${noshow ? "false" : "true"}`,
+        //             () => {
+        //                 noshow = !noshow;
+        //                 alert(`The word "${_word}": ${noshow ? "will be shown" : "is hidden"}. reaload to see`)
+        //                 // document.querySelector(`[data-isHidden="${_word}"]`).innerText = noshow ? "Shown" : "Hidden"
+        //                 hideTgl.innerText = noshow ? "Show" : "Hide";
+        //             });
+        //     }
 
-            wbs.innerText = willBeShown;
+        //     wbs.innerText = willBeShown;
 
-            ed.showModal();
-        }
+        //     ed.showModal();
+        // }
 
-        function postThen(url, func) {
-            fetch(url, { method: "POST" })
-                .then(((res) => {
-                    if (res.ok) { if (func) func(); }
-                })).catch((err) => {
-                    console.error(err);
-                    alert("Something went wrong (check console)");
-                });
+        function post(perm) {
+            return fetch(`${window.location.href}?${perm}`, { method: "POST" })
         }
 
     </script>

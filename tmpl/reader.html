@@ -200,11 +200,19 @@
 
 {{define "reader"}}
 
-{{if .RevMode}}
 <div id="readerWrapper" class="{{if .RevMode}}hidden{{end}}">
-    <hr>{{end}}
+    {{if .RevMode}}
+    <hr>
+    <div style="text-align: center; font-weight: bold;">
+        وجد
+        {{.HiIdx.MatchCound | arnum}}
+    </div>
+    {{end}}
     <div id="reader">
         {{range $i, $p := .RD.Peras}}
+        {{if $.RevMode}}
+        <hr>
+        {{end}}
         <div class="pera">
             {{- if add $i 1 | isodd -}}
             <span class="poem-line-num">{{qasidaLine $i}}- </span>

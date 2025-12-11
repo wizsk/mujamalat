@@ -105,6 +105,11 @@ func hRevSortFunc(a, b ordmap.Entry[string, HiWord]) bool {
 }
 
 func (rd *readerConf) saveHMap(w http.ResponseWriter) (ok bool) {
+	if rd.gc.debug {
+		start := time.Now()
+		defer func() { rd.gc.dpf("saveHMap took %s", time.Since(start)) }()
+	}
+
 	tmpFile := rd.hFilePath + ".tmp"
 	f, err := fetalErrVal(os.Create(tmpFile))
 	if err != nil {

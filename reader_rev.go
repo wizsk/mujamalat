@@ -98,5 +98,8 @@ func (rd *readerConf) revPagePost(w http.ResponseWriter, r *http.Request) {
 
 	default:
 		http.Error(w, "ILLIGAL", http.StatusBadGateway)
+		return
 	}
+
+	w.WriteHeader(http.StatusAccepted)
 }

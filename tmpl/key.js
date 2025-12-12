@@ -37,7 +37,7 @@ document.addEventListener('keydown', (e) => {
 
     if (e.code === "Escape") {
         if (document.activeElement === w) w.blur();
-        else if (customAfterInput &&
+        else if (typeof customAfterInput !== 'undefined' && customAfterInput &&
             document.activeElement === customAfterInput) customAfterInput.blur();
         else if (isChangeDictShwoing) toggleChangeDict();
         return;
@@ -59,7 +59,9 @@ document.addEventListener('keydown', (e) => {
         return;
     }
 
-    if (document.activeElement === w || (customAfterInput &&
+
+    if (document.activeElement === w ||
+        (typeof customAfterInput !== 'undefined' && customAfterInput !== null &&
         document.activeElement === customAfterInput))
         return;
 

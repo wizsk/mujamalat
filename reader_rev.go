@@ -2,11 +2,28 @@ package main
 
 import (
 	"net/http"
+	"slices"
 	"strconv"
 	"time"
+
+	"github.com/wizsk/mujamalat/ordmap"
 )
 
 const retryAfterMin = 10
+
+type RevList struct {
+	Hw []HiWord
+
+	// sort options
+	Past   RevListSortOptn
+	Future RevListSortOptn
+}
+
+type RevListSortOptn struct {
+	Set bool
+	New bool
+	Old bool
+}
 
 type RevData struct {
 	IV [2]int
@@ -16,8 +33,23 @@ func (rd *readerConf) revPageList(w http.ResponseWriter, r *http.Request) {
 	rd.RLock()
 	defer rd.RUnlock()
 
-	hM := rd.hRev.Values()
-	rd.t.ExecuteTemplate(w, "rev_list.html", hM)
+	// past=is_set|new|old
+	rl := RevList{}
+	past := r.FormValue("past")
+	if past == "new" {
+		rl.Past.New = true
+		rl.Hw = rd.hRev.ValuesFiltered(func(e ordmap.Entry[string, HiWord]) bool {
+			return e.Value.Past != 0
+		})
+
+		slices.SortStableFunc(rl.Hw, func(a HiWord, b HiWord) int {
+			return int(b.Past - a.Past)
+		})
+	} else {
+		rl.Hw = rd.hRev.Values()
+	}
+
+	rd.t.ExecuteTemplate(w, "rev_list.html", &rl.Hw)
 }
 
 func (rd *readerConf) revPage(w http.ResponseWriter, r *http.Request) {
@@ -72,7 +104,11 @@ func (rd *readerConf) revPagePost(w http.ResponseWriter, r *http.Request) {
 		case "r": // retry in 10 min
 			h.Past = now.Unix()
 			h.Future = now.Add(time.Minute * retryAfterMin).Unix()
-		case "reset": //
+		case "reset":
+			if h.Future == 0 {
+				http.Error(w, "The word is hidden", http.StatusBadRequest)
+				return
+			}
 			h.Past = 0
 			h.Future = 0
 
@@ -95,6 +131,7 @@ func (rd *readerConf) revPagePost(w http.ResponseWriter, r *http.Request) {
 		} else {
 			h.DontShow = false
 		}
+
 		h.Past = time.Now().Unix()
 		h.Future = 0
 		rd.hMap.Set(h.Word, h)

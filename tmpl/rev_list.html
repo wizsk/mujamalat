@@ -258,7 +258,7 @@
                     const original = this.selectedWord.dontShow;
                     this.selectedWord.dontShow = !original;
 
-                    const url = `${window.location.href}?w=${encodeURIComponent(this.selectedWord.word)}&dontshow=${this.selectedWord.dontShow}`;
+                    const url = `${window.location.pathname}?w=${encodeURIComponent(this.selectedWord.word)}&dontshow=${this.selectedWord.dontShow}`;
 
                     try {
                         const res = await fetch(url, { method: 'POST' });
@@ -287,7 +287,7 @@
                     this.selectedWord.future = 0;
                     this.selectedWord.past = 0;
 
-                    const url = `${window.location.href}?w=${encodeURIComponent(this.selectedWord.word)}&after=reset`;
+                    const url = `${window.location.pathname}?w=${encodeURIComponent(this.selectedWord.word)}&after=reset`;
 
                     try {
                         const res = await fetch(url, { method: 'POST' });

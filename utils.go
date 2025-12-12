@@ -134,10 +134,12 @@ var tmplFuncs = template.FuncMap{
 		} else {
 			d = time.Until(t)
 		}
+
 		r := durToDHM(d)
-		if past {
+		if past && r != "" {
 			r += " ago"
 		}
+
 		dateTime := t.Format("02/01/06 3:04 PM")
 		if r == "" {
 			return dateTime

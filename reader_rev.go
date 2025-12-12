@@ -6,6 +6,8 @@ import (
 	"time"
 )
 
+const retryAfterMin = 10
+
 type RevData struct {
 	IV [2]int
 }
@@ -31,7 +33,8 @@ func (rd *readerConf) revPage(w http.ResponseWriter, r *http.Request) {
 	rv := RevData{IV: [2]int{1, 3}}
 	idx := HiIdx{}
 	if found {
-		if hw.Future != 0 && hw.Past != 0 && hw.Future > hw.Past {
+		if hw.Future != 0 && hw.Past != 0 &&
+			hw.Future-hw.Past > (retryAfterMin+1)*60 {
 			days := int((hw.Future - hw.Past) / (3600 * 24))
 			for i, s := range [2]int{2, 3} {
 				rv.IV[i] = days * s
@@ -67,8 +70,8 @@ func (rd *readerConf) revPagePost(w http.ResponseWriter, r *http.Request) {
 
 		switch after {
 		case "r": // retry in 10 min
-			h.Future = now.Add(time.Minute * 10).Unix()
-			h.Past = 0
+			h.Past = now.Unix()
+			h.Future = now.Add(time.Minute * retryAfterMin).Unix()
 		case "reset": //
 			h.Past = 0
 			h.Future = 0

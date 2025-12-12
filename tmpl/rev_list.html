@@ -4,19 +4,90 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <link rel="shortcut icon" href="/pub/fav.png" type="image/x-icon">
     <title>Word Review Table</title>
-    <link rel="stylesheet" href="/pub/styles/rev_list.css">
     <script defer src="/pub/alpine.min.js"></script>
+    <link rel="stylesheet" href="/pub/styles/rev_list.css">
 </head>
 
 <body x-data="wordTable()">
     <div class="header-section">
+        <div class="header-text">Style isn't an issue</div>
         <a class="nav-link" href="/rd/rev/">اذهب إلى قائمة المراجعة</a>
     </div>
 
+    <div class="filters-section">
+        <div class="filters-grid">
+            <!-- Future Filter -->
+            <div class="filter-group">
+                <label class="filter-label">Due Date</label>
+                <div class="filter-buttons">
+                    <button class="btn btn-filter btn-small" :class="{ 'active': filters.futureMode === 'all' }"
+                        @click="filters.futureMode = 'all'">
+                        All
+                    </button>
+                    <button class="btn btn-filter btn-small" :class="{ 'active': filters.futureMode === 'within' }"
+                        @click="filters.futureMode = 'within'">
+                        Within Days
+                    </button>
+                    <button class="btn btn-filter btn-small" :class="{ 'active': filters.futureMode === 'none' }"
+                        @click="filters.futureMode = 'none'">
+                        No Future
+                    </button>
+                </div>
+                <div class="filter-input-group" x-show="filters.futureMode === 'within'">
+                    <input type="number" class="filter-input" x-model.number="filters.withinDays"
+                        placeholder="Number of days" min="0">
+                    <span>days</span>
+                </div>
+            </div>
+
+            <!-- Visibility Filter -->
+            <div class="filter-group">
+                <label class="filter-label">Visibility</label>
+                <div class="filter-buttons">
+                    <button class="btn btn-filter btn-small" :class="{ 'active': filters.visibility === 'all' }"
+                        @click="filters.visibility = 'all'">
+                        All
+                    </button>
+                    <button class="btn btn-filter btn-small" :class="{ 'active': filters.visibility === 'shown' }"
+                        @click="filters.visibility = 'shown'">
+                        Shown Only
+                    </button>
+                    <button class="btn btn-filter btn-small" :class="{ 'active': filters.visibility === 'hidden' }"
+                        @click="filters.visibility = 'hidden'">
+                        Hidden Only
+                    </button>
+                </div>
+            </div>
+
+            <!-- Past Sort -->
+            <div class="filter-group">
+                <label class="filter-label">Sort by Last Seen</label>
+                <div class="filter-buttons">
+                    <button class="btn btn-filter btn-small" :class="{ 'active': filters.pastSort === 'none' }"
+                        @click="filters.pastSort = 'none'">
+                        No Sort
+                    </button>
+                    <button class="btn btn-filter btn-small" :class="{ 'active': filters.pastSort === 'recent' }"
+                        @click="filters.pastSort = 'recent'">
+                        Recent First
+                    </button>
+                    <button class="btn btn-filter btn-small" :class="{ 'active': filters.pastSort === 'oldest' }"
+                        @click="filters.pastSort = 'oldest'">
+                        Oldest First
+                    </button>
+                </div>
+            </div>
+        </div>
+    </div>
+
     <div class="table-container">
+        <div class="table-info">
+            Showing <strong x-text="filteredWords.length"></strong> of <strong x-text="words.length"></strong> words
+        </div>
         <div class="table-scroll">
-            <table class="word-table" style="text-align: center;">
+            <table class="word-table">
                 <thead class="table-header">
                     <tr>
                         <th>Word</th>
@@ -27,17 +98,50 @@
                     </tr>
                 </thead>
                 <tbody class="table-body">
-                    <template x-for="row in words" :key="row.word">
+                    <!-- Loading State -->
+                    <template x-if="loading">
+                        <tr>
+                            <td colspan="5" style="text-align: center; padding: 3rem; color: #666;">
+                                <div style="font-size: 1.2rem;">Loading...</div>
+                            </td>
+                        </tr>
+                    </template>
+
+                    <!-- No Results State -->
+                    <template x-if="!loading && filteredWords.length === 0">
+                        <tr>
+                            <td colspan="5" style="text-align: center; padding: 3rem;">
+                                <div style="font-size: 1.2rem; color: #666; margin-bottom: 0.5rem;">No words found</div>
+                                <div style="font-size: 0.9rem; color: #999;">Try adjusting your filters</div>
+                            </td>
+                        </tr>
+                    </template>
+
+                    <!-- Data Rows -->
+                    <template x-if="!loading && filteredWords.length > 0">
+                        <template x-for="row in filteredWords" :key="row.word">
+                            <tr>
+                                <td class="table-cell cell-word" x-text="row.word"></td>
+                                <td class="table-cell cell-date" x-text="row.futureFormatted"></td>
+                                <td class="table-cell cell-date" x-text="row.pastFormatted"></td>
+                                <td class="table-cell cell-status" x-text="row.dontShow ? 'Hidden' : 'Shown'"></td>
+                                <td class="table-cell cell-action">
+                                    <button class="btn btn-primary" @click="openModal(row)">Edit</button>
+                                </td>
+                            </tr>
+                        </template>
+                    </template>
+                    <!-- <template x-for="row in filteredWords" :key="row.word">
                         <tr>
                             <td class="table-cell cell-word" x-text="row.word"></td>
-                            <td class="table-cell cell-date" x-text="row.future ? row.future : '...'"></td>
-                            <td class="table-cell cell-date" x-text="row.past ? row.past : '...'"></td>
+                            <td class="table-cell cell-date" x-text="row.futureFormatted"></td>
+                            <td class="table-cell cell-date" x-text="row.pastFormatted"></td>
                             <td class="table-cell cell-status" x-text="row.dontShow ? 'Hidden' : 'Shown'"></td>
                             <td class="table-cell cell-action">
                                 <button class="btn btn-primary" @click="openModal(row)">Edit</button>
                             </td>
                         </tr>
-                    </template>
+                    </template> -->
                 </tbody>
             </table>
         </div>
@@ -56,7 +160,7 @@
 
             <div class="modal-section">
                 <div class="modal-label">Will be shown: <span class="modal-value"
-                        x-text="selectedWord?.future || 'Not set'"></span></div>
+                        x-text="selectedWord?.futureFormatted || 'Not set'"></span></div>
                 <button class="btn btn-primary" :disabled="futureLoading" @click="resetFuture()"
                     x-text="futureLoading ? 'Resetting…' : 'Reset'">
                 </button>
@@ -71,19 +175,71 @@
     <script>
         function wordTable() {
             return {
+                loading: false, // Set to true if you're loading data from server
                 words: [
                     // {{range $index, $element := .}}
                     {
                         word: '{{.Word}}',
-                        future: '{{.Future | fmtUnix}}',
-                        past: '{{.Past | fmtUnix}}',
+                        futureFormatted: '{{.Future | fmtUnix}}',
+                        pastFormatted: '{{.Past | fmtUnix}}',
+                        future: parseInt('{{.Future}}'),
+                        past: parseInt('{{.Past}}'),
                         dontShow: '{{.DontShow}}' == 'true',
                     },
                     // {{end}}
                 ],
+                filters: {
+                    futureMode: 'all', // 'all', 'within', 'none'
+                    withinDays: 7,
+                    visibility: 'all', // 'all', 'shown', 'hidden'
+                    pastSort: 'none' // 'none', 'recent', 'oldest'
+                },
                 selectedWord: null,
                 visibilityLoading: false,
                 futureLoading: false,
+
+                get filteredWords() {
+                    let result = [...this.words];
+                    const now = Math.floor(Date.now() / 1000);
+
+                    // Filter by future
+                    if (this.filters.futureMode === 'within') {
+                        const withinSeconds = this.filters.withinDays * 24 * 60 * 60;
+                        result = result.filter(w => {
+                            if (!w.future || w.future === 0) return false;
+                            return w.future <= now + withinSeconds;
+                        });
+                    } else if (this.filters.futureMode === 'none') {
+                        result = result.filter(w => !w.future || w.future === 0);
+                    }
+
+                    // Filter by visibility
+                    if (this.filters.visibility === 'shown') {
+                        result = result.filter(w => !w.dontShow);
+                    } else if (this.filters.visibility === 'hidden') {
+                        result = result.filter(w => w.dontShow);
+                    }
+
+                    // Sort by past
+                    if (this.filters.pastSort === 'recent') {
+                        result.sort((a, b) => {
+                            // Keep zero/null past values at the end
+                            if (!a.past || a.past === 0) return 1;
+                            if (!b.past || b.past === 0) return -1;
+                            return b.past - a.past;
+                        });
+                    } else if (this.filters.pastSort === 'oldest') {
+                        result.sort((a, b) => {
+                            // Keep zero/null past values at the end
+                            if (!a.past || a.past === 0) return 1;
+                            if (!b.past || b.past === 0) return -1;
+                            return a.past - b.past;
+                        });
+                    }
+
+
+                    return result;
+                },
 
                 openModal(row) {
                     this.selectedWord = row;
@@ -121,19 +277,30 @@
                     if (this.futureLoading || !this.selectedWord) return;
 
                     this.futureLoading = true;
-                    const original = this.selectedWord.future;
-                    this.selectedWord.future = '';
+                    const originalFormatted = this.selectedWord.futureFormatted;
+                    const originalFuture = this.selectedWord.future;
+                    const originalPastFormatted = this.selectedWord.pastFormatted;
+                    const originalPast = this.selectedWord.past;
+
+                    this.selectedWord.futureFormatted = '';
+                    this.selectedWord.pastFormatted = '';
+                    this.selectedWord.future = 0;
+                    this.selectedWord.past = 0;
 
                     const url = `${window.location.href}?w=${encodeURIComponent(this.selectedWord.word)}&after=reset`;
 
                     try {
                         const res = await fetch(url, { method: 'POST' });
                         if (res.status !== 202) {
-                            this.selectedWord.future = original;
+                            this.selectedWord.futureFormatted = originalFormatted;
+                            this.selectedWord.future = originalFuture;
                         }
                     } catch (error) {
                         console.error('Reset failed:', error);
-                        this.selectedWord.future = original;
+                        this.selectedWord.futureFormatted = originalFormatted;
+                        this.selectedWord.pastFormatted = originalPastFormatted;
+                        this.selectedWord.future = originalFuture;
+                        this.selectedWord.past = originalPast;
                     } finally {
                         this.futureLoading = false;
                     }

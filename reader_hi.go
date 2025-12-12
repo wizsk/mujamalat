@@ -235,14 +235,14 @@ func (rd *readerConf) indexHIdxAll() {
 	// 		}
 	// 	}
 	// 	if len(vals) > 0 {
-	// 		fmt.Printf("INFO: Loaded %d values out of %d", len(vals), hiWordC)
+	// 		fmt.Printf("INFO: Loaded %d values out of %d from %s\n", len(vals), hiWordC, rd.hIdxFilePath)
 	// 		return
 	// 	}
 	// }
+
 	rd.__indexHiWordsOrWordCocurrenty("")
 
 	// go func() {
-	// 	fmt.Println("INFO: Cashing HiIdx")
 	// 	rd.cacheHIdx()
 	// }()
 }

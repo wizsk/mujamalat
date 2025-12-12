@@ -21,9 +21,13 @@ func TestDurToDHM(t *testing.T) {
 			in: oneDay + time.Hour + time.Minute,
 			ex: "1d 1h 1m",
 		},
+		{
+			in: (oneDay * 30) + time.Hour + time.Minute,
+			ex: "30d 1h 1m",
+		},
 	}
 	for i, c := range cases {
-		r := durToDHM(c.in)
+		r := durToDHM(c.in, false)
 		if r != c.ex {
 			t.Logf("case: %d:%q", i, c.in)
 			t.Logf("ex:%q != got:%q", c.ex, r)

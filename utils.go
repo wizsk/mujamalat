@@ -126,18 +126,14 @@ var tmplFuncs = template.FuncMap{
 		}
 
 		t := time.Unix(v, 0)
-		var d time.Duration
-		past := false
-		if v < time.Now().Unix() {
-			d = time.Since(t)
-			past = true
-		} else {
-			d = time.Until(t)
-		}
+		r := ""
 
-		r := durToDHM(d)
-		if past && r != "" {
-			r += " ago"
+		if v < time.Now().Unix() {
+			r = durToDHM(time.Since(t), true)
+		} else {
+
+			r = durToDHM(time.Until(t), false)
+
 		}
 
 		dateTime := t.Format("02/01/06 3:04 PM")
@@ -148,28 +144,39 @@ var tmplFuncs = template.FuncMap{
 	},
 }
 
-func durToDHM(d time.Duration) (r string) {
+func durToDHM(d time.Duration, past bool) (r string) {
 	d.Round(time.Minute)
-	days := d / (time.Hour * 24)
-	d -= days * time.Hour * 24
+	const Day = time.Hour * 24
+
+	days := d / Day
+	d -= days * Day
 
 	hours := d / time.Hour
 	d -= hours * time.Hour
 
 	minutes := d / time.Minute
+
 	if days > 0 {
 		r += strconv.Itoa(int(days))
 		r += "d"
+		if hours > 0 || minutes > 0 {
+			r += " "
+		}
 	}
 	if hours > 0 {
-		r += " "
 		r += strconv.Itoa(int(hours))
 		r += "h"
+		if minutes > 0 {
+			r += " "
+		}
 	}
 	if minutes > 0 {
-		r += " "
 		r += strconv.Itoa(int(minutes))
 		r += "m"
+	}
+
+	if past {
+		r += " ago"
 	}
 	return r
 }

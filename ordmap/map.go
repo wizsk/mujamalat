@@ -1,7 +1,7 @@
 package ordmap
 
 import (
-	"sort"
+	"slices"
 )
 
 type Options[K comparable] struct {
@@ -233,10 +233,8 @@ func (om *OrderedMap[K, V]) ValuesFiltered(keep func(Entry[K, V]) bool) []V {
 	return vals[:i]
 }
 
-func (m *OrderedMap[K, V]) Sort(s func(a Entry[K, V], b Entry[K, V]) bool) {
-	sort.Slice(m.data, func(i, j int) bool {
-		return s(m.data[i], m.data[j])
-	})
+func (m *OrderedMap[K, V]) Sort(cmp func(a Entry[K, V], b Entry[K, V]) int) {
+	slices.SortStableFunc(m.data, cmp)
 	clear(m.index)
 	for i, v := range m.data {
 		m.index[v.Key] = i

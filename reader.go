@@ -119,7 +119,7 @@ func (rd *readerConf) addOnChangeListeners() {
 				n = time.Now()
 			}
 			rd.hRev.Set(e.Key, e.NewValue)
-			rd.hRev.Sort(hRevSortFunc)
+			rd.hRev.Sort(hRevSortCmp)
 			rd.gc.dpf("hRev sorting after cng: %s", time.Since(n))
 
 		case ordmap.EventDelete:

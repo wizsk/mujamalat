@@ -82,13 +82,18 @@ func (rd *readerConf) loadHilightedWords() {
 
 	if rd.hMap.Len() > 0 {
 		n = time.Now()
-		rd.hRev.Sort(hRevSortFunc)
+		rd.hRev.Sort(hRevSortCmp)
 		fmt.Println("INFO: sort took: ", time.Since(n))
 	}
 	fmt.Println("INFO: loaded words:", rd.hMap.Len())
 }
 
-func hRevSortFunc(a, b ordmap.Entry[string, HiWord]) bool {
+// a, b
+// -1 -> a b
+// 1 -> b a
+//
+//	0 -> a b
+func hRevSortCmp(a, b ordmap.Entry[string, HiWord]) int {
 	// if i don't remove this the order wont be preserved
 	// if a.Value.DontShow != b.Value.DontShow {
 	// 	return !a.Value.DontShow && b.Value.DontShow
@@ -96,12 +101,17 @@ func hRevSortFunc(a, b ordmap.Entry[string, HiWord]) bool {
 
 	aZero := a.Value.Future == 0
 	bZero := b.Value.Future == 0
-	if aZero != bZero {
-		// zero goes last
-		return !aZero && bZero
+
+	// Zero goes last
+	if aZero && bZero {
+		return 0
+	} else if aZero {
+		return 1
+	} else if bZero {
+		return -1
 	}
 
-	return a.Value.Future < b.Value.Future
+	return int(a.Value.Future - b.Value.Future)
 }
 
 func (rd *readerConf) saveHMap(w http.ResponseWriter) (ok bool) {

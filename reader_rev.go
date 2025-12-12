@@ -22,6 +22,7 @@ func (rd *readerConf) revPage(w http.ResponseWriter, r *http.Request) {
 	rd.RLock()
 	defer rd.RUnlock()
 
+	// don't need to worry about time zones as unixtime is op
 	curr := time.Now().Unix()
 	hw, found := rd.hRev.GetFirst(func(e HiWord) bool {
 		return !e.DontShow && e.Future < curr
@@ -32,7 +33,7 @@ func (rd *readerConf) revPage(w http.ResponseWriter, r *http.Request) {
 	if found {
 		if hw.Future != 0 && hw.Past != 0 && hw.Future > hw.Past {
 			days := int((hw.Future - hw.Past) / (3600 * 24))
-			for i, s := range []int{2, 3} {
+			for i, s := range [2]int{2, 3} {
 				rv.IV[i] = days * s
 			}
 		}

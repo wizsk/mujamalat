@@ -1,6 +1,7 @@
 package ordmap
 
 import (
+	"fmt"
 	"slices"
 )
 
@@ -45,13 +46,18 @@ func (om *OrderedMap[K, V]) Set(k K, v V) {
 	if idx, found := om.index[k]; found {
 		old := om.data[idx].Value
 		om.data[idx].Value = v
-		om.emit(Event[K, V]{Type: EventUpdate, Key: k, OldValue: old, NewValue: v})
+		if len(om.listeners) > 0 {
+			om.emit(Event[K, V]{Type: EventUpdate, Key: k, OldValue: old, NewValue: v})
+		}
 		return
 	}
 
 	om.data = append(om.data, Entry[K, V]{k, v})
 	om.index[k] = len(om.data) - 1
-	om.emit(Event[K, V]{Type: EventInsert, Key: k, NewValue: v})
+
+	if len(om.listeners) > 0 {
+		om.emit(Event[K, V]{Type: EventInsert, Key: k, NewValue: v})
+	}
 }
 
 func (om *OrderedMap[K, V]) SetIfEmpty(k K, v V) {
@@ -68,6 +74,22 @@ func (om *OrderedMap[K, V]) Get(k K) (V, bool) {
 	}
 	var zero V
 	return zero, false
+}
+
+func (om *OrderedMap[K, V]) GetMust(k K) V {
+	if idx, found := om.index[k]; found {
+		return om.data[idx].Value
+	}
+	panic(fmt.Sprintf("%v was supposed to be in the map", k))
+}
+
+func (om *OrderedMap[K, V]) GetLast() (V, bool) {
+	l := len(om.data)
+	if l == 0 {
+		var z V
+		return z, false
+	}
+	return om.data[l-1].Value, true
 }
 
 func (om *OrderedMap[K, V]) GetIdx(idx int) (V, bool) {
@@ -121,7 +143,9 @@ func (om *OrderedMap[K, V]) Delete(k K) bool {
 	}
 
 	delete(om.index, k)
-	om.emit(Event[K, V]{Type: EventDelete, Key: k, OldValue: old})
+	if len(om.listeners) > 0 {
+		om.emit(Event[K, V]{Type: EventDelete, Key: k, OldValue: old})
+	}
 	return true
 }
 
@@ -129,22 +153,24 @@ func (om *OrderedMap[K, V]) Reset() {
 	if om.data != nil {
 		om.data = om.data[:0]
 		clear(om.index)
-		om.emit(Event[K, V]{Type: EventReset})
+		if len(om.listeners) > 0 {
+			om.emit(Event[K, V]{Type: EventReset})
+		}
 	}
 }
 
 // cmp is nil then EventUpdate wont be called,
 // except on key change.
 //
-// cmp(o, n) is like: o == n
+// eq(o, n) is like: o == n
 func (om *OrderedMap[K, V]) UpdateDatas(
 	up func(Entry[K, V]) Entry[K, V],
-	cmp func(o, n V) bool,
+	eq func(o, n V) bool,
 ) {
 	if len(om.data) == 0 {
 		return
-	} else if cmp == nil {
-		cmp = func(_, _ V) bool { return false }
+	} else if eq == nil {
+		eq = func(_, _ V) bool { return false }
 	}
 
 	for i, oe := range om.data {
@@ -157,13 +183,15 @@ func (om *OrderedMap[K, V]) UpdateDatas(
 
 		om.data[i] = ne
 
-		if ne.Key != oe.Key || !cmp(oe.Value, ne.Value) {
-			om.emit(Event[K, V]{
-				Type:     EventUpdate,
-				Key:      ne.Key,
-				OldValue: oe.Value,
-				NewValue: ne.Value,
-			})
+		if len(om.listeners) > 0 {
+			if ne.Key != oe.Key || !eq(oe.Value, ne.Value) {
+				om.emit(Event[K, V]{
+					Type:     EventUpdate,
+					Key:      ne.Key,
+					OldValue: oe.Value,
+					NewValue: ne.Value,
+				})
+			}
 		}
 	}
 }
@@ -233,30 +261,14 @@ func (om *OrderedMap[K, V]) ValuesFiltered(keep func(Entry[K, V]) bool) []V {
 	return vals[:i]
 }
 
-func (m *OrderedMap[K, V]) Sort(cmp func(a Entry[K, V], b Entry[K, V]) int) {
-	slices.SortStableFunc(m.data, cmp)
-	clear(m.index)
-	for i, v := range m.data {
-		m.index[v.Key] = i
+func (om *OrderedMap[K, V]) Sort(cmp func(a Entry[K, V], b Entry[K, V]) int) {
+	slices.SortStableFunc(om.data, cmp)
+	clear(om.index)
+	for i, v := range om.data {
+		om.index[v.Key] = i
 	}
-}
 
-// Iter returns a channel that can be ranged over
-func (m *OrderedMap[K, V]) Iter() <-chan Entry[K, V] {
-	ch := make(chan Entry[K, V], len(m.data)) // buffered to avoid goroutine blocking
-	for _, e := range m.data {
-		ch <- e
+	if len(om.listeners) > 0 {
+		om.emit(Event[K, V]{Type: EventSort})
 	}
-	close(ch)
-	return ch
-}
-
-// IterReverse returns a channel for reverse iteration
-func (m *OrderedMap[K, V]) IterReverse() <-chan Entry[K, V] {
-	ch := make(chan Entry[K, V], len(m.data))
-	for i := len(m.data) - 1; i >= 0; i-- {
-		ch <- m.data[i]
-	}
-	close(ch)
-	return ch
 }

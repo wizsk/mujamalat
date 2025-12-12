@@ -15,6 +15,10 @@ import (
 )
 
 type HiWord struct {
+	// it's the original order in the file
+	// it's used for soritng after some operations which alter
+	// the order.
+	Idx      int
 	Word     string
 	Future   int64 // will be shown
 	Past     int64 // last modified aka seen
@@ -64,18 +68,37 @@ func (rd *readerConf) loadHilightedWords() {
 
 	if f, err := os.ReadFile(rd.hFilePath); err == nil {
 		n = time.Now()
+		idx := 0
+		line := 0
 		for l := range bytes.SplitSeq(f, []byte("\n")) {
-			lb := bytes.TrimSpace(l)
-			if sp := bytes.SplitN(lb, []byte(":"), 4); len(sp) == 4 {
-				h := HiWord{Word: string(sp[3])}
-				h.DontShow = sp[0][0] == byte('1')
-				h.Past, _ = strconv.ParseInt(string(sp[1]), 10, 64)
-				h.Future, _ = strconv.ParseInt(string(sp[2]), 10, 64)
-
-				rd.hMap.Set(h.Word, h)
-				rd.hRev.Set(h.Word, h)
-				rd.hIdx.Set(h.Word, HiIdx{Word: h.Word})
+			line++
+			l = bytes.TrimSpace(l)
+			if len(l) == 0 {
+				continue
 			}
+			sp := bytes.SplitN(l, []byte(":"), 4)
+			if len(sp) != 4 {
+				fmt.Printf("WARN: malformed higlight %s:%d:%s\n",
+					rd.hFilePath,
+					line,
+					string(l))
+				continue
+			}
+
+			h := HiWord{}
+			h.Word = string(sp[3])
+			h.Idx = idx
+			idx++
+			h.DontShow = sp[0][0] == byte('1')
+			h.Past, _ = strconv.ParseInt(string(sp[1]), 10, 64)
+			h.Future, _ = strconv.ParseInt(string(sp[2]), 10, 64)
+
+			rd.hMap.Set(h.Word, h)
+			rd.hRev.Set(h.Word, h)
+			rd.hIdx.Set(h.Word, HiIdx{
+				Word:  h.Word,
+				Index: map[string][]int{},
+			})
 		}
 		fmt.Println("INFO: Hilight loop took:", time.Since(n))
 	}
@@ -89,10 +112,10 @@ func (rd *readerConf) loadHilightedWords() {
 }
 
 // a, b
-// -1 -> a b
-// 1 -> b a
+// -1 -> a b	a comes before b
+// 1 -> b a		b comes before a
 //
-//	0 -> a b
+//	0 -> a b	no change
 func hRevSortCmp(a, b ordmap.Entry[string, HiWord]) int {
 	// if i don't remove this the order wont be preserved
 	// if a.Value.DontShow != b.Value.DontShow {
@@ -104,7 +127,8 @@ func hRevSortCmp(a, b ordmap.Entry[string, HiWord]) int {
 
 	// Zero goes last
 	if aZero && bZero {
-		return 0
+		// if both are zero then
+		return a.Value.Idx - b.Value.Idx
 	} else if aZero {
 		return 1
 	} else if bZero {
@@ -140,160 +164,11 @@ func (rd *readerConf) saveHMap(w http.ResponseWriter) (ok bool) {
 	return true
 }
 
-// this is for the 1st run
-var indexHiLock = struct {
-	// sync.Mutex
-	Called bool
-}{}
-
-func (rd *readerConf) HiIdxNewArrFromMap() []HiIdx {
-	him := make([]HiIdx, rd.hIdx.Len())
-	for i, e := range *rd.hIdx.Entries() {
-		him[i] = HiIdx{Word: e.Key, Index: map[string][]int{}, Peras: [][]ReaderWord{}}
-	}
-	return him
-}
-
-func (rd *readerConf) indexHiWordsForFirstRun() {
-	if indexHiLock.Called {
-		panic("indexHiWordsForFirstRun: was already called")
-	}
-	indexHiLock.Called = true
-
-	// if r, err := os.Open(rd.hIdxFilePath); err == nil {
-	// 	hiWordC := rd.hMap.Len()
-	// 	vals := make([]HiIdx, 0, rd.hIdx.Len())
-	// 	if err = json.NewDecoder(r).Decode(&vals); err == nil && len(vals) > 0 {
-	// 		for _, v := range vals {
-	// 			rd.hIdx.Set(v.Word, v)
-	// 		}
-	// 	}
-	// 	if len(vals) > 0 {
-	// 		fmt.Printf("INFO: Loaded %d values out of %d", len(vals), hiWordC)
-	// 		return
-	// 	}
-	// }
-
-	rd.RLock()
-	defer rd.RUnlock()
-
-	maxWorkers := min(runtime.NumCPU()*2, rd.enMap.Len())
-	jobs := make(chan string, maxWorkers)
-	done := make(chan []HiIdx)
-
-	for range min(maxWorkers, rd.enMap.Len()) {
-		narr := rd.HiIdxNewArrFromMap()
-		go func() {
-			for sha := range jobs {
-				_, val := rd.__indexHiIdx(sha, "", narr)
-				done <- val
-			}
-		}()
-	}
-
-	go func() {
-		for _, f := range *rd.enMap.Entries() {
-			jobs <- f.Value.Sha
-		}
-		close(jobs)
-	}()
-
-	collction := make([][]HiIdx, 0, rd.enMap.Len())
-	for range rd.enMap.Len() {
-		collction = append(collction, <-done)
-	}
-
-	mp := make(map[string]HiIdx, rd.hIdx.Len())
-	for _, val2 := range collction {
-		for _, val := range val2 {
-			h, found := mp[val.Word]
-			if !found {
-				h.Word = val.Word
-			}
-			for k, v := range h.Index {
-				v = append(v, val.Index[k]...)
-				h.Index[k] = v
-			}
-			h.MatchCound += val.MatchCound
-			h.Peras = append(h.Peras, val.Peras...)
-			mp[val.Word] = h
-		}
-	}
-
-	for k, v := range mp {
-		rd.hIdx.Set(k, v)
-	}
-
-	// go func() {
-	// 	fmt.Println("INFO: Cashing HiIdx")
-	// 	rd.cacheHIdx()
-	// }()
-}
-
-func (rd *readerConf) indexHiWordSafe(word string) {
-	rd.RLock()
-	defer rd.RUnlock()
-
-	maxWorkers := runtime.NumCPU() * 2
-	jobs := make(chan string, maxWorkers)
-	done := make(chan HiIdx)
-
-	for range maxWorkers {
-		go func() {
-			for sha := range jobs {
-				val, _ := rd.__indexHiIdx(sha, word, nil)
-				done <- val
-			}
-		}()
-	}
-
-	go func() {
-		for _, f := range *rd.enMap.Entries() {
-			jobs <- f.Value.Sha
-		}
-		close(jobs)
-	}()
-
-	collction := make([]HiIdx, 0, rd.enMap.Len())
-	for v := range done {
-		collction = append(collction, v)
-	}
-
-	for _, val := range collction {
-		h, _ := rd.hIdx.Get(val.Word)
-		for k, v := range h.Index {
-			v = append(v, val.Index[k]...)
-			h.Index[k] = v
-		}
-		h.MatchCound += val.MatchCound
-		h.Peras = append(h.Peras, val.Peras...)
-		rd.hIdx.Set(h.Word, h)
-	}
-}
-
-func (rd *readerConf) indexHiEnrySafe(sha string) {
-	rd.Lock()
-	defer rd.Unlock()
-
-	rd.indexHiEnry(sha)
-}
-
-func (rd *readerConf) indexHiEnry(sha string) {
-	_, arr := rd.__indexHiIdx(sha, "", rd.HiIdxNewArrFromMap())
-	for _, v := range arr {
-		rd.hIdx.Set(v.Word, v)
-	}
-}
-
+// in mem stuff should be quick
 func (rd *readerConf) indexHiEnryUpdateAfterDelSafe(sha string) {
 	rd.Lock()
 	defer rd.Unlock()
 
-	rd.indexHiEnryUpdateAfterDel(sha)
-}
-
-// TODO: this can be more optimized (ig)
-func (rd *readerConf) indexHiEnryUpdateAfterDel(sha string) {
 	rd.hIdx.UpdateDatas(
 		func(e ordmap.Entry[string, HiIdx]) ordmap.Entry[string, HiIdx] {
 			sIdxs, ok := e.Value.Index[sha]
@@ -320,21 +195,137 @@ func (rd *readerConf) indexHiEnryUpdateAfterDel(sha string) {
 	)
 }
 
-// it takes a sha (aka an entry file)
+func (rd *readerConf) indexHiWordSafe(word string) {
+	rd.Lock()
+	defer rd.Unlock()
+
+	rd.__indexHiWordsOrWordCocurrenty(word)
+}
+
+func (rd *readerConf) indexHiEnrySafe(sha string) {
+	rd.Lock()
+	defer rd.Unlock()
+
+	for _, res := range rd.____indexHiIdx(sha, rd.HiIdxNewArrFromMap()) {
+		h := rd.hIdx.GetMust(res.Word)
+		h.MatchCound += res.MatchCound
+		h.Peras = append(h.Peras, res.Peras...)
+		for k, v := range res.Index {
+			h.Index[k] = append(h.Index[k], v...)
+		}
+		rd.hIdx.Set(h.Word, h)
+	}
+}
+
+var indexHIdxAllCalled = false
+
+// this should not be called twise expensive func
+func (rd *readerConf) indexHIdxAll() {
+	if indexHIdxAllCalled {
+		panic("indexHIdxAll was called once")
+	}
+	indexHIdxAllCalled = true
+
+	// if r, err := os.Open(rd.hIdxFilePath); err == nil {
+	// 	hiWordC := rd.hMap.Len()
+	// 	vals := make([]HiIdx, 0, rd.hIdx.Len())
+	// 	if err = json.NewDecoder(r).Decode(&vals); err == nil && len(vals) > 0 {
+	// 		for _, v := range vals {
+	// 			rd.hIdx.Set(v.Word, v)
+	// 		}
+	// 	}
+	// 	if len(vals) > 0 {
+	// 		fmt.Printf("INFO: Loaded %d values out of %d", len(vals), hiWordC)
+	// 		return
+	// 	}
+	// }
+	rd.__indexHiWordsOrWordCocurrenty("")
+
+	// go func() {
+	// 	fmt.Println("INFO: Cashing HiIdx")
+	// 	rd.cacheHIdx()
+	// }()
+}
+
+// freshly allocated slice form hIdxMap
 //
-// if the word is provided then it will index only that word and the arrr
-// will be ignored
+// we need a copy of everything. deep cp
+func (rd *readerConf) HiIdxNewArrFromMap() []HiIdx {
+	him := make([]HiIdx, rd.hIdx.Len())
+	for i, e := range *rd.hIdx.Entries() {
+		him[i] = HiIdx{Word: e.Key, Index: map[string][]int{}, Peras: [][]ReaderWord{}}
+	}
+	return him
+}
+
+// don't call directly
 //
-// other wise the harr will be populated
-func (rd *readerConf) __indexHiIdx(sha string, word string, harr []HiIdx) (h HiIdx, him []HiIdx) {
-	if word == "" && len(harr) == 0 {
-		return
+// if _word == "" then it will index the intire hIdx
+func (rd *readerConf) __indexHiWordsOrWordCocurrenty(_word string) {
+
+	maxWorkers := min(runtime.NumCPU()*2, rd.enMap.Len())
+	jobs := make(chan string, maxWorkers)
+	done := make(chan []HiIdx)
+
+	for range min(maxWorkers, rd.enMap.Len()) {
+		var narr []HiIdx
+		if _word == "" {
+			narr = rd.HiIdxNewArrFromMap()
+		} else {
+			narr = []HiIdx{{Word: _word, Index: map[string][]int{}}}
+		}
+		go func() {
+			for sha := range jobs {
+				done <- rd.____indexHiIdx(sha, narr)
+			}
+		}()
+	}
+
+	go func() {
+		for _, f := range *rd.enMap.Entries() {
+			jobs <- f.Value.Sha
+		}
+		close(jobs)
+	}()
+
+	// i pass the same array to every one of the __index call
+	// so they are the the same
+	var nm []HiIdx
+	if _word == "" {
+		nm = rd.hIdx.Values()
+	} else {
+		nm = []HiIdx{{Word: _word, Index: map[string][]int{}}}
+	}
+	for range rd.enMap.Len() {
+		for i, res := range <-done {
+			h := nm[i]
+			h.MatchCound += res.MatchCound
+			h.Peras = append(h.Peras, res.Peras...)
+			for k, v := range res.Index {
+				h.Index[k] = append(h.Index[k], v...)
+			}
+			nm[i] = h
+		}
+	}
+
+	for _, v := range nm {
+		rd.hIdx.Set(v.Word, v)
+	}
+}
+
+// hiArr will be modified
+// and on err will return nil
+//
+// don't call direclty
+func (rd *readerConf) ____indexHiIdx(sha string, hiArr []HiIdx) []HiIdx {
+	if len(hiArr) == 0 {
+		return nil
 	}
 
 	fn := filepath.Join(rd.permDir, sha)
 	f, err := os.Open(fn)
 	if err != nil {
-		return
+		return nil
 	}
 
 	buf := getBuf()
@@ -345,25 +336,15 @@ func (rd *readerConf) __indexHiIdx(sha string, word string, harr []HiIdx) (h HiI
 	f.Close()
 
 	if !isMJENFile(buf.Bytes()) {
-		return
+		return nil
 	}
 
 	data := buf.Bytes()[len(magicValMJENnl):]
-	wordB := []byte(word)
-
-	if word != "" {
-		h.Word = word
-	} else {
-		him = make([]HiIdx, rd.hIdx.Len())
-		for i, e := range *rd.hIdx.Entries() {
-			him[i] = HiIdx{Word: e.Key, Index: map[string][]int{}, Peras: [][]ReaderWord{}}
-		}
-	}
 
 	// found in the current pera no need to look further
-	fset := make(map[string]struct{}, rd.hMap.Len())
+	fset := make(map[string]struct{}, len(hiArr))
 
-pera:
+	// line or pera
 	for l := range bytes.SplitSeq(data, []byte("\n\n")) {
 		l = bytes.TrimSpace(l)
 		if len(l) == 0 {
@@ -373,6 +354,7 @@ pera:
 
 		splitedLine := bytes.Split(l, []byte("\n"))
 
+		// word
 		for _, ww := range splitedLine {
 			ww = bytes.TrimSpace(ww)
 			if len(ww) == 0 {
@@ -383,30 +365,17 @@ pera:
 				continue // handle
 			}
 
-			// single word
-			if len(wordB) != 0 {
-				if bytes.Equal(s[0], wordB) {
-					h.fomatAndSetPera(sha, splitedLine, wordB)
-					// h will be set at the end of the func
-					continue pera // no need to look at this pera
-				}
-				continue
-			}
-
-			// full version
-			for i, e := range him {
+			for i, e := range hiArr {
 				word := e.Word
 				wordB := []byte(word)
+				// check if we have already added this pera
 				if _, ok := fset[word]; !ok && bytes.Equal(s[0], wordB) {
 					fset[word] = struct{}{}
 					e.fomatAndSetPera(sha, splitedLine, wordB)
-					him[i] = e
+					hiArr[i] = e
 				}
 			}
 		}
 	}
-	if word != "" {
-		return h, nil
-	}
-	return HiIdx{}, him
+	return hiArr
 }

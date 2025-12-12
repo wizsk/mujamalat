@@ -27,15 +27,17 @@ type readerConf struct {
 
 	hFilePath  string
 	enFilePath string
-	enMap      *ordmap.OrderedMap[string, EntryInfo] // sha
+	// enMap is saved manually to report the error to the user
+	enMap *ordmap.OrderedMap[string, EntryInfo] // sha
 
+	// hmap is saved manually to report the error to the user
 	hMap *ordmap.OrderedMap[string, HiWord]
 	hRev *ordmap.OrderedMap[string, HiWord] // the main purpose of it is to keep the. rev means review
 
 	// it's expensive to calculate
 	hIdx         *ordmap.OrderedMap[string, HiIdx]
 	hIdxFilePath string
-	hIdxFileMtx  sync.Mutex
+	// hIdxMtx      sync.RWMutex
 }
 
 func newReader(gc globalConf, t templateWraper) *readerConf {
@@ -94,7 +96,7 @@ func newReader(gc globalConf, t templateWraper) *readerConf {
 	// after successfull read idex hIdx
 	if rd.hMap.Len() > 0 {
 		then = time.Now()
-		rd.indexHiWordsForFirstRun()
+		rd.indexHIdxAll()
 		fmt.Println("INFO: Indexing took", time.Since(then))
 	}
 
@@ -120,7 +122,7 @@ func (rd *readerConf) addOnChangeListeners() {
 			}
 			rd.hRev.Set(e.Key, e.NewValue)
 			rd.hRev.Sort(hRevSortCmp)
-			rd.gc.dpf("hRev sorting after cng: %s", time.Since(n))
+			rd.gc.dpf("hRev sorting after cng took: %s", time.Since(n))
 
 		case ordmap.EventDelete:
 			rd.hIdx.Delete(e.Key)

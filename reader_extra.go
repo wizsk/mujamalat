@@ -122,6 +122,11 @@ func (rd *readerConf) highlightPost(w http.ResponseWriter, r *http.Request) {
 	} else {
 		// on add append
 		h := HiWord{Word: word}
+		// if there is at least one then 1 will be added
+		// otherwise defalut value is 0
+		if l, ok := rd.hMap.GetLast(); ok {
+			h.Idx = l.Idx + 1
+		}
 		rd.hMap.Set(word, h)
 
 		f, err := fetalErrVal(openAppend(rd.hFilePath))

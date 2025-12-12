@@ -22,9 +22,6 @@ func (rd *readerConf) hiMapStr() string {
 }
 
 func (rd *readerConf) cacheHIdx() {
-	rd.hIdxFileMtx.Lock()
-	defer rd.hIdxFileMtx.Lock()
-
 	if w, err := os.Create(rd.hIdxFilePath); err == nil {
 		je := json.NewEncoder(w)
 

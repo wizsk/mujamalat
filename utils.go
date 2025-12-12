@@ -175,7 +175,7 @@ func durToDHM(d time.Duration, past bool) (r string) {
 		r += "m"
 	}
 
-	if past {
+	if r != "" && past {
 		r += " ago"
 	}
 	return r

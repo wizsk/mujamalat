@@ -9,6 +9,7 @@ const (
 	EventUpdate
 	EventDelete
 	EventReset
+	EventSort
 )
 
 type Event[K comparable, V any] struct {

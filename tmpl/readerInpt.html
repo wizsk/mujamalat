@@ -155,7 +155,7 @@
             color: inherit;
             display: block;
             width: fit-content;
-            margin: 1rem auto;
+            margin: 0.3em auto;
             text-decoration: none;
 
             &:hover {
@@ -405,10 +405,10 @@
         }
 
         handle.addEventListener("mousedown", startDrag);
-        handle.addEventListener("touchstart", startDrag, { passive: false });
+        handle.addEventListener("touchstart", startDrag, {passive: false});
 
         window.addEventListener("mousemove", duringDrag);
-        window.addEventListener("touchmove", duringDrag, { passive: false });
+        window.addEventListener("touchmove", duringDrag, {passive: false});
 
         window.addEventListener("mouseup", stopDrag);
         window.addEventListener("touchend", stopDrag);
@@ -454,7 +454,7 @@
 
             fetch(url, {
                 method: "POST",
-                headers: { 'Content-Type': 'text/plain' },
+                headers: {'Content-Type': 'text/plain'},
                 body: val,
             }).then(async (res) => {
                 if (res.redirected) {
@@ -508,7 +508,7 @@
                 console.log(pName);
                 const c = confirm("هل تريد أن تمسح: " + pName + "؟");
                 if (!c) return;
-                fetch(cd.dataset.link, { method: "POST" })
+                fetch(cd.dataset.link, {method: "POST"})
                     .then(async (r) => {
                         if (r.ok && r.status === 202) {
                             histCS.innerText = `${--histC}`.replace(/[0-9]/g, (d) =>
@@ -548,8 +548,8 @@
                 const u = `/rd/entryEdit?sha=${p.dataset.sha}&pin=${npinned ? "true" : "false"}`;
                 let res = null;
                 try {
-                    res = await fetch(u, { method: 'POST' });
-                } catch (err) { console.error(err) }
+                    res = await fetch(u, {method: 'POST'});
+                } catch (err) {console.error(err)}
 
                 if (!res || !res.ok || res.status !== 202) {
                     alert("لم يتمكن من التثبيت/إلغاء التثبيت: " + pName);

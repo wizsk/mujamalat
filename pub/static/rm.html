@@ -1,0 +1,209 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Cache Annihilator - /dev/null for ServiceWorker</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: 'Courier New', monospace;
+            background: #0a0e27;
+            color: #00ff41;
+            min-height: 100vh;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            padding: 20px;
+        }
+
+        .container {
+            max-width: 600px;
+            width: 100%;
+            background: #1a1f3a;
+            border: 2px solid #00ff41;
+            border-radius: 8px;
+            padding: 40px;
+            box-shadow: 0 0 20px rgba(0, 255, 65, 0.3);
+        }
+
+        h1 {
+            font-size: 2em;
+            margin-bottom: 10px;
+            text-shadow: 0 0 10px #00ff41;
+        }
+
+        .subtitle {
+            color: #00cc33;
+            margin-bottom: 30px;
+            font-size: 0.9em;
+        }
+
+        .status {
+            background: #0f1424;
+            border: 1px solid #00ff41;
+            padding: 15px;
+            border-radius: 4px;
+            margin-bottom: 20px;
+            min-height: 60px;
+        }
+
+        .status-line {
+            margin: 5px 0;
+            display: flex;
+            align-items: center;
+        }
+
+        .status-line::before {
+            content: '> ';
+            color: #00ff41;
+            margin-right: 5px;
+        }
+
+        button {
+            background: #00ff41;
+            color: #0a0e27;
+            border: none;
+            padding: 15px 30px;
+            font-size: 1.1em;
+            font-family: 'Courier New', monospace;
+            font-weight: bold;
+            border-radius: 4px;
+            cursor: pointer;
+            width: 100%;
+            transition: all 0.3s;
+        }
+
+        button:hover:not(:disabled) {
+            background: #00cc33;
+            box-shadow: 0 0 15px rgba(0, 255, 65, 0.5);
+            transform: translateY(-2px);
+        }
+
+        button:disabled {
+            background: #555;
+            color: #888;
+            cursor: not-allowed;
+        }
+
+        .error {
+            color: #ff4444;
+        }
+
+        .success {
+            color: #00ff41;
+        }
+
+        .warning {
+            color: #ffaa00;
+        }
+
+        .info {
+            background: #0f1424;
+            border-left: 3px solid #00ff41;
+            padding: 15px;
+            margin-top: 20px;
+            font-size: 0.85em;
+            color: #00cc33;
+        }
+    </style>
+</head>
+
+<body>
+    <div class="container">
+        <h1>🗑️ Cache Annihilator</h1>
+        <p class="subtitle">rm -rf for your ServiceWorker cache</p>
+
+        <div class="status" id="status">
+            <div class="status-line">Initializing...</div>
+        </div>
+
+        <button id="clearBtn" onclick="nukeCache()">
+            PURGE CACHE
+        </button>
+
+        <div class="info">
+            <strong>⚠️ Warning:</strong> This will delete cache: <code>mujamalat--cache-v1</code><br>
+            Cached content from /content and /pub/ will be removed.
+        </div>
+    </div>
+
+    <script>
+        const statusEl = document.getElementById('status');
+        const clearBtn = document.getElementById('clearBtn');
+
+        function log(message, type = 'info') {
+            const line = document.createElement('div');
+            line.className = `status-line ${type}`;
+            line.textContent = message;
+            statusEl.appendChild(line);
+            statusEl.scrollTop = statusEl.scrollHeight;
+        }
+
+        function clearLog() {
+            statusEl.innerHTML = '';
+        }
+
+        // Check ServiceWorker status on load
+        window.addEventListener('load', () => {
+            clearLog();
+
+            if (!('serviceWorker' in navigator)) {
+                log('ServiceWorker not supported in this browser', 'error');
+                clearBtn.disabled = true;
+                return;
+            }
+
+            if (navigator.serviceWorker.controller) {
+                log('ServiceWorker active and ready', 'success');
+                log('Cache: mujamalat--cache-v1', 'info');
+            } else {
+                log('No active ServiceWorker found', 'warning');
+                log('Register your service worker first', 'warning');
+                clearBtn.disabled = true;
+            }
+        });
+
+        // Listen for responses from ServiceWorker
+        navigator.serviceWorker.addEventListener('message', event => {
+            if (event.data && event.data.action === 'cacheCleared') {
+                if (event.data.success) {
+                    log('✓ Cache successfully annihilated!', 'success');
+                    log('All cached data has been purged', 'success');
+                } else {
+                    log(`✗ Cache deletion failed: ${event.data.error}`, 'error');
+                }
+                clearBtn.disabled = false;
+                clearBtn.textContent = 'PURGE CACHE';
+            }
+        });
+
+        async function nukeCache() {
+            if (!navigator.serviceWorker.controller) {
+                log('No ServiceWorker controller available', 'error');
+                return;
+            }
+
+            clearLog();
+            log('Initiating cache purge...', 'warning');
+            clearBtn.disabled = true;
+            clearBtn.textContent = 'PURGING...';
+
+            // Send message to ServiceWorker
+            navigator.serviceWorker.controller.postMessage({
+                action: 'clearCache'
+            });
+
+            log('Command sent to ServiceWorker', 'info');
+            log('Awaiting confirmation...', 'info');
+        }
+    </script>
+</body>
+
+</html>

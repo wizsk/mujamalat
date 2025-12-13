@@ -109,7 +109,7 @@
         if ("serviceWorker" in navigator) {
             navigator.serviceWorker.register(
                 "/cache.js",
-                { scope: "/", },
+                {scope: "/", },
             ).then(r => console.log("SW Registered:", r)).
                 catch(e => console.log("SW Error:", e));
         } else console.log("no service worker");

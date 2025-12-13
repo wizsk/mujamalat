@@ -3,6 +3,10 @@ const CACHE_NAME = "mujamalat--cache-v1";
 function shouldCache(request) {
   try {
     const u = new URL(request.url);
+    if (u.pathname.startsWith('/pub/static')) {
+      return false;
+    }
+
     return u.pathname.startsWith('/content') || u.pathname.startsWith('/pub/');
   } catch {
     return false;
@@ -44,6 +48,36 @@ self.addEventListener('fetch', event => {
   })());
 });
 
+// Listen for messages to clear cache
+self.addEventListener('message', event => {
+  if (event.data && event.data.action === 'clearCache') {
+    event.waitUntil(
+      clearCache().then(() => {
+        // Notify the requesting client
+        if (event.source) {
+          event.source.postMessage({ action: 'cacheCleared', success: true });
+        }
+      }).catch(err => {
+        // Notify about error
+        if (event.source) {
+          event.source.postMessage({ action: 'cacheCleared', success: false, error: err.message });
+        }
+      })
+    );
+  }
+});
+
+async function clearCache() {
+  try {
+    const deleted = await caches.delete(CACHE_NAME);
+    console.log(`Cache ${CACHE_NAME} deleted:`, deleted);
+    return deleted;
+  } catch (err) {
+    console.error('Error clearing cache:', err);
+    throw err;
+  }
+}
+
 function cloneWithHeader(response, wasCached) {
   return new Response(response.body, {
     status: response.status,
@@ -54,4 +88,3 @@ function cloneWithHeader(response, wasCached) {
     }
   });
 }
-

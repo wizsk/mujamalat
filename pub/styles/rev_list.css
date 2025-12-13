@@ -11,6 +11,14 @@
 body {
     font-family: 'inter', 'font';
     text-align: left;
+
+    --font-size: 1.2rem;
+    font-size: var(--font-size);
+
+    @media (width < 768px) {
+        --font-size: 1rem;
+        font-size: var(--font-size);
+    }
 }
 
 nav {
@@ -21,30 +29,38 @@ nav {
 }
 
 main {
-    width: 95vw;
+    width: fit-content;
+    max-width: 95vw;
+    margin: 1rem auto;
     overflow-x: scroll;
 
     table {
-        padding: 1rem;
+        border-collapse: collapse;
+        padding: 0.5rem;
     }
 
     .row:hover {
         cursor: pointer;
         background-color:
-            color-mix(in srgb, var(--accent2), transparent 90%);
+            color-mix(in srgb, var(--accent2), transparent 95%);
     }
 
     td,
     th {
+        border: 1px solid #ccc;
         white-space: nowrap;
         padding: 0.5rem;
         text-align: center;
     }
 
+    [data-w] {
+        font-size: calc(var(--font-size) * 1.2);
+    }
+
     table thead,
     tr:nth-child(even) {
         background-color:
-            color-mix(in srgb, var(--accent), transparent 90%);
+            color-mix(in srgb, var(--accent-dark), transparent 95%);
     }
 
     button {
@@ -62,10 +78,90 @@ main {
     }
 }
 
-dialog[open] {
-    position: fixed;
-    top: 50%;
-    left: 50%;
-    transform: translate(-50%, -50%);
-    margin: 0;
+#dialog {
+    border: 1px solid #ccc;
+    border-radius: var(--border-radious);
+    background-color: var(--bg);
+    width: 90vw;
+    max-width: 600px;
+
+    &[open] {
+        position: fixed;
+        top: 50%;
+        left: 50%;
+        transform: translate(-50%, -50%);
+        margin: 0;
+        padding: 0;
+    }
+
+    aside {
+        display: flex;
+        flex-direction: column;
+        width: fit-content;
+        margin: 0 auto;
+        padding: 1rem;
+
+        #dw {
+            text-align: center;
+        }
+
+        >* {
+            padding: 0.5rem 0;
+        }
+
+        #dfd>div {
+            display: flex;
+            align-items: center;
+            gap: 0.5rem;
+            padding: 0.5rem 0;
+
+            &:first-of-type {
+                align-items: baseline;
+            }
+        }
+
+        #dfd input {
+            width: 100%;
+            background-color: var(--bg);
+            direction: ltr;
+            text-align: left;
+            max-width: 400px;
+        }
+
+        button {
+            color: inherit;
+            font-family: inherit;
+            background: var(--bg);
+            --_b: #4b4b4b;
+            border: 2px solid var(--_b);
+            border-radius: var(--border-radious);
+            padding: 0.5rem;
+
+            &:hover {
+                cursor: pointer;
+                background-color: var(--_b);
+                color: var(--bg);
+            }
+
+            &:focus-visible {
+                outline: none;
+                border: 2px solid var(--accent-dark);
+            }
+        }
+
+        .btn-c {
+            display: flex;
+            align-items: center;
+            justify-content: center;
+
+            button {
+                width: 100%;
+                max-width: 5rem;
+            }
+        }
+
+        form {
+            margin-top: 1rem;
+        }
+    }
 }

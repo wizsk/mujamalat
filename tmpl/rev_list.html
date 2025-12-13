@@ -4,6 +4,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <link rel="shortcut icon" href="/pub/fav.ico" type="image/x-icon">
     {{template "common-css"}}
     <link rel="stylesheet" href="/pub/styles/rev_list.css">
     <script src="/pub/js/rev_list.js" defer></script>
@@ -14,7 +15,9 @@
 
 <body>
     <nav>
-        <a class="nav-link" href="/rd/rev/">اذهب إلى قائمة المراجعة</a>
+        <a class="nav-link" href="/rd/rev/">
+            &larr; Go back to review page
+        </a>
     </nav>
 
     <main>
@@ -51,37 +54,39 @@
     </main>
 
     <dialog id="dialog">
-        <h3 id="dw"></h3>
-        <div id="dfd"> <!-- future div -->
-            <div>Due: <span id="df"></span></div>
-            <div>
-                <label for="dfs">Select days:</label> <!-- dialog future select ammount of days -->
-                <select name="dfs" id="dfs">
-                    <option value="7">7</option>
-                    <option value="10">10</option>
-                    <option value="15">15</option>
-                    <option value="20">20</option>
-                    <option value="25">25</option>
-                    <option value="30">30</option>
-                </select>
+        <aside>
+            <h3 id="dw"></h3>
+            <div id="dfd"> <!-- future div -->
+                <div>Due: <span id="df"></span></div>
+                <div>
+                    <label for="dfs">Set Due Day:</label> <!-- dialog future select ammount of days -->
+                    <select name="dfs" id="dfs">
+                        <option value="7">7</option>
+                        <option value="10">10</option>
+                        <option value="15">15</option>
+                        <option value="20">20</option>
+                        <option value="25">25</option>
+                        <option value="30">30</option>
+                    </select>
+                </div>
+                <div>
+                    <label for="dfi">Or:</label>
+                    <input class="input-style" id="dfi" placeholder="1-30 days" inputmode="numeric" />
+                </div>
+                <div class="btn-c">
+                    <button type="button" id="dfsave">Save</button>
+                    <button type="button" id="dfreset" class="btn-alrt">Reset</button><!-- d future reset -->
+                </div>
             </div>
-            <div>
-                <label for="dfi">Or:</label>
-                <input class="input-style" id="dfi" placeholder="1-30" inputmode="numeric" />
-            </div>
-            <div>
-                <button type="button" id="dfsave">Save</button>
-                <button type="button" id="dfreset">Reset</button><!-- d future reset -->
-            </div>
-        </div>
 
 
-        <div id="dp"></div>
-        <div>Visability touggle: <button id="dh"></button></div>
+            <div id="dp"></div>
+            <div>Visability: <button id="dh" class="btn-alrt"></button></div>
 
-        <form method="dialog">
-            <button>Close</button>
-        </form>
+            <form method="dialog" class="btn-c">
+                <button autofocus>Close</button>
+            </form>
+        </aside>
     </dialog>
 </body>
 

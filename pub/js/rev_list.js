@@ -81,9 +81,6 @@ function showModal(r) {
             return;
         }
 
-        isRequesting.set(true);
-        dfsave.innerText = "Saving…";
-
         let finalVal = ""
         if (dfi.value) {
             finalVal = dfi.value;
@@ -91,9 +88,13 @@ function showModal(r) {
             finalVal = dfs.value;
         } else {
             alert("Please select or enter ammount of days");
+            return;
         }
 
-        // save req
+        if (!confirm(`Do you want to set due day of ${word} ${finalVal} day${1 < finalVal ? "s" : ""} later?`)) return;
+
+        isRequesting.set(true);
+        dfsave.innerText = "Saving…";
 
         let res;
         try {
@@ -124,6 +125,8 @@ function showModal(r) {
             isRequesting.show();
             return;
         }
+        if (!confirm(`Do you want to reset due date of ${word}?`)) return;
+
         isRequesting.set(true);
         dfres.innerText = "Resetting…";
 
@@ -153,6 +156,8 @@ function showModal(r) {
             isRequesting.show();
             return;
         }
+        if (!confirm(`Do you want hide ${word}?`)) return;
+
         isRequesting.set(true);
 
         // optimistic

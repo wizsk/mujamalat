@@ -22,9 +22,14 @@ TagsD := -tags 'netgo'
 
 all: curr
 
+pi: pull install
+
 install: curr
 	@echo "INSTALLING TO" $(BIN_DIR)/$(APP_NAME)
 	@mv $(OUTPUT_DIR)/$(APP_NAME) $(BIN_DIR)/
+
+pull:
+	git pull
 
 curr:
 	@echo "Building satatic version for for current os"

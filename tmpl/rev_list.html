@@ -52,10 +52,10 @@
 
     <dialog id="dialog">
         <h3 id="dw"></h3>
-        <div>
+        <div id="dfd"> <!-- future div -->
             <div>Due: <span id="df"></span></div>
             <div>
-                <label for="dfs">Select days:</label>
+                <label for="dfs">Select days:</label> <!-- dialog future select ammount of days -->
                 <select name="dfs" id="dfs">
                     <option value="7">7</option>
                     <option value="10">10</option>
@@ -70,8 +70,8 @@
                 <input class="input-style" id="dfi" placeholder="1-30" inputmode="numeric" />
             </div>
             <div>
-                <button type="button">Save</button> <!-- d future reset -->
-                <button type="button" id="dfreset">Reset</button>
+                <button type="button" id="dfsave">Save</button>
+                <button type="button" id="dfreset">Reset</button><!-- d future reset -->
             </div>
         </div>
 

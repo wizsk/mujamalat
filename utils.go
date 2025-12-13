@@ -119,33 +119,39 @@ var tmplFuncs = template.FuncMap{
 		return intToArnum((n + 2) / 2)
 	},
 	// "dec":   func(a, b int) int { return a - b },
-	"arnum": intToArnum[int],
-	"fmtUnix": func(v int64) string {
-		if v <= 0 {
-			return ""
-		}
+	"arnum":   intToArnum[int],
+	"fmtUnix": fmtUnix,
+}
 
-		t := time.Unix(v, 0)
-		r := ""
+func fmtUnix(v int64) string {
+	if v <= 0 {
+		return ""
+	}
 
-		if v < time.Now().Unix() {
-			r = durToDHM(time.Since(t), true)
-		} else {
+	t := time.Unix(v, 0)
+	r := ""
 
-			r = durToDHM(time.Until(t), false)
+	if v < time.Now().Unix() {
+		r = durToDHM(time.Since(t), true)
+	} else {
 
-		}
+		r = durToDHM(time.Until(t), false)
 
-		dateTime := t.Format("02/01/06 3:04 PM")
-		if r == "" {
-			return dateTime
-		}
-		return fmt.Sprintf("%s (%s)", dateTime, r)
-	},
+	}
+
+	dateTime := t.Format("02/01/06 3:04 PM")
+	if r == "" {
+		return dateTime
+	}
+	return fmt.Sprintf("%s (%s)", dateTime, r)
 }
 
 func durToDHM(d time.Duration, past bool) (r string) {
 	d.Round(time.Minute)
+	if d <= 0 {
+		return ""
+	}
+
 	const Day = time.Hour * 24
 
 	days := d / Day
@@ -155,6 +161,15 @@ func durToDHM(d time.Duration, past bool) (r string) {
 	d -= hours * time.Hour
 
 	minutes := d / time.Minute
+	if minutes >= 58 {
+		hours += 1
+		minutes = 0
+	}
+
+	if hours == 24 {
+		days += 1
+		hours = 0
+	}
 
 	if days > 0 {
 		r += strconv.Itoa(int(days))

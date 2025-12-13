@@ -1,6 +1,7 @@
 package main
 
 import (
+	"fmt"
 	"net/http"
 	"slices"
 	"strconv"
@@ -95,8 +96,15 @@ func (rd *readerConf) revPagePost(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
+	api := r.FormValue("api") == "true"
+
 	switch {
 	case r.FormValue("after") != "":
+		if h.DontShow {
+			http.Error(w, "the word is hidden please unhide it", http.StatusBadGateway)
+			return
+		}
+
 		after := r.FormValue("after")
 		now := time.Now()
 
@@ -105,10 +113,6 @@ func (rd *readerConf) revPagePost(w http.ResponseWriter, r *http.Request) {
 			h.Past = now.Unix()
 			h.Future = now.Add(time.Minute * retryAfterMin).Unix()
 		case "reset":
-			if h.Future == 0 {
-				http.Error(w, "The word is hidden", http.StatusBadRequest)
-				return
-			}
 			h.Past = 0
 			h.Future = 0
 
@@ -120,13 +124,21 @@ func (rd *readerConf) revPagePost(w http.ResponseWriter, r *http.Request) {
 			}
 			h.Past = now.Unix()
 			h.Future = now.Add(time.Hour * 24 * time.Duration(days)).Unix()
+
+			if api {
+				w.WriteHeader(http.StatusAccepted)
+				w.Header().Add("Content-Type", "application/json")
+				fmt.Fprintf(w, `{"f": %q, "fu": %d,  "p": %q, "pu": %d}`,
+					fmtUnix(h.Future), h.Future, fmtUnix(h.Past), h.Past)
+
+			}
 		}
 
 		rd.hMap.Set(h.Word, h)
 		rd.saveHMap(w)
 
-	case r.FormValue("dontshow") != "":
-		if r.FormValue("dontshow") == "true" {
+	case r.FormValue("dont_show") != "":
+		if r.FormValue("dont_show") == "true" {
 			h.DontShow = true
 		} else {
 			h.DontShow = false
@@ -142,5 +154,9 @@ func (rd *readerConf) revPagePost(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	w.WriteHeader(http.StatusAccepted)
+	// when api it will be written there
+	if !api {
+		w.WriteHeader(http.StatusAccepted)
+	}
+
 }

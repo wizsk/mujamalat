@@ -202,10 +202,23 @@
 
 <div id="readerWrapper" class="{{if .RevMode}}hidden{{end}}">
     {{if or .RevMode (gt .HiIdx.MatchCount 0)}}
+
+    {{if .RevMode}}
     <hr>
+    {{end}}
+
     <h3 style="text-align: center; font-weight: bold;">
-        وجد
-        {{.HiIdx.MatchCount | arnum}}
+        {{- $n := .HiIdx.MatchCount -}}
+
+        {{- if eq $n 1 -}}
+        تم العثور على تطابق واحد
+        {{- else if eq $n 2 -}}
+        تم العثور على تطابقين
+        {{- else if and (ge $n 3) (le $n 10) -}}
+        تم العثور على {{ $n | arnum }} تطابقات
+        {{- else -}}
+        تم العثور على {{ $n | arnum }} تطابق
+        {{- end -}}
     </h3>
     <!-- fancy reader mode -->
     <style>

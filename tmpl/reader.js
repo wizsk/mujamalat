@@ -58,6 +58,13 @@ function openPopup(e) {
 
   const onlyAr = e.target.dataset.oar;
 
+  // if data-nohi is defined then don't show hi promt
+  if (e.target.dataset.nohi) {
+    highlight.classList.add("hidden");
+  } else {
+    highlight.classList.remove("hidden");
+  }
+
   if (e.target.classList.contains("hi")) {
     highlight.classList.add("alert");
   } else {

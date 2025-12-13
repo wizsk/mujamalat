@@ -152,10 +152,16 @@
         }
 
         .links {
+            color: inherit;
             display: block;
-            color: var(--accent-dark);
             width: fit-content;
             margin: 1rem auto;
+            text-decoration: none;
+
+            &:hover {
+                color: var(--accent-dark);
+            }
+
             /* text-decoration: none; */
         }
 
@@ -297,11 +303,16 @@
 
     <a href="/rd/highlist/" class="links">
         اذهب إلى قائمة الكلمات المميزة
+        &larr;
     </a>
     <a href="/" class="links">
         اذهب إلى القواميس
+        &larr;
     </a>
-    <a class="links" href="/rd/rev/">اذهب إلى قائمة المراجعة</a>
+    <a class="links" href="/rd/rev/">
+        اذهب إلى قائمة المراجعة
+        &larr;
+    </a>
 
     {{if .}}
     <main id="hist">

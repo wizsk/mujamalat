@@ -328,14 +328,32 @@
     <h3>روابط</h3>
     <hr />
 
-    <a class="readerMenuAnker" href="/rd/">- انتقل إلى مدخل القارئ</a>
-    <a class="readerMenuAnker" href="/"> - انتقل إلى القواميس</a>
-    <a class="readerMenuAnker" href="/rd/highlist/">- اذهب إلى قائمة الكلمات المميزة</a>
+    <a class="readerMenuAnker" href="/rd/">
+        انتقل إلى مدخل القارئ
+        &larr;
+    </a>
+    <a class="readerMenuAnker" href="/">
+        انتقل إلى القواميس
+        &larr;
+    </a>
+    <a class="readerMenuAnker" href="/rd/highlist/">
+        اذهب إلى قائمة الكلمات المميزة
+        &larr;
+    </a>
     {{if .RevMode}}
-    <a class="readerMenuAnker" href="/rd/rev/list">- اذهب إلى قائمة الكلمات</a>
+    <a class="readerMenuAnker" href="/rd/rev/list">
+        اذهب إلى قائمة الكلمات
+        &larr;
+    </a>
     {{else}}
-    <a class="readerMenuAnker" href="/rd/rev/">- اذهب إلى قائمة المراجعة</a>
-    <a class="readerMenuAnker" href="/rd/rev/list">- اذهب إلى قائمة الكلمات</a>
+    <a class="readerMenuAnker" href="/rd/rev/">
+        اذهب إلى قائمة المراجعة
+        &larr;
+    </a>
+    <a class="readerMenuAnker" href="/rd/rev/list">
+        اذهب إلى قائمة الكلمات
+        &larr;
+    </a>
     {{end}}
     <button class="btn close" onclick="window.history.back()">
         اغلق

@@ -76,7 +76,7 @@ func (rd *readerConf) revPage(w http.ResponseWriter, r *http.Request) {
 		idx, _ = rd.hIdx.Get(hw.Word)
 	}
 
-	readerConf := ReaderData{idx.Word, idx.Peras}
+	readerConf := ReaderData{Title: idx.Word}
 	tm := TmplData{Curr: "ar_en", Dicts: dicts, DictsMap: dictsMap, RD: readerConf, RDMode: true}
 	tm.RevMode = true
 	tm.HiIdx = idx

@@ -201,18 +201,41 @@
 {{define "reader"}}
 
 <div id="readerWrapper" class="{{if .RevMode}}hidden{{end}}">
-    {{if .RevMode}}
+    {{if or .RevMode (gt .HiIdx.MatchCount 0)}}
     <hr>
-    <div style="text-align: center; font-weight: bold;">
+    <h3 style="text-align: center; font-weight: bold;">
         وجد
-        {{.HiIdx.MatchCound | arnum}}
+        {{.HiIdx.MatchCount | arnum}}
+    </h3>
+    <!-- fancy reader mode -->
+    <style>
+        #title a {
+            text-decoration: none;
+            color: inherit;
+
+            &:hover {
+                color: var(--accent-dark);
+            }
+        }
+    </style>
+    <div id="reader">
+        {{range .HiIdx.Peras}}
+        <h3 id="title"><a href="/rd/{{.Sha}}" target="_blank">{{.Name}} &larr;</a></h3>
+        {{range $i, $p := .Peras}}
+        <div class="pera">
+            <hr>
+            {{- if add $i 1 | isodd -}}
+            <span class="poem-line-num">{{qasidaLine $i}}- </span>
+            {{- end}}
+            {{- range $p}}<span data-oar="{{.Oar}}" class="rWord {{if .IsHi}}hi{{end}}">{{.Og}}</span> {{end -}}
+        </div>
+        {{end}}
+        {{end}}
     </div>
-    {{end}}
+    {{else}}
+    <!-- regular reader mode -->
     <div id="reader">
         {{range $i, $p := .RD.Peras}}
-        {{if $.RevMode}}
-        <hr>
-        {{end}}
         <div class="pera">
             {{- if add $i 1 | isodd -}}
             <span class="poem-line-num">{{qasidaLine $i}}- </span>
@@ -221,6 +244,7 @@
         </div>
         {{end}}
     </div>
+    {{end}}
 </div>
 
 <dialog id="readerMenu">

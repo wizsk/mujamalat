@@ -28,10 +28,17 @@ type HiWord struct {
 type HiIdx struct {
 	Word string
 
-	// index of that file(sha) occurence int the Data
-	Index      map[string][]int
-	MatchCound int
-	Peras      [][]ReaderWord
+	// // index of that file(sha) occurence int the Data
+	// Index      map[string][]int
+	MatchCount int
+	PeraIdx    map[string]int
+	Peras      []HiIdxPera
+}
+
+type HiIdxPera struct {
+	Sha   string
+	Name  string
+	Peras [][]ReaderWord
 }
 
 func (h *HiWord) String() string {
@@ -96,8 +103,8 @@ func (rd *readerConf) loadHilightedWords() {
 			rd.hMap.Set(h.Word, h)
 			rd.hRev.Set(h.Word, h)
 			rd.hIdx.Set(h.Word, HiIdx{
-				Word:  h.Word,
-				Index: map[string][]int{},
+				Word:    h.Word,
+				PeraIdx: map[string]int{},
 			})
 		}
 		fmt.Println("INFO: Hilight loop took:", time.Since(n))
@@ -170,29 +177,19 @@ func (rd *readerConf) indexHiEnryUpdateAfterDelSafe(sha string) {
 	defer rd.Unlock()
 
 	rd.hIdx.UpdateDatas(
-		func(e ordmap.Entry[string, HiIdx]) ordmap.Entry[string, HiIdx] {
-			sIdxs, ok := e.Value.Index[sha]
-			if !ok || len(sIdxs) == 0 {
-				return e
+		func(e ordmap.Entry[string, HiIdx]) (ordmap.Entry[string, HiIdx], bool) {
+			idx, ok := e.Value.PeraIdx[sha]
+			if !ok {
+				return e, false
 			}
-			i := 0
-			curr := sIdxs[i]
-			for next := sIdxs[i]; next < len(e.Value.Peras); {
-				if len(sIdxs) > i && next == sIdxs[i] {
-					i++
-					next++
-					e.Value.MatchCound--
-					continue
-				}
-				e.Value.Peras[curr] = e.Value.Peras[next]
-				curr++
-				next++
+			copy(e.Value.Peras[idx:], e.Value.Peras[idx+1:])
+			e.Value.Peras = e.Value.Peras[:len(e.Value.Peras)-1]
+
+			for i := idx; i < len(e.Value.Peras); i++ {
+				e.Value.PeraIdx[e.Value.Peras[i].Sha] = i
 			}
-			e.Value.Peras = e.Value.Peras[:curr]
-			return e
-		},
-		nil,
-	)
+			return e, true
+		})
 }
 
 func (rd *readerConf) indexHiWordSafe(word string) {
@@ -202,18 +199,31 @@ func (rd *readerConf) indexHiWordSafe(word string) {
 	rd.__indexHiWordsOrWordCocurrenty(word)
 }
 
-func (rd *readerConf) indexHiEnrySafe(sha string) {
+func (rd *readerConf) indexHiEnrySafe(en EntryInfo) {
 	rd.Lock()
 	defer rd.Unlock()
 
-	for _, res := range rd.____indexHiIdx(sha, rd.HiIdxNewArrFromMap()) {
+	for _, res := range rd.____indexHiIdx(en, rd.HiIdxNewArrFromMap()) {
 		h := rd.hIdx.GetMust(res.Word)
-		h.MatchCound += res.MatchCound
-		h.Peras = append(h.Peras, res.Peras...)
-		for k, v := range res.Index {
-			h.Index[k] = append(h.Index[k], v...)
-		}
+		h.MatchCount += res.MatchCount
+		h.appendPeras(res.Peras)
 		rd.hIdx.Set(h.Word, h)
+	}
+}
+
+func (h *HiIdx) appendPera(v HiIdxPera) {
+	if idx, ok := h.PeraIdx[v.Sha]; ok {
+		h.Peras[idx].Peras = append(h.Peras[idx].Peras, v.Peras...)
+	} else {
+		h.Peras = append(h.Peras, v)
+		h.PeraIdx[v.Sha] = len(h.Peras) - 1
+	}
+
+}
+
+func (h *HiIdx) appendPeras(peras []HiIdxPera) {
+	for _, v := range peras {
+		h.appendPera(v)
 	}
 }
 
@@ -253,7 +263,11 @@ func (rd *readerConf) indexHIdxAll() {
 func (rd *readerConf) HiIdxNewArrFromMap() []HiIdx {
 	him := make([]HiIdx, rd.hIdx.Len())
 	for i, e := range *rd.hIdx.Entries() {
-		him[i] = HiIdx{Word: e.Key, Index: map[string][]int{}, Peras: [][]ReaderWord{}}
+		him[i] = HiIdx{
+			Word:    e.Key,
+			PeraIdx: map[string]int{},
+			Peras:   []HiIdxPera{},
+		}
 	}
 	return him
 }
@@ -264,7 +278,7 @@ func (rd *readerConf) HiIdxNewArrFromMap() []HiIdx {
 func (rd *readerConf) __indexHiWordsOrWordCocurrenty(_word string) {
 
 	maxWorkers := min(runtime.NumCPU()*2, rd.enMap.Len())
-	jobs := make(chan string, maxWorkers)
+	jobs := make(chan EntryInfo, maxWorkers)
 	done := make(chan []HiIdx)
 
 	for range min(maxWorkers, rd.enMap.Len()) {
@@ -272,18 +286,18 @@ func (rd *readerConf) __indexHiWordsOrWordCocurrenty(_word string) {
 		if _word == "" {
 			narr = rd.HiIdxNewArrFromMap()
 		} else {
-			narr = []HiIdx{{Word: _word, Index: map[string][]int{}}}
+			narr = []HiIdx{{Word: _word}}
 		}
 		go func() {
-			for sha := range jobs {
-				done <- rd.____indexHiIdx(sha, narr)
+			for en := range jobs {
+				done <- rd.____indexHiIdx(en, narr)
 			}
 		}()
 	}
 
 	go func() {
 		for _, f := range *rd.enMap.Entries() {
-			jobs <- f.Value.Sha
+			jobs <- f.Value
 		}
 		close(jobs)
 	}()
@@ -294,16 +308,13 @@ func (rd *readerConf) __indexHiWordsOrWordCocurrenty(_word string) {
 	if _word == "" {
 		nm = rd.hIdx.Values()
 	} else {
-		nm = []HiIdx{{Word: _word, Index: map[string][]int{}}}
+		nm = []HiIdx{{Word: _word}}
 	}
 	for range rd.enMap.Len() {
 		for i, res := range <-done {
 			h := nm[i]
-			h.MatchCound += res.MatchCound
-			h.Peras = append(h.Peras, res.Peras...)
-			for k, v := range res.Index {
-				h.Index[k] = append(h.Index[k], v...)
-			}
+			h.MatchCount += res.MatchCount
+			h.appendPeras(res.Peras)
 			nm[i] = h
 		}
 	}
@@ -317,12 +328,12 @@ func (rd *readerConf) __indexHiWordsOrWordCocurrenty(_word string) {
 // and on err will return nil
 //
 // don't call direclty
-func (rd *readerConf) ____indexHiIdx(sha string, hiArr []HiIdx) []HiIdx {
+func (rd *readerConf) ____indexHiIdx(en EntryInfo, hiArr []HiIdx) []HiIdx {
 	if len(hiArr) == 0 {
 		return nil
 	}
 
-	fn := filepath.Join(rd.permDir, sha)
+	fn := filepath.Join(rd.permDir, en.Sha)
 	f, err := os.Open(fn)
 	if err != nil {
 		return nil
@@ -371,7 +382,7 @@ func (rd *readerConf) ____indexHiIdx(sha string, hiArr []HiIdx) []HiIdx {
 				// check if we have already added this pera
 				if _, ok := fset[word]; !ok && bytes.Equal(s[0], wordB) {
 					fset[word] = struct{}{}
-					e.fomatAndSetPera(sha, splitedLine, wordB)
+					e.fomatAndSetPera(en, splitedLine, wordB)
 					hiArr[i] = e
 				}
 			}

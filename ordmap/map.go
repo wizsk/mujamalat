@@ -159,22 +159,19 @@ func (om *OrderedMap[K, V]) Reset() {
 	}
 }
 
-// cmp is nil then EventUpdate wont be called,
-// except on key change.
-//
-// eq(o, n) is like: o == n
-func (om *OrderedMap[K, V]) UpdateDatas(
-	up func(Entry[K, V]) Entry[K, V],
-	eq func(o, n V) bool,
-) {
+// up returns a bool if true only then updates the value.
+// which indiates the value has been changed
+func (om *OrderedMap[K, V]) UpdateDatas(up func(Entry[K, V]) (Entry[K, V], bool)) {
 	if len(om.data) == 0 {
 		return
-	} else if eq == nil {
-		eq = func(_, _ V) bool { return false }
 	}
 
 	for i, oe := range om.data {
-		ne := up(oe)
+		ne, ok := up(oe)
+
+		if !ok {
+			continue
+		}
 
 		if ne.Key != oe.Key {
 			delete(om.index, oe.Key)
@@ -184,14 +181,12 @@ func (om *OrderedMap[K, V]) UpdateDatas(
 		om.data[i] = ne
 
 		if len(om.listeners) > 0 {
-			if ne.Key != oe.Key || !eq(oe.Value, ne.Value) {
-				om.emit(Event[K, V]{
-					Type:     EventUpdate,
-					Key:      ne.Key,
-					OldValue: oe.Value,
-					NewValue: ne.Value,
-				})
-			}
+			om.emit(Event[K, V]{
+				Type:     EventUpdate,
+				Key:      ne.Key,
+				OldValue: oe.Value,
+				NewValue: ne.Value,
+			})
 		}
 	}
 }

@@ -1,5 +1,6 @@
 // don't remove
 // Create a reference for the Wake Lock.
+const readerPageR = /^\/rd\/sha256\/[a-fA-F0-9]{64}$/;
 let wakeLock = null;
 const wakelockOptn = document.getElementById("wakelock");
 let inactivityTimer = null;
@@ -333,36 +334,39 @@ document.addEventListener("DOMContentLoaded", () => {
   }
 });
 
-/** LSN = local storage name */
-function getScrollLSN() {
-  return `${window.location.pathname}-scroll`;
-}
 
-// {{if not .RevMode}}
-let saveTimeOutScroll;
-window.addEventListener("scroll", () => {
-  clearTimeout(saveTimeOutScroll);
-  saveTimeOutScroll = setTimeout(() => {
-    if (window.scrollY === 0) {
-      localStorage.removeItem(getScrollLSN());
-    } else {
-      localStorage.setItem(getScrollLSN(), window.scrollY);
-    }
-  }, 200);
-});
-
-window.addEventListener("load", () => {
-  const saved = localStorage.getItem(getScrollLSN());
-  if (saved !== null) {
-    setTimeout(() => {
-      window.scrollTo({
-        top: Number(saved),
-        behavior: "smooth",
-      });
-    }, 50);
+if (readerPageR.test(window.location.pathname)) {
+  /** LSN = local storage name */
+  function getScrollLSN() {
+    return `${window.location.pathname}-scroll`;
   }
-});
-// {{end}}
+
+  // {{if not .RevMode}}
+  let saveTimeOutScroll;
+  window.addEventListener("scroll", () => {
+    clearTimeout(saveTimeOutScroll);
+    saveTimeOutScroll = setTimeout(() => {
+      if (window.scrollY === 0) {
+        localStorage.removeItem(getScrollLSN());
+      } else {
+        localStorage.setItem(getScrollLSN(), window.scrollY);
+      }
+    }, 200);
+  });
+
+  window.addEventListener("load", () => {
+    const saved = localStorage.getItem(getScrollLSN());
+    if (saved !== null) {
+      setTimeout(() => {
+        window.scrollTo({
+          top: Number(saved),
+          behavior: "smooth",
+        });
+      }, 50);
+    }
+  });
+  // {{end}}
+}
 
 if ("wakeLock" in navigator) {
   async function requestWakeLock() {

@@ -32,7 +32,7 @@ func (rd *readerConf) highlightList(w http.ResponseWriter, r *http.Request) {
 	// case "most":
 	// 	for i := 0; i < rd.hMap.Len(); i++ {
 	// 		word := rd.hMap.GetIdxUnsafe(i).Word
-	// 		count := rd.hIdx.GetIdxUnsafe(i).Peras.MatchCound
+	// 		count := rd.hIdx.GetIdxUnsafe(i).Peras.MatchCount
 	// 		rw = append(rw, HighLightWord{
 	// 			Oar:   word,
 	// 			Count: count,
@@ -41,7 +41,7 @@ func (rd *readerConf) highlightList(w http.ResponseWriter, r *http.Request) {
 	// case "least":
 	// 	for i := rd.hMap.Len() - 1; i > -1; i-- {
 	// 		word := rd.hMap.GetIdxUnsafe(i).Word
-	// 		count := rd.hMap.GetIdxUnsafe(i).Peras.MatchCound
+	// 		count := rd.hMap.GetIdxUnsafe(i).Peras.MatchCount
 	// 		rw = append(rw, HighLightWord{
 	// 			Oar:   word,
 	// 			Count: count,
@@ -52,7 +52,7 @@ func (rd *readerConf) highlightList(w http.ResponseWriter, r *http.Request) {
 			word := rd.hMap.GetIdxKVUnsafe(i).Key
 			rw = append(rw, HighLightWord{
 				Oar:   word,
-				Count: rd.hIdx.GetIdxUnsafe(i).MatchCound,
+				Count: rd.hIdx.GetIdxUnsafe(i).MatchCount,
 			})
 		}
 	}
@@ -75,8 +75,9 @@ func (rd *readerConf) highlightWord(w http.ResponseWriter, r *http.Request) {
 	defer rd.RUnlock()
 
 	if idx, ok := rd.hIdx.Get(word); ok {
-		readerConf := ReaderData{idx.Word, idx.Peras}
+		readerConf := ReaderData{Title: idx.Word}
 		tm := TmplData{Curr: "ar_en", Dicts: dicts, DictsMap: dictsMap, RD: readerConf, RDMode: true}
+		tm.HiIdx = idx
 		if err := rd.t.ExecuteTemplate(w, mainTemplateName, &tm); debug && err != nil {
 			lg.Println(err)
 		}

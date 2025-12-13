@@ -112,7 +112,8 @@ func (rd *readerConf) addOnChangeListeners() {
 		n := time.Now()
 		switch e.Type {
 		case ordmap.EventInsert:
-			rd.hIdx.SetIfEmpty(e.Key, HiIdx{Word: e.Key})
+			rd.hIdx.SetIfEmpty(e.Key,
+				HiIdx{Word: e.Key, PeraIdx: map[string]int{}})
 			go rd.indexHiWordSafe(e.Key)
 
 			fallthrough
@@ -136,7 +137,7 @@ func (rd *readerConf) addOnChangeListeners() {
 	rd.enMap.OnChange(func(e ordmap.Event[string, EntryInfo]) {
 		switch e.Type {
 		case ordmap.EventInsert:
-			go rd.indexHiEnrySafe(e.Key)
+			go rd.indexHiEnrySafe(e.NewValue)
 
 		case ordmap.EventDelete:
 			go rd.indexHiEnryUpdateAfterDelSafe(e.Key)

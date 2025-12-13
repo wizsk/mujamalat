@@ -90,18 +90,18 @@ func newReader(gc globalConf, t templateWraper) *readerConf {
 		copyFile(rd.hFilePath, rd.hFilePath+".old")
 	}
 
-	then := time.Now()
+	thenMian := time.Now()
 	rd.loadHilightedWords()
 
 	// after successfull read idex hIdx
 	if rd.hMap.Len() > 0 {
-		then = time.Now()
+		then := time.Now()
 		rd.indexHIdxAll()
 		fmt.Println("INFO: Indexing took", time.Since(then))
 	}
 
 	rd.addOnChangeListeners()
-	fmt.Println("INFO: highlight and indexing loadtime:", time.Since(then).String())
+	fmt.Println("INFO: highlight and indexing loadtime:", time.Since(thenMian).String())
 
 	startCleanTmpPageDataTicker()
 	return &rd

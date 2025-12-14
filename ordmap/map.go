@@ -67,6 +67,22 @@ func (om *OrderedMap[K, V]) SetIfEmpty(k K, v V) {
 	om.Set(k, v)
 }
 
+func (om *OrderedMap[K, V]) Update(k K, v V) bool {
+	if !om.allowZero && isZero(k) {
+		return false
+	}
+
+	if idx, found := om.index[k]; found {
+		old := om.data[idx].Value
+		om.data[idx].Value = v
+		if len(om.listeners) > 0 {
+			om.emit(Event[K, V]{Type: EventUpdate, Key: k, OldValue: old, NewValue: v})
+		}
+		return true
+	}
+	return false
+}
+
 // Get returns the value for a key.
 func (om *OrderedMap[K, V]) Get(k K) (V, bool) {
 	if idx, found := om.index[k]; found {
@@ -200,8 +216,13 @@ func (om *OrderedMap[K, V]) Cap() int {
 }
 
 // Entries returns a reference to the slice (no copy).
-func (om *OrderedMap[K, V]) Entries() *[]Entry[K, V] {
-	return &om.data
+func (om *OrderedMap[K, V]) Entries() []Entry[K, V] {
+	return om.data
+}
+
+// Entries returns a reference to underlying map[k](index in the array) (no copy).
+func (om *OrderedMap[K, V]) IndexMap() map[K]int {
+	return om.index
 }
 
 // Keys returns ordered keys.

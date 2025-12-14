@@ -203,11 +203,16 @@ func (rd *readerConf) indexHiEnrySafe(en EntryInfo) {
 	rd.Lock()
 	defer rd.Unlock()
 
-	for _, res := range rd.____indexHiIdx(en, rd.HiIdxNewArrFromMap()) {
+	for _, res := range rd.____indexHiIdx(
+		en, rd.HiIdxNewArrFromMap(), rd.hIdx.IndexMap(),
+		make(map[string]struct{}, rd.hIdx.Len())) {
+
 		h := rd.hIdx.GetMust(res.Word)
 		h.MatchCount += res.MatchCount
 		h.appendPeras(res.Peras)
-		rd.hIdx.Set(h.Word, h)
+		if !rd.hIdx.Update(h.Word, h) {
+			panic("Update should never fail here")
+		}
 	}
 }
 
@@ -262,7 +267,7 @@ func (rd *readerConf) indexHIdxAll() {
 // we need a copy of everything. deep cp
 func (rd *readerConf) HiIdxNewArrFromMap() []HiIdx {
 	him := make([]HiIdx, rd.hIdx.Len())
-	for i, e := range *rd.hIdx.Entries() {
+	for i, e := range rd.hIdx.Entries() {
 		him[i] = HiIdx{
 			Word:    e.Key,
 			PeraIdx: map[string]int{},
@@ -276,11 +281,15 @@ func (rd *readerConf) HiIdxNewArrFromMap() []HiIdx {
 //
 // if _word == "" then it will index the intire hIdx
 func (rd *readerConf) __indexHiWordsOrWordCocurrenty(_word string) {
-
 	maxWorkers := min(runtime.NumCPU()*2, rd.enMap.Len())
 	jobs := make(chan EntryInfo, maxWorkers)
+
+	// do not buffer
 	done := make(chan []HiIdx)
 
+	// go routines count == maxWorkers
+	// we create new narr for every go routine
+	// and we modify, they needs cleaing
 	for range min(maxWorkers, rd.enMap.Len()) {
 		var narr []HiIdx
 		if _word == "" {
@@ -289,38 +298,58 @@ func (rd *readerConf) __indexHiWordsOrWordCocurrenty(_word string) {
 			narr = []HiIdx{{Word: _word}}
 		}
 		go func() {
+			dup := make(map[string]struct{}, len(narr))
+			var hiMap map[string]int
+			if len(narr) > 1 {
+				hiMap = rd.hIdx.IndexMap()
+			}
 			for en := range jobs {
-				done <- rd.____indexHiIdx(en, narr)
+				// here done is not buffered
+				// meaning it wont write to it before it was read
+				// after reading we start the process all over again
+				// with the same array. so, we need to clear the array
+				// dup map is cleared by the __index func it's self
+				// while we consume the array we clear it at the same time
+				// look bellow where we consume it
+				done <- rd.____indexHiIdx(en, narr, hiMap, dup)
 			}
 		}()
 	}
 
 	go func() {
-		for _, f := range *rd.enMap.Entries() {
+		for _, f := range rd.enMap.Entries() {
 			jobs <- f.Value
 		}
 		close(jobs)
 	}()
 
-	// i pass the same array to every one of the __index call
-	// so they are the the same
 	var nm []HiIdx
 	if _word == "" {
 		nm = rd.hIdx.Values()
 	} else {
 		nm = []HiIdx{{Word: _word}}
 	}
+
+	// we pass the copy of the same array to every
+	// __index call we can just use the indexes
 	for range rd.enMap.Len() {
-		for i, res := range <-done {
+		results := <-done
+		for i, res := range results {
 			h := nm[i]
 			h.MatchCount += res.MatchCount
 			h.appendPeras(res.Peras)
 			nm[i] = h
+			// we are (clearing aka) making the values to default for the next run
+			clear(results[i].PeraIdx)
+			results[i].Peras = results[i].Peras[:0]
 		}
 	}
+	close(done)
 
 	for _, v := range nm {
-		rd.hIdx.Set(v.Word, v)
+		if !rd.hIdx.Update(v.Word, v) {
+			panic("this should never fail")
+		}
 	}
 }
 
@@ -328,7 +357,7 @@ func (rd *readerConf) __indexHiWordsOrWordCocurrenty(_word string) {
 // and on err will return nil
 //
 // don't call direclty
-func (rd *readerConf) ____indexHiIdx(en EntryInfo, hiArr []HiIdx) []HiIdx {
+func (rd *readerConf) ____indexHiIdx(en EntryInfo, hiArr []HiIdx, idxs map[string]int, dup map[string]struct{}) []HiIdx {
 	if len(hiArr) == 0 {
 		return nil
 	}
@@ -353,19 +382,20 @@ func (rd *readerConf) ____indexHiIdx(en EntryInfo, hiArr []HiIdx) []HiIdx {
 	data := buf.Bytes()[len(magicValMJENnl):]
 
 	// found in the current pera no need to look further
-	fset := make(map[string]struct{}, len(hiArr))
 
 	// line or pera
+peras:
 	for l := range bytes.SplitSeq(data, []byte("\n\n")) {
 		l = bytes.TrimSpace(l)
 		if len(l) == 0 {
 			continue
 		}
-		clear(fset)
 
 		splitedLine := bytes.Split(l, []byte("\n"))
+		clear(dup)
 
 		// word
+	word:
 		for _, ww := range splitedLine {
 			ww = bytes.TrimSpace(ww)
 			if len(ww) == 0 {
@@ -376,13 +406,24 @@ func (rd *readerConf) ____indexHiIdx(en EntryInfo, hiArr []HiIdx) []HiIdx {
 				continue // handle
 			}
 
-			for i, e := range hiArr {
-				word := e.Word
-				wordB := []byte(word)
-				// check if we have already added this pera
-				if _, ok := fset[word]; !ok && bytes.Equal(s[0], wordB) {
-					fset[word] = struct{}{}
-					e.fomatAndSetPera(en, splitedLine, wordB)
+			w := string(s[0])
+
+			// single word optimization
+			if len(hiArr) == 1 {
+				if w == hiArr[0].Word {
+					e := hiArr[0]
+					e.fomatAndSetPera(en, splitedLine, s[0])
+					hiArr[0] = e
+					continue peras
+				}
+				continue word
+			}
+
+			if _, f := dup[w]; !f {
+				if i, ok := idxs[w]; ok {
+					dup[w] = struct{}{}
+					e := hiArr[i]
+					e.fomatAndSetPera(en, splitedLine, s[0])
 					hiArr[i] = e
 				}
 			}

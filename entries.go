@@ -55,6 +55,7 @@ func (rd *readerConf) saveEntriesFile(w http.ResponseWriter) bool {
 func (rd *readerConf) loadEntieslistAndEntries() error {
 	const sz = 50 // size
 	rd.enMap = ordmap.NewWithCap[string, EntryInfo](sz)
+	rd.enData = make(entryData, sz)
 
 	fileName := filepath.Join(rd.permDir, entriesFileName)
 	file, err := os.Open(fileName)
@@ -87,7 +88,9 @@ func (rd *readerConf) loadEntieslistAndEntries() error {
 		rd.enMap.Set(e.Sha, e)
 	}
 
-	rd.loadEntriesCocurrenty()
+	if rd.enMap.Len() > 0 {
+		rd.loadEntriesCocurrenty()
+	}
 	return nil
 }
 

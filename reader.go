@@ -28,7 +28,8 @@ type readerConf struct {
 	hFilePath  string
 	enFilePath string
 	// enMap is saved manually to report the error to the user
-	enMap *ordmap.OrderedMap[string, EntryInfo] // sha
+	enMap  *ordmap.OrderedMap[string, EntryInfo] // sha
+	enData entryData
 
 	// hmap is saved manually to report the error to the user
 	hMap *ordmap.OrderedMap[string, HiWord]
@@ -81,10 +82,12 @@ func newReader(gc globalConf, t templateWraper) *readerConf {
 		return &rd
 	}
 
-	if err := rd.loadEntieslist(); err != nil {
+	then := time.Now()
+	if err := rd.loadEntieslistAndEntries(); err != nil {
 		fmt.Printf("FETAL: while loading enties: %s\n", err)
 		os.Exit(1)
 	}
+	fmt.Println("INFO: loading entries took", time.Since(then))
 
 	if _, err := os.Stat(rd.hFilePath); t != nil && err == nil {
 		copyFile(rd.hFilePath, rd.hFilePath+".old")

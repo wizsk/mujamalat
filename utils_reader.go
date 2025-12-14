@@ -1,68 +1,11 @@
 package main
 
 import (
-	"bufio"
 	"bytes"
-	"fmt"
 	"net/http"
 
 	"os"
-	"path/filepath"
-
-	"github.com/wizsk/mujamalat/ordmap"
 )
-
-type EntryInfo struct {
-	Pin  bool // Archive
-	Sha  string
-	Name string
-}
-
-func (e *EntryInfo) String() string {
-	a := "0"
-	if e.Pin {
-		a = "1"
-	}
-	return fmt.Sprintf("%s:%s:%s", a, e.Sha, e.Name)
-}
-
-func (rd *readerConf) loadEntieslist() error {
-	const sz = 50 // size
-	rd.enMap = ordmap.NewWithCap[string, EntryInfo](sz)
-
-	fileName := filepath.Join(rd.permDir, entriesFileName)
-	file, err := os.Open(fileName)
-	if err != nil {
-		if os.IsNotExist(err) {
-			return nil
-		}
-		return err
-	}
-	defer file.Close()
-
-	s := bufio.NewScanner(file)
-	const itmc = 3 // entries items count
-	for i := 0; s.Scan(); i++ {
-		l := bytes.TrimSpace(s.Bytes())
-		if len(l) == 0 {
-			continue
-		}
-		b := bytes.SplitN(l, []byte{':'}, itmc)
-		if len(b) != itmc || len(b[0]) != 1 {
-			lg.Printf("Warn: malformed data:%s:%d: %s", fileName, i, s.Text())
-			continue
-		}
-
-		e := EntryInfo{
-			Pin:  b[0][0] == byte('1'),
-			Sha:  string(b[1]),
-			Name: string(b[2]),
-		}
-
-		rd.enMap.Set(e.Sha, e)
-	}
-	return nil
-}
 
 // if err then true
 func mkHistDirAll(d string, w http.ResponseWriter) bool {

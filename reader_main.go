@@ -1,8 +1,8 @@
 package main
 
 import (
-	"bytes"
-	"io"
+	"crypto/sha256"
+	"fmt"
 	"net/http"
 	"os"
 	"path/filepath"
@@ -32,58 +32,18 @@ func (rd *readerConf) page(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	fn := filepath.Join(rd.permDir, ei.Sha)
-	f, err := os.Open(fn)
-	if err != nil {
-		w.WriteHeader(http.StatusNotFound)
-		t.ExecuteTemplate(w, somethingWentWrong, &SomethingWentW{"Could not open/find page", "/rd/"})
-		lg.Printf("while opening %q: %s", fn, err)
-		return
-	}
-
-	buf := getBuf()
-	defer putBuf(buf)
-
-	buf.Reset()
-	io.Copy(buf, f)
-	f.Close()
-
-	if !isMJENFile(buf.Bytes()) {
-		t.ExecuteTemplate(w, somethingWentWrong, &SomethingWentW{"Please migrage the entry files", ""})
-		return
-	}
-
-	data := buf.Bytes()[len(magicValMJENnl):]
-
-	peras := [][]ReaderWord{}
-	for l := range bytes.SplitSeq(data, []byte("\n\n")) {
-		l = bytes.TrimSpace(l)
-		if len(l) == 0 {
-			continue
+	// copying
+	src := rd.enData[ei.Sha].Peras
+	data := make([][]ReaderWord, len(src))
+	for i, l := range src {
+		data[i] = make([]ReaderWord, len(l))
+		for j, w := range l {
+			w.IsHi = rd.hMap.IsSet(w.Oar)
+			data[i][j] = w
 		}
-		p := []ReaderWord{}
-		for ww := range bytes.SplitSeq(l, []byte("\n")) {
-			ww = bytes.TrimSpace(ww)
-			if len(ww) == 0 {
-				continue
-			}
-			s := bytes.SplitN(ww, []byte(":"), 2)
-			if len(s) != 2 {
-				// handle
-				continue
-			}
-
-			c := string(s[0])
-			p = append(p, ReaderWord{
-				Og:   string(s[1]),
-				Oar:  c,
-				IsHi: rd.hMap.IsSet(c),
-			})
-		}
-		peras = append(peras, p)
 	}
 
-	readerConf := ReaderData{ei.Name, peras}
+	readerConf := ReaderData{ei.Name, data}
 	tm := TmplData{Curr: "ar_en", Dicts: dicts, DictsMap: dictsMap, RD: readerConf, RDMode: true}
 	if err := t.ExecuteTemplate(w, mainTemplateName, &tm); debug && err != nil {
 		lg.Println(err)
@@ -91,35 +51,47 @@ func (rd *readerConf) page(w http.ResponseWriter, r *http.Request) {
 }
 
 func (rd *readerConf) post(w http.ResponseWriter, r *http.Request) {
-	sha, pageName, txt := rd.validatePostAnd(w, r)
-	if sha == "" || pageName == "" || txt == "" {
+	data := validatePagePostData(w, r)
+	if len(data) == 0 {
+		http.Error(w, "no data provided", http.StatusBadRequest)
 		return
 	}
 
-	d := rd.permDir
+	sha := fmt.Sprintf("%x", sha256.Sum256(data))
+	newUrl := "/rd/" + sha
 
+	rd.RLock()
+	isSet := rd.enMap.IsSet(sha)
+	rd.RUnlock()
+	if isSet {
+		http.Redirect(w, r, newUrl, http.StatusSeeOther)
+		return
+	}
+
+	buf := getBuf()
+	defer putBuf(buf)
+	formatInputText(data, buf)
+
+	en := EntryInfo{
+		Sha:  sha,
+		Name: rd.postPageName(data),
+		Pin:  false,
+	}
+
+	enData := rd.loadEntry(en, buf.Bytes())
+
+	// now lock for writing
 	rd.Lock()
 	defer rd.Unlock()
 
-	if mkHistDirAll(d, w) {
-		return
-	}
-
-	url := "/rd/" + sha
-	// exisits in the entris so skip writing
-	if rd.enMap.IsSet(sha) {
-		http.Redirect(w, r, url, http.StatusMovedPermanently)
-		return
-	}
-
-	f := filepath.Join(d, sha)
+	f := filepath.Join(rd.permDir, sha)
 	file, err := fetalErrVal(os.Create(f))
 	if err != nil {
 		http.Error(w, "Could not write to disk", http.StatusInternalServerError)
 		return
 	}
 
-	if !fetalErrOkD(file.WriteString(txt)) {
+	if !fetalErrOkD(file.WriteString(buf.String())) {
 		http.Error(w, "coun't write to disk", http.StatusInternalServerError)
 		return
 	}
@@ -132,19 +104,16 @@ func (rd *readerConf) post(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	e := EntryInfo{
-		Pin:  false,
-		Sha:  sha,
-		Name: pageName,
-	}
-
-	str := e.String() + "\n"
+	str := en.String() + "\n"
 	if !fetalErrOkD(entries.WriteString(str)) {
 		http.Error(w, "coun't write to disk", http.StatusInternalServerError)
 		return
 	}
 	entries.Close()
 
-	rd.enMap.Set(sha, e)
-	http.Redirect(w, r, url, http.StatusSeeOther)
+	// in mem chanages
+	rd.enMap.Set(sha, en)
+	rd.enData[en.Sha] = enData
+
+	http.Redirect(w, r, newUrl, http.StatusSeeOther)
 }

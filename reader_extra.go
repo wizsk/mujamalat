@@ -1,9 +1,7 @@
 package main
 
 import (
-	"bufio"
 	"bytes"
-	"crypto/sha256"
 	"fmt"
 	"io"
 	"net/http"
@@ -213,20 +211,7 @@ func (rd *readerConf) deletePage(w http.ResponseWriter, r *http.Request) {
 	}
 
 	rd.enMap.Delete(sha)
-
-	enTmp := rd.enFilePath + ".tmp"
-	enFile, err := fetalErrVal(os.Create(enTmp))
-	if err != nil {
-		http.Error(w, "something went wrong", http.StatusInternalServerError)
-		return
-	}
-	if !fetalErrOkD(enFile.WriteString(rd.enMapStr())) ||
-		!fetalErrOkD(enFile.WriteString("\n")) ||
-		!fetalErrOk(enFile.Close()) ||
-		!fetalErrOk(os.Rename(enTmp, rd.enFilePath)) {
-		http.Error(w, "something went wrong", http.StatusInternalServerError)
-		return
-	}
+	delete(rd.enData, sha)
 
 	f := filepath.Join(d, sha)
 	if err := os.Remove(f); err != nil && !os.IsNotExist(err) {
@@ -234,6 +219,11 @@ func (rd *readerConf) deletePage(w http.ResponseWriter, r *http.Request) {
 		lg.Printf("while deleting %q: %v", f, err)
 		return
 	}
+
+	if !rd.saveEntriesFile(w) {
+		return
+	}
+
 	w.WriteHeader(http.StatusAccepted)
 	fmt.Fprintf(w, "deleted: %q", sha)
 }
@@ -267,30 +257,11 @@ func validatePagePostData(w http.ResponseWriter, r *http.Request) (dataaaa []byt
 
 	return d
 }
-func (rc *readerConf) validatePostAnd(w http.ResponseWriter, r *http.Request) (sha, pageName, txt string) {
-	data := validatePagePostData(w, r)
-	if len(data) == 0 {
-		return
-	}
 
-	buf := getBuf()
-	defer putBuf(buf)
-
-	sha = fmt.Sprintf("%x", sha256.Sum256(data))
-	pageName = rc.postPageName(bytes.NewReader(data))
-
-	formatInputText(data, buf)
-	if buf.Len() > 0 {
-		txt = buf.String()
-	}
-	return
-}
-
-func (rc *readerConf) postPageName(r io.Reader) string {
+func (rc *readerConf) postPageName(data []byte) string {
 	pageName := ""
-	sc := bufio.NewScanner(r)
-	for sc.Scan() {
-		l := bytes.TrimSpace(sc.Bytes())
+	for l := range bytes.SplitSeq(data, []byte("\n")) {
+		l = bytes.TrimSpace(l)
 		if len(l) > 0 {
 			l := []rune(string(l))
 			if len(l) > pageNameMaxLen {

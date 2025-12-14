@@ -77,7 +77,7 @@ func (rd *readerConf) tmpPagePost(w http.ResponseWriter, r *http.Request) {
 	}
 
 	sha := fmt.Sprintf("%x", sha256.Sum256(data))
-	pageName := rd.postPageName(bytes.NewReader(data))
+	pageName := rd.postPageName(data)
 
 	tmpPageData.Lock()
 	tmpPageData.data[sha] = tmpPageEntry{

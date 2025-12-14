@@ -3,10 +3,8 @@ package main
 import (
 	"bytes"
 	"fmt"
-	"io"
 	"net/http"
 	"os"
-	"path/filepath"
 	"runtime"
 	"strconv"
 	"time"
@@ -36,8 +34,19 @@ type HiIdx struct {
 }
 
 type HiIdxPera struct {
-	Sha   string
+	Sha string
+	Idx []int
+}
+
+// this is used for template
+type HiIdxData struct {
+	HiIdx
+	Peras []HiIdxDataPera
+}
+
+type HiIdxDataPera struct {
 	Name  string
+	Sha   string
 	Peras [][]ReaderWord
 }
 
@@ -54,17 +63,6 @@ func (a *HiWord) Cmp(b HiWord) bool {
 	return a.Word == b.Word && a.Future == b.Future &&
 		a.Past == b.Past && a.DontShow == b.DontShow
 }
-
-// type HiIdxArr []HiIdx
-//
-// func (h HiIdxArr) String() string {
-// 	sb := strings.Builder{}
-// 	for _, v := range h {
-// 		sb.WriteString(v.String())
-// 		sb.WriteByte('\n')
-// 	}
-// 	return sb.String()
-// }
 
 func (rd *readerConf) loadHilightedWords() {
 	const ds = 100
@@ -171,6 +169,21 @@ func (rd *readerConf) saveHMap(w http.ResponseWriter) (ok bool) {
 	return true
 }
 
+// freshly allocated slice form hIdxMap
+//
+// we need a copy of everything. deep cp
+func (rd *readerConf) newHiIdxArrFromMap() []HiIdx {
+	him := make([]HiIdx, rd.hIdx.Len())
+	for i, e := range rd.hIdx.Entries() {
+		him[i] = HiIdx{
+			Word:    e.Key,
+			PeraIdx: map[string]int{},
+			Peras:   []HiIdxPera{},
+		}
+	}
+	return him
+}
+
 // in mem stuff should be quick
 func (rd *readerConf) indexHiEnryUpdateAfterDelSafe(sha string) {
 	rd.Lock()
@@ -183,7 +196,7 @@ func (rd *readerConf) indexHiEnryUpdateAfterDelSafe(sha string) {
 				return e, false
 			}
 
-			e.Value.MatchCount -= len(e.Value.Peras[idx].Peras)
+			e.Value.MatchCount -= len(e.Value.Peras[idx].Idx)
 
 			copy(e.Value.Peras[idx:], e.Value.Peras[idx+1:])
 			e.Value.Peras = e.Value.Peras[:len(e.Value.Peras)-1]
@@ -203,36 +216,20 @@ func (rd *readerConf) indexHiWordSafe(word string) {
 	rd.__indexHiWordsOrWordCocurrenty(word)
 }
 
-func (rd *readerConf) indexHiEnrySafe(en EntryInfo) {
+func (rd *readerConf) indexHiEnrySafe(en MEntry) {
 	rd.Lock()
 	defer rd.Unlock()
 
 	for _, res := range rd.____indexHiIdx(
-		en, rd.HiIdxNewArrFromMap(), rd.hIdx.IndexMap(),
+		en, rd.newHiIdxArrFromMap(), rd.hIdx.IndexMap(),
 		make(map[string]struct{}, rd.hIdx.Len())) {
 
 		h := rd.hIdx.GetMust(res.Word)
-		h.MatchCount += res.MatchCount
 		h.appendPeras(res.Peras)
+
 		if !rd.hIdx.Update(h.Word, h) {
 			panic("Update should never fail here")
 		}
-	}
-}
-
-func (h *HiIdx) appendPera(v HiIdxPera) {
-	if idx, ok := h.PeraIdx[v.Sha]; ok {
-		h.Peras[idx].Peras = append(h.Peras[idx].Peras, v.Peras...)
-	} else {
-		h.Peras = append(h.Peras, v)
-		h.PeraIdx[v.Sha] = len(h.Peras) - 1
-	}
-
-}
-
-func (h *HiIdx) appendPeras(peras []HiIdxPera) {
-	for _, v := range peras {
-		h.appendPera(v)
 	}
 }
 
@@ -245,40 +242,33 @@ func (rd *readerConf) indexHIdxAll() {
 	}
 	indexHIdxAllCalled = true
 
-	// if r, err := os.Open(rd.hIdxFilePath); err == nil {
-	// 	hiWordC := rd.hMap.Len()
-	// 	vals := make([]HiIdx, 0, rd.hIdx.Len())
-	// 	if err = json.NewDecoder(r).Decode(&vals); err == nil && len(vals) > 0 {
-	// 		for _, v := range vals {
-	// 			rd.hIdx.Set(v.Word, v)
-	// 		}
-	// 	}
-	// 	if len(vals) > 0 {
-	// 		fmt.Printf("INFO: Loaded %d values out of %d from %s\n", len(vals), hiWordC, rd.hIdxFilePath)
-	// 		return
-	// 	}
-	// }
-
 	rd.__indexHiWordsOrWordCocurrenty("")
-
-	// go func() {
-	// 	rd.cacheHIdx()
-	// }()
 }
 
-// freshly allocated slice form hIdxMap
-//
-// we need a copy of everything. deep cp
-func (rd *readerConf) HiIdxNewArrFromMap() []HiIdx {
-	him := make([]HiIdx, rd.hIdx.Len())
-	for i, e := range rd.hIdx.Entries() {
-		him[i] = HiIdx{
-			Word:    e.Key,
-			PeraIdx: map[string]int{},
-			Peras:   []HiIdxPera{},
-		}
+func (h *HiIdx) appendPeraIdx(sha string, indx int) {
+	h.MatchCount++
+	if _idx, ok := h.PeraIdx[sha]; ok {
+		h.Peras[_idx].Idx = append(h.Peras[_idx].Idx, indx)
+	} else {
+		h.Peras = append(h.Peras, HiIdxPera{sha, []int{indx}})
+		h.PeraIdx[sha] = len(h.Peras) - 1
 	}
-	return him
+}
+
+func (h *HiIdx) appendPera(v HiIdxPera) {
+	h.MatchCount += len(v.Idx)
+	if idx, ok := h.PeraIdx[v.Sha]; ok {
+		h.Peras[idx].Idx = append(h.Peras[idx].Idx, v.Idx...)
+	} else {
+		h.Peras = append(h.Peras, v)
+		h.PeraIdx[v.Sha] = len(h.Peras) - 1
+	}
+}
+
+func (h *HiIdx) appendPeras(peras []HiIdxPera) {
+	for _, v := range peras {
+		h.appendPera(v)
+	}
 }
 
 // don't call directly
@@ -297,7 +287,7 @@ func (rd *readerConf) __indexHiWordsOrWordCocurrenty(_word string) {
 	for range min(maxWorkers, rd.enMap.Len()) {
 		var narr []HiIdx
 		if _word == "" {
-			narr = rd.HiIdxNewArrFromMap()
+			narr = rd.newHiIdxArrFromMap()
 		} else {
 			narr = []HiIdx{{Word: _word, PeraIdx: map[string]int{}}}
 		}
@@ -315,7 +305,7 @@ func (rd *readerConf) __indexHiWordsOrWordCocurrenty(_word string) {
 				// dup map is cleared by the __index func it's self
 				// while we consume the array we clear it at the same time
 				// look bellow where we consume it
-				done <- rd.____indexHiIdx(en, narr, hiMap, dup)
+				done <- rd.____indexHiIdx(rd.enData[en.Sha], narr, hiMap, dup)
 			}
 		}()
 	}
@@ -340,12 +330,13 @@ func (rd *readerConf) __indexHiWordsOrWordCocurrenty(_word string) {
 		results := <-done
 		for i, res := range results {
 			h := nm[i]
-			h.MatchCount += res.MatchCount
 			h.appendPeras(res.Peras)
 			nm[i] = h
+
 			// we are (clearing aka) making the values to default for the next run
 			clear(results[i].PeraIdx)
 			results[i].Peras = results[i].Peras[:0]
+			results[i].MatchCount = 0
 		}
 	}
 	close(done)
@@ -361,73 +352,37 @@ func (rd *readerConf) __indexHiWordsOrWordCocurrenty(_word string) {
 // and on err will return nil
 //
 // don't call direclty
-func (rd *readerConf) ____indexHiIdx(en EntryInfo, hiArr []HiIdx, idxs map[string]int, dup map[string]struct{}) []HiIdx {
+// idxs word -> index in the hiArr for fast lookups
+func (rd *readerConf) ____indexHiIdx(ed MEntry, hiArr []HiIdx, idxs map[string]int, dup map[string]struct{}) []HiIdx {
 	if len(hiArr) == 0 {
 		return nil
 	}
-
-	fn := filepath.Join(rd.permDir, en.Sha)
-	f, err := os.Open(fn)
-	if err != nil {
-		return nil
-	}
-
-	buf := getBuf()
-	defer putBuf(buf)
-
-	buf.Reset()
-	io.Copy(buf, f)
-	f.Close()
-
-	if !isMJENFile(buf.Bytes()) {
-		return nil
-	}
-
-	data := buf.Bytes()[len(magicValMJENnl):]
 
 	// found in the current pera no need to look further
 
 	// line or pera
 peras:
-	for l := range bytes.SplitSeq(data, []byte("\n\n")) {
-		l = bytes.TrimSpace(l)
-		if len(l) == 0 {
-			continue
-		}
-
-		splitedLine := bytes.Split(l, []byte("\n"))
+	for line, l := range ed.Peras {
 		clear(dup)
-
-		// word
 	word:
-		for _, ww := range splitedLine {
-			ww = bytes.TrimSpace(ww)
-			if len(ww) == 0 {
-				continue
-			}
-			s := bytes.SplitN(ww, []byte(":"), 2)
-			if len(s) != 2 {
-				continue // handle
-			}
-
-			w := string(s[0])
-
+		for _, rw := range l {
 			// single word optimization
 			if len(hiArr) == 1 {
-				if w == hiArr[0].Word {
+				if rw.Oar == hiArr[0].Word {
 					e := hiArr[0]
-					e.fomatAndSetPera(en, splitedLine, s[0])
+					e.appendPeraIdx(ed.Sha, line)
 					hiArr[0] = e
 					continue peras
 				}
 				continue word
 			}
 
-			if _, f := dup[w]; !f {
-				if i, ok := idxs[w]; ok {
-					dup[w] = struct{}{}
+			// array of words
+			if _, f := dup[rw.Oar]; !f {
+				dup[rw.Oar] = struct{}{}
+				if i, ok := idxs[rw.Oar]; ok {
 					e := hiArr[i]
-					e.fomatAndSetPera(en, splitedLine, s[0])
+					e.appendPeraIdx(ed.Sha, line)
 					hiArr[i] = e
 				}
 			}

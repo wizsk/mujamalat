@@ -16,12 +16,13 @@ type TmplData struct {
 	Lisanularab       []Entry_lisanularab
 	Hanswehr          []Entry_eng
 	ArEn              []Entry_arEn
-	RD                ReaderData
-	HiIdx             HiIdx
 	RDMode            bool
-	RevMode           bool // review mode
-	RevData           RevData
-	DebugMode         bool
+	RD                ReaderData
+
+	HiIdx     HiIdxData
+	RevMode   bool // review mode
+	RevData   RevData
+	DebugMode bool
 }
 
 // dict names

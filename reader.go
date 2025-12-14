@@ -140,7 +140,7 @@ func (rd *readerConf) addOnChangeListeners() {
 	rd.enMap.OnChange(func(e ordmap.Event[string, EntryInfo]) {
 		switch e.Type {
 		case ordmap.EventInsert:
-			go rd.indexHiEnrySafe(e.NewValue)
+			go rd.indexHiEnrySafe(rd.enData[e.Key])
 
 		case ordmap.EventDelete:
 			go rd.indexHiEnryUpdateAfterDelSafe(e.Key)

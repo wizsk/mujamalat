@@ -97,32 +97,3 @@ func formatInputText(inpt []byte, buf *bytes.Buffer) {
 		buf.Reset()
 	}
 }
-
-func (hi *HiIdx) fomatAndSetPera(en EntryInfo, splitedLine [][]byte, wordB []byte) {
-	res := make([]ReaderWord, 0, len(splitedLine))
-	for _, w := range splitedLine {
-		w = bytes.TrimSpace(w)
-		if len(w) == 0 {
-			continue
-		}
-		s := bytes.SplitN(w, []byte(":"), 2)
-		if len(s) != 2 {
-			continue // handle
-		}
-
-		oar := string(s[0])
-		res = append(res, ReaderWord{
-			Og:   string(s[1]),
-			Oar:  oar,
-			IsHi: bytes.Equal(wordB, s[0]),
-		})
-	}
-
-	// new sha append
-	hi.MatchCount++
-	hi.appendPera(HiIdxPera{
-		Sha:   en.Sha,
-		Name:  en.Name,
-		Peras: [][]ReaderWord{res},
-	})
-}

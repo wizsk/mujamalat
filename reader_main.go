@@ -116,4 +116,5 @@ func (rd *readerConf) post(w http.ResponseWriter, r *http.Request) {
 	rd.enData[en.Sha] = enData
 
 	http.Redirect(w, r, newUrl, http.StatusSeeOther)
+	// go rd.indexHiEnrySafe(enData) // enMap.Onchage
 }

@@ -79,7 +79,7 @@ func (rd *readerConf) revPage(w http.ResponseWriter, r *http.Request) {
 	readerConf := ReaderData{Title: idx.Word}
 	tm := TmplData{Curr: "ar_en", Dicts: dicts, DictsMap: dictsMap, RD: readerConf, RDMode: true}
 	tm.RevMode = true
-	tm.HiIdx = idx
+	// tm.HiIdx = idx
 	tm.RevData = rv
 	if err := rd.t.ExecuteTemplate(w, mainTemplateName, &tm); debug && err != nil {
 		lg.Println(err)

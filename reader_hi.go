@@ -182,9 +182,13 @@ func (rd *readerConf) indexHiEnryUpdateAfterDelSafe(sha string) {
 			if !ok {
 				return e, false
 			}
+
+			e.Value.MatchCount -= len(e.Value.Peras[idx].Peras)
+
 			copy(e.Value.Peras[idx:], e.Value.Peras[idx+1:])
 			e.Value.Peras = e.Value.Peras[:len(e.Value.Peras)-1]
 
+			delete(e.Value.PeraIdx, sha)
 			for i := idx; i < len(e.Value.Peras); i++ {
 				e.Value.PeraIdx[e.Value.Peras[i].Sha] = i
 			}
@@ -295,7 +299,7 @@ func (rd *readerConf) __indexHiWordsOrWordCocurrenty(_word string) {
 		if _word == "" {
 			narr = rd.HiIdxNewArrFromMap()
 		} else {
-			narr = []HiIdx{{Word: _word}}
+			narr = []HiIdx{{Word: _word, PeraIdx: map[string]int{}}}
 		}
 		go func() {
 			dup := make(map[string]struct{}, len(narr))
@@ -327,7 +331,7 @@ func (rd *readerConf) __indexHiWordsOrWordCocurrenty(_word string) {
 	if _word == "" {
 		nm = rd.hIdx.Values()
 	} else {
-		nm = []HiIdx{{Word: _word}}
+		nm = []HiIdx{{Word: _word, PeraIdx: map[string]int{}}}
 	}
 
 	// we pass the copy of the same array to every

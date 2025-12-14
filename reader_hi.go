@@ -319,26 +319,25 @@ func (rd *readerConf) __indexHiWordsOrWordCocurrenty(_word string) {
 	// we create new narr for every go routine
 	// and we modify, they needs cleaing
 	for range min(maxWorkers, rd.enMap.Len()) {
-		var narr []HiIdx
+		var dup map[string]struct{}
 		if _word == "" {
-			narr = rd.newHiIdxArrFromMap()
-		} else {
-			narr = []HiIdx{{Word: _word, PeraIdx: map[string]int{}}}
+			// it's not retured
+			dup = make(map[string]struct{}, rd.hIdx.Len())
+		}
+		var hiMap map[string]int
+		if rd.hIdx.Len() > 1 {
+			hiMap = rd.hIdx.IndexMap()
 		}
 		go func() {
-			dup := make(map[string]struct{}, len(narr))
-			var hiMap map[string]int
-			if len(narr) > 1 {
-				hiMap = rd.hIdx.IndexMap()
-			}
 			for en := range jobs {
-				// here done is not buffered
-				// meaning it wont write to it before it was read
-				// after reading we start the process all over again
-				// with the same array. so, we need to clear the array
-				// dup map is cleared by the __index func it's self
-				// while we consume the array we clear it at the same time
-				// look bellow where we consume it
+				// we are writing and reading to narr. we have to
+				// a new copy eatch time.
+				var narr []HiIdx
+				if _word == "" {
+					narr = rd.newHiIdxArrFromMap()
+				} else {
+					narr = []HiIdx{{Word: _word, PeraIdx: map[string]int{}}}
+				}
 				done <- rd.____indexHiIdx(rd.enData[en.Sha], narr, hiMap, dup)
 			}
 		}()
@@ -366,11 +365,10 @@ func (rd *readerConf) __indexHiWordsOrWordCocurrenty(_word string) {
 			h := nm[i]
 			h.appendPeras(res.Peras)
 			nm[i] = h
-
 			// we are (clearing aka) making the values to default for the next run
-			clear(results[i].PeraIdx)
-			results[i].Peras = results[i].Peras[:0]
-			results[i].MatchCount = 0
+			// clear(results[i].PeraIdx)
+			// results[i].Peras = results[i].Peras[:0]
+			// results[i].MatchCount = 0
 		}
 	}
 	close(done)

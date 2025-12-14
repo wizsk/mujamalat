@@ -138,7 +138,6 @@ func main() {
 			"file:"+unzipAndWriteDb()+"?mode=ro&_query_only=1&cache=shared"))
 		done <- struct{}{}
 	}()
-	defer db.Close()
 
 	go func() {
 		arEnDict = MakeArEnDict()

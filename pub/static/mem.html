@@ -1,0 +1,316 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Go Memory Monitor</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: 'Courier New', monospace;
+            background: #0f172a;
+            color: #e2e8f0;
+            padding: 20px;
+            line-height: 1.6;
+        }
+
+        .container {
+            max-width: 900px;
+            margin: 0 auto;
+        }
+
+        h1 {
+            font-size: 24px;
+            margin-bottom: 24px;
+            color: #10b981;
+            border-bottom: 2px solid #334155;
+            padding-bottom: 12px;
+        }
+
+        .controls {
+            background: #1e293b;
+            padding: 16px;
+            border-radius: 8px;
+            margin-bottom: 24px;
+            border: 1px solid #334155;
+        }
+
+        .control-row {
+            display: flex;
+            gap: 20px;
+            margin-bottom: 12px;
+            align-items: center;
+        }
+
+        label {
+            color: #94a3b8;
+            min-width: 120px;
+        }
+
+        select {
+            background: #0f172a;
+            color: #e2e8f0;
+            border: 1px solid #334155;
+            padding: 8px 12px;
+            border-radius: 6px;
+            font-family: 'Courier New', monospace;
+        }
+
+        .stats {
+            background: #1e293b;
+            padding: 20px;
+            border-radius: 8px;
+            border: 1px solid #334155;
+            margin-bottom: 24px;
+        }
+
+        .stats h2 {
+            color: #10b981;
+            font-size: 18px;
+            margin-bottom: 16px;
+        }
+
+        .stat-line {
+            display: flex;
+            justify-content: space-between;
+            padding: 8px 0;
+            border-bottom: 1px solid #334155;
+        }
+
+        .stat-line:last-child {
+            border-bottom: none;
+        }
+
+        .stat-label {
+            color: #94a3b8;
+        }
+
+        .stat-value {
+            color: #10b981;
+            font-weight: bold;
+        }
+
+        .history {
+            background: #1e293b;
+            padding: 20px;
+            border-radius: 8px;
+            border: 1px solid #334155;
+            max-height: 500px;
+            overflow-y: auto;
+        }
+
+        .history h2 {
+            color: #10b981;
+            font-size: 18px;
+            margin-bottom: 16px;
+            sticky: top;
+        }
+
+        .history-item {
+            padding: 12px;
+            margin-bottom: 8px;
+            background: #0f172a;
+            border-radius: 6px;
+            border-left: 3px solid #3b82f6;
+        }
+
+        .history-time {
+            color: #3b82f6;
+            font-weight: bold;
+            margin-bottom: 8px;
+        }
+
+        .history-data {
+            font-size: 13px;
+            color: #cbd5e1;
+        }
+
+        .last-updated {
+            text-align: center;
+            margin-top: 16px;
+            color: #64748b;
+            font-size: 12px;
+        }
+
+        ::-webkit-scrollbar {
+            width: 8px;
+        }
+
+        ::-webkit-scrollbar-track {
+            background: #0f172a;
+        }
+
+        ::-webkit-scrollbar-thumb {
+            background: #334155;
+            border-radius: 4px;
+        }
+
+        ::-webkit-scrollbar-thumb:hover {
+            background: #475569;
+        }
+    </style>
+</head>
+
+<body>
+    <div class="container">
+        <h1>⚡ Go Runtime Memory Monitor</h1>
+
+        <div class="controls">
+            <div class="control-row">
+                <label>Refresh Interval:</label>
+                <select id="refreshInterval">
+                    <option value="1000">1 second</option>
+                    <option value="2000" selected>2 seconds</option>
+                    <option value="3000">3 seconds</option>
+                    <option value="5000">5 seconds</option>
+                    <option value="10000">10 seconds</option>
+                </select>
+            </div>
+            <div class="control-row">
+                <label>Time Range:</label>
+                <select id="timeRange">
+                    <option value="5m">Last 5 minutes</option>
+                    <option value="15m">Last 15 minutes</option>
+                    <option value="30m">Last 30 minutes</option>
+                    <option value="1h" selected>Last 1 hour</option>
+                </select>
+            </div>
+        </div>
+
+        <div class="stats">
+            <h2>Current Memory Stats</h2>
+            <div class="stat-line">
+                <span class="stat-label">Current Allocation:</span>
+                <span class="stat-value"><span id="currentAlloc">0</span> MB</span>
+            </div>
+            <div class="stat-line">
+                <span class="stat-label">Total Allocated:</span>
+                <span class="stat-value"><span id="totalAlloc">0</span> MB</span>
+            </div>
+            <div class="stat-line">
+                <span class="stat-label">System Memory:</span>
+                <span class="stat-value"><span id="sysMem">0</span> MB</span>
+            </div>
+            <div class="stat-line">
+                <span class="stat-label">Heap Allocated:</span>
+                <span class="stat-value"><span id="heapAlloc">0</span> MB</span>
+            </div>
+            <div class="stat-line">
+                <span class="stat-label">Heap System:</span>
+                <span class="stat-value"><span id="heapSys">0</span> MB</span>
+            </div>
+            <div class="stat-line">
+                <span class="stat-label">Heap In-Use:</span>
+                <span class="stat-value"><span id="heapInuse">0</span> MB</span>
+            </div>
+            <div class="stat-line">
+                <span class="stat-label">Heap Idle:</span>
+                <span class="stat-value"><span id="heapIdle">0</span> MB</span>
+            </div>
+            <div class="stat-line">
+                <span class="stat-label">GC Count:</span>
+                <span class="stat-value"><span id="gcCount">0</span></span>
+            </div>
+            <div class="stat-line">
+                <span class="stat-label">Last GC Pause:</span>
+                <span class="stat-value"><span id="gcPause">0</span> ms</span>
+            </div>
+        </div>
+
+        <div class="history">
+            <h2>Memory History</h2>
+            <div id="historyContainer"></div>
+        </div>
+
+        <div class="last-updated">Last updated: <span id="lastUpdated">-</span></div>
+    </div>
+
+    <script>
+        let refreshTimer;
+
+        function bytesToMB(bytes) {
+            return (bytes / 1024 / 1024).toFixed(2);
+        }
+
+        function formatTime(timestamp) {
+            const date = new Date(timestamp);
+            return date.toLocaleTimeString();
+        }
+
+        function updateStats(data) {
+            if (!data || data.length === 0) return;
+
+            const latest = data[data.length - 1];
+            document.getElementById('currentAlloc').textContent = bytesToMB(latest.alloc);
+            document.getElementById('totalAlloc').textContent = bytesToMB(latest.totalAlloc);
+            document.getElementById('sysMem').textContent = bytesToMB(latest.sys);
+            document.getElementById('heapAlloc').textContent = bytesToMB(latest.heapAlloc);
+            document.getElementById('heapSys').textContent = bytesToMB(latest.heapSys);
+            document.getElementById('heapInuse').textContent = bytesToMB(latest.heapInuse);
+            document.getElementById('heapIdle').textContent = bytesToMB(latest.heapIdle);
+            document.getElementById('gcCount').textContent = latest.numGC;
+            document.getElementById('gcPause').textContent = latest.gcPauseMs.toFixed(2);
+            document.getElementById('lastUpdated').textContent = formatTime(latest.timestamp);
+        }
+
+        function updateHistory(data) {
+            const container = document.getElementById('historyContainer');
+            container.innerHTML = '';
+
+            // Show last 20 entries, newest first
+            const recentData = data.slice(-20).reverse();
+
+            recentData.forEach(item => {
+                const div = document.createElement('div');
+                div.className = 'history-item';
+                div.innerHTML = `
+                    <div class="history-time">${formatTime(item.timestamp)}</div>
+                    <div class="history-data">
+                        Alloc: ${bytesToMB(item.alloc)} MB |
+                        Sys: ${bytesToMB(item.sys)} MB |
+                        HeapInuse: ${bytesToMB(item.heapInuse)} MB |
+                        GC: ${item.numGC}
+                    </div>
+                `;
+                container.appendChild(div);
+            });
+        }
+
+        async function fetchData() {
+            try {
+                const timeRange = document.getElementById('timeRange').value;
+                const response = await fetch(`/mem?api=true&duration=${timeRange}`);
+                const result = await response.json();
+
+                if (result.data && result.data.length > 0) {
+                    updateStats(result.data);
+                    updateHistory(result.data);
+                }
+            } catch (error) {
+                console.error('Failed to fetch memory data:', error);
+                document.getElementById('lastUpdated').textContent = 'Error fetching data';
+            }
+        }
+
+        function startRefresh() {
+            clearInterval(refreshTimer);
+            const interval = parseInt(document.getElementById('refreshInterval').value);
+            fetchData();
+            refreshTimer = setInterval(fetchData, interval);
+        }
+
+        document.getElementById('refreshInterval').addEventListener('change', startRefresh);
+        document.getElementById('timeRange').addEventListener('change', fetchData);
+
+        // Start monitoring
+        startRefresh();
+    </script>
+</body>
+
+</html>

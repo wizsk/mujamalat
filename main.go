@@ -203,6 +203,10 @@ func main() {
 		printVersionWritter(w)
 	})
 
+	// if debug || rd.gc.debug {
+	// 	SetupMemoryHandlers(mux)
+	// }
+
 	var mw http.Handler = mux
 
 	if gc.pass != "" {

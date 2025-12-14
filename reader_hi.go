@@ -64,6 +64,40 @@ func (a *HiWord) Cmp(b HiWord) bool {
 		a.Past == b.Past && a.DontShow == b.DontShow
 }
 
+func (rd *readerConf) getHiIdxData(hIdx HiIdx) HiIdxData {
+	if hIdx.Word == "" {
+		return HiIdxData{}
+	}
+
+	hid := HiIdxData{
+		HiIdx: hIdx,
+	}
+	peras := make([]HiIdxDataPera, len(hIdx.Peras))
+	for i, p := range hIdx.Peras {
+		en := rd.enData[p.Sha]
+		hd := HiIdxDataPera{
+			Sha:  en.Sha,
+			Name: en.Name,
+		}
+		cp := make([][]ReaderWord, len(p.Idx))
+		for j, idx := range p.Idx {
+			cp[j] = make([]ReaderWord, len(en.Peras[idx]))
+			copy(cp[j], en.Peras[idx])
+			for k, v := range cp[j] {
+				if v.Oar == hIdx.Word {
+					cp[j][k].IsHi = true
+				}
+			}
+		}
+		hd.Peras = cp
+		peras[i] = hd
+	}
+
+	hid.Peras = peras
+
+	return hid
+}
+
 func (rd *readerConf) loadHilightedWords() {
 	const ds = 100
 	rd.hMap = ordmap.NewWithCap[string, HiWord](ds)

@@ -76,43 +76,7 @@ func (rd *readerConf) highlightWord(w http.ResponseWriter, r *http.Request) {
 		readerConf := ReaderData{Title: hIdx.Word}
 
 		tm := TmplData{Curr: "ar_en", Dicts: dicts, DictsMap: dictsMap, RD: readerConf, RDMode: true}
-		hid := HiIdxData{
-			HiIdx: hIdx,
-		}
-
-		peras := make([]HiIdxDataPera, len(hIdx.Peras))
-		for i, p := range hIdx.Peras {
-			en := rd.enData[p.Sha]
-			hd := HiIdxDataPera{
-				Sha:  en.Sha,
-				Name: en.Name,
-			}
-			cp := make([][]ReaderWord, len(p.Idx))
-			for j, idx := range p.Idx {
-				cp[j] = make([]ReaderWord, len(en.Peras[idx]))
-				copy(cp[j], en.Peras[idx])
-				for k, v := range cp[j] {
-					if v.Oar == word {
-						cp[j][k].IsHi = true
-					}
-				}
-			}
-			hd.Peras = cp
-			peras[i] = hd
-		}
-
-		hid.Peras = peras
-		// src := rd.enData[ei.Sha].Peras
-		// data := make([][]ReaderWord, len(src))
-		// for i, l := range src {
-		// 	data[i] = make([]ReaderWord, len(l))
-		// 	for j, w := range l {
-		// 		w.IsHi = rd.hMap.IsSet(w.Oar)
-		// 		data[i][j] = w
-		// 	}
-		// }
-
-		tm.HiIdx = hid
+		tm.HiIdx = rd.getHiIdxData(hIdx)
 
 		if err := rd.t.ExecuteTemplate(w, mainTemplateName, &tm); debug && err != nil {
 			lg.Println(err)

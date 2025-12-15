@@ -22,7 +22,7 @@ const fontSelector = document.getElementById("font-selector");
 const scrollOnSearchC = document.getElementById("scroll-on-search");
 
 for (let i = 0; i < wordSpans.length; i++) {
-  if (wordSpans[i].dataset.oar !== "") wordSpans[i].onclick = openPopup;
+  if (wordSpans[i].dataset.oar !== "") wordSpans[i].onclick = () => openPopup(wordSpans[i]);
 }
 
 function closePopup() {
@@ -49,23 +49,23 @@ async function addOrRmHiClass(word, add) {
 // ontop of the main file
 function openPopup(e) {
   if (lastClikedWord) {
-    if (lastClikedWord == e.target) {
+    if (lastClikedWord == e) {
       closePopup();
       return;
     }
     lastClikedWord.classList.remove("clicked");
   }
 
-  const onlyAr = e.target.dataset.oar;
+  const onlyAr = e.dataset.oar;
 
   // if data-nohi is defined then don't show hi promt
-  if (e.target.dataset.nohi) {
+  if (e.dataset.nohi) {
     highlight.classList.add("hidden");
   } else {
     highlight.classList.remove("hidden");
   }
 
-  if (e.target.classList.contains("hi")) {
+  if (e.classList.contains("hi")) {
     highlight.classList.add("alert");
   } else {
     highlight.classList.remove("alert");
@@ -76,7 +76,7 @@ function openPopup(e) {
 
     const hWord = onlyAr;
     let msg = "&add=true";
-    const del = e.target.classList.contains("hi");
+    const del = e.classList.contains("hi");
     if (del) msg = "&del=true";
 
     console.log(`/rd/high?w=${hWord}${msg}`);
@@ -84,10 +84,10 @@ function openPopup(e) {
       .then((res) => {
         if (res.status === 202) {
           if (del) {
-            e.target.classList.remove("hi");
+            e.classList.remove("hi");
             addOrRmHiClass(hWord, false);
           } else {
-            e.target.classList.add("hi");
+            e.classList.add("hi");
             addOrRmHiClass(hWord, true);
           }
         } else {
@@ -105,8 +105,8 @@ function openPopup(e) {
     openDictionay(onlyAr);
   };
 
-  lastClikedWord = e.target;
-  e.target.classList.add("clicked");
+  lastClikedWord = e;
+  e.classList.add("clicked");
   popup.classList.remove("hidden");
 
   setPopUpPos();

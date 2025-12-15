@@ -202,7 +202,7 @@ func main() {
 		printVersionWritter(w)
 	})
 
-	// if debug || rd.gc.debug {
+	// if debug {
 	// 	SetupMemoryHandlers(mux)
 	// }
 

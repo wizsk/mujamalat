@@ -3,6 +3,7 @@ package main
 import (
 	"bytes"
 	_ "embed"
+	"encoding/base64"
 	"flag"
 	"fmt"
 	"html/template"
@@ -371,10 +372,10 @@ func printVersionWritter(wm io.Writer) {
 		}
 	}
 	if gitCommit != "" {
-		fmt.Fprintf(w, "git commit: %s\n", gitCommit)
-	}
-	if gitCommitMsg != "" {
-		fmt.Fprintf(w, "git commit message: %s\n", gitCommitMsg)
+		msg, err := base64.StdEncoding.DecodeString(gitCommitMsg)
+		if err == nil {
+			fmt.Fprintf(w, "git commit: %s\n", msg)
+		}
 	}
 	versionTxt = w.Bytes()
 	wm.Write(versionTxt)

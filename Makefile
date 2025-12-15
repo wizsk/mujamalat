@@ -3,7 +3,7 @@ OUTPUT_DIR := build
 
 BUILD_TIME := $(shell date +%s)
 GIT_COMMIT := $(shell git rev-parse --short HEAD)
-GIT_COMMIT_MSG := $(shell git log -1 --pretty=%B)
+GIT_COMMIT_MSG := $(shell git log -1 --pretty=%B | tr '\n' ' ' | base64)
 
 # to install in custom path
 # BIN_DIR=/bin make install

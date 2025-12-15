@@ -10,7 +10,10 @@ import (
 	"github.com/wizsk/mujamalat/ordmap"
 )
 
-const retryAfterMin = 10
+const (
+	retryAfterMin   = 10
+	futureLimitDays = 3650
+)
 
 type RevList struct {
 	Total int
@@ -28,7 +31,9 @@ type RevListSortOptn struct {
 }
 
 type RevData struct {
-	IV [2]int
+	IV     [2]int
+	Past   int64
+	Future int64
 }
 
 func (rd *readerConf) revPageList(w http.ResponseWriter, r *http.Request) {
@@ -65,7 +70,7 @@ func (rd *readerConf) revPage(w http.ResponseWriter, r *http.Request) {
 		return !e.DontShow && e.Future < curr
 	})
 
-	rv := RevData{IV: [2]int{1, 3}}
+	rv := RevData{IV: [2]int{1, 3}, Past: hw.Past, Future: hw.Future}
 	idx := HiIdx{}
 	if found {
 		if hw.Future != 0 && hw.Past != 0 &&
@@ -120,7 +125,7 @@ func (rd *readerConf) revPagePost(w http.ResponseWriter, r *http.Request) {
 
 		default:
 			days, _ := strconv.Atoi(after)
-			if days < 1 || days > 30 {
+			if days < 1 || days > futureLimitDays {
 				http.Error(w, "Bad amount of days", http.StatusBadGateway)
 				return
 			}

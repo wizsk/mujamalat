@@ -6,19 +6,20 @@
             <div class="con">
                 <label for="selectCustomAfterDailougeSelect">الأيام:</label>
                 <select name="selectCustomAfterDailougeSelect" id="selectCustomAfterDailougeSelect">
-                    <option value="7">7</option>
-                    <option value="10">10</option>
-                    <option value="15">15</option>
-                    <option value="20">20</option>
-                    <option value="25">25</option>
-                    <option value="30">30</option>
+                    {{range nextRev .RevData.Past .RevData.Future}}<option value="{{.}}">{{.}}</option>{{end}}
+                    <!-- <option value="7">7</option> -->
+                    <!-- <option value="10">10</option> -->
+                    <!-- <option value="15">15</option> -->
+                    <!-- <option value="20">20</option> -->
+                    <!-- <option value="25">25</option> -->
+                    <!-- <option value="30">30</option> -->
                 </select>
             </div>
             <div class="con">
                 <label for="selectCustomAfterDailougeInput">أو:</label>
                 <!-- <input class="input-style" id="selectCustomAfterDailougeInput" type="number" placeholder="1-30" min="1"
                     max="30"> -->
-                <input class="input-style" id="selectCustomAfterDailougeInput" placeholder="1-30" inputmode="numeric" />
+                <input class="input-style" id="selectCustomAfterDailougeInput" placeholder="Days" inputmode="numeric" />
             </div>
             <div class="con">
                 <button class="btn" style="flex-grow: 2;" onclick="customAfter()" autofocus>
@@ -129,8 +130,8 @@
         val = val ? val : customAfterSelect.value;
         const days = parseInt(val);
 
-        if (days < 0 || days > 30 || isNaN(days) || !/^[0-9]+$/.test(val)) {
-            alert(`Error: Invalid number of days provided (range 1-30): '${val}'`);
+        if (days < 0 || isNaN(days) || !/^[0-9]+$/.test(val)) {
+            alert(`Error: Invalid number of days provided: '${val}'`);
             return;
         }
         selectCustomAfterDailouge.close();

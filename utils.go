@@ -121,6 +121,20 @@ var tmplFuncs = template.FuncMap{
 	// "dec":   func(a, b int) int { return a - b },
 	"arnum":   intToArnum[int],
 	"fmtUnix": fmtUnix,
+	"nextRev": func(past, future int64) []int {
+		days := 1
+		if future != 0 && past != 0 &&
+			future-past > (retryAfterMin+1)*60 {
+			days = int((future - past) / (3600 * 24))
+		}
+		days *= 3
+		const lim = 6
+		r := make([]int, lim)
+		for i := range lim {
+			r[i] = days * (i + 2)
+		}
+		return r
+	},
 }
 
 func fmtUnix(v int64) string {
@@ -134,9 +148,7 @@ func fmtUnix(v int64) string {
 	if v < time.Now().Unix() {
 		r = durToDHM(time.Since(t), true)
 	} else {
-
 		r = durToDHM(time.Until(t), false)
-
 	}
 
 	dateTime := t.Format("02/01/06 3:04 PM")

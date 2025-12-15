@@ -18,7 +18,7 @@
         <a class="nav-link" href="/rd/rev/">
             &larr; Go back to review page
         </a>
-        <div>Click on the rows to edit</div>
+        <div>Click on the rows to edit &darr;</div>
     </nav>
 
     <main>
@@ -26,6 +26,7 @@
             <strong style="color: var(--accent);">{{len .Hw}}</strong>
             out of
             <strong>{{.Total}}</strong>
+            results
         </div>
         <table>
             <thead>
@@ -73,7 +74,7 @@
                 </div>
                 <div>
                     <label for="dfi">Or:</label>
-                    <input class="input-style" id="dfi" placeholder="1-30 days" inputmode="numeric" />
+                    <input class="input-style" id="dfi" placeholder="Days" inputmode="numeric" />
                 </div>
                 <div class="btn-c">
                     <button type="button" id="dfsave">Save</button>

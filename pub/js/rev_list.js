@@ -48,7 +48,7 @@ dfi.addEventListener('input', (e) => {
     }
 
     const num = parseInt(dfi.value);
-    dfi.value = num > 30 ? "30" : num < 1 ? "1" : dfi.value;
+    dfi.value = num < 1 ? "1" : dfi.value;
 })
 
 dialog.addEventListener('close', () => isShowingModal = false);

@@ -30,6 +30,7 @@ install: curr
 
 pull:
 	git pull
+	sleep 1
 
 curr:
 	@echo "Building satatic version for for current os"

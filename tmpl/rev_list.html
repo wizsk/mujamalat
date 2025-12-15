@@ -18,9 +18,15 @@
         <a class="nav-link" href="/rd/rev/">
             &larr; Go back to review page
         </a>
+        <div>Click on the rows to edit</div>
     </nav>
 
     <main>
+        <div>Showing
+            <strong style="color: var(--accent);">{{len .Hw}}</strong>
+            out of
+            <strong>{{.Total}}</strong>
+        </div>
         <table>
             <thead>
                 <tr>
@@ -28,23 +34,19 @@
                     <th>Will be shown</th>
                     <th>Last seen or Modified</th>
                     <th>Visability</th>
-                    <th>Edit</th>
                 </tr>
             </thead>
             <tbody>
-                {{range .}}
+                {{range .Hw}}
                 <tr class="row" data-idx="{{.Idx}}">
                     <td data-w="{{.Word}}">{{.Word}}</td>
                     <td data-f="{{.Future | fmtUnix}}" data-fu="{{.Future}}">{{.Future | fmtUnix}}</td>
                     <td data-p="{{.Past | fmtUnix}}" data-pu="{{.Past}}">{{.Past | fmtUnix}}</td>
                     <td data-h="{{.DontShow}}">{{if .DontShow}}Hidden{{else}}Shown{{end}}</td>
-                    <td class="editBtn">
-                        <button type="button">Edit</button>
-                    </td>
                 </tr>
                 {{else}}
                 <tr>
-                    <td colspan="5" style="text-align: center; padding: 3rem; color: #666;">
+                    <td colspan="4" style="text-align: center; padding: 3rem; color: #666;">
                         <div style="font-size: 1.2rem;">Nothing found...</div>
                     </td>
                 </tr>

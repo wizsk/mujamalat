@@ -13,7 +13,8 @@ import (
 const retryAfterMin = 10
 
 type RevList struct {
-	Hw []HiWord
+	Total int
+	Hw    []HiWord
 
 	// sort options
 	Past   RevListSortOptn
@@ -50,7 +51,8 @@ func (rd *readerConf) revPageList(w http.ResponseWriter, r *http.Request) {
 		rl.Hw = rd.hRev.Values()
 	}
 
-	rd.t.ExecuteTemplate(w, "rev_list.html", &rl.Hw)
+	rl.Total = rd.hRev.Len()
+	rd.t.ExecuteTemplate(w, "rev_list.html", &rl)
 }
 
 func (rd *readerConf) revPage(w http.ResponseWriter, r *http.Request) {

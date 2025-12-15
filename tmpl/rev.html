@@ -1,138 +1,3 @@
-<style>
-    #revMode {
-        box-sizing: border-box;
-        display: flex;
-        align-items: center;
-        justify-content: center;
-        flex-direction: column;
-        gap: 1rem;
-        width: 100vw;
-        height: 100vh;
-        padding-top: 3rem;
-        padding-bottom: 8rem;
-
-        #title {
-            font-size: calc(var(--font-size) * 1.3);
-
-            @media (width < 768px) {
-                font-size: calc(var(--font-size) * 1.8);
-            }
-
-            font-weight: normal;
-        }
-
-        #opts-con {
-            margin-top: auto;
-            width: 90%;
-            display: flex;
-            flex-direction: column;
-            align-items: center;
-
-            .top-txt {
-                color: #a6a6a6;
-            }
-
-            .top,
-            .bottom {
-                margin: 1rem auto;
-                display: flex;
-                gap: 1rem;
-            }
-
-            .top button {
-                width: 3rem;
-                font-family: 'inter', 'Sans-serif';
-                padding: 0;
-                height: 3rem;
-
-                transition: background 150ms;
-                @media (width < 768px) {
-                    font-size: calc(var(--font-size)*1.6);
-                }
-
-                &:hover {
-                    background-color: var(--muted);
-                }
-            }
-
-            hr {
-                width: 100%;
-            }
-
-            .bottom {
-                gap: 2rem;
-            }
-
-            .svg-btn {
-                color: var(--color);
-                background-color: transparent;
-                --svg-wh: 3rem;
-                transition: all 150ms;
-
-                &:hover {
-                    color: var(--accent2);
-                    /* color: var(--bg); */
-                }
-            }
-
-        }
-
-        #selectCustomAfterDailouge {
-            border: 1px solid #ccc;
-            border-radius: var(--border-radious);
-            width: 90vw;
-            max-width: 400px;
-
-            padding: 0;
-
-            &::backdrop {
-                background-color: rgba(0, 0, 0, 0.5);
-                touch-action: none;
-            }
-
-
-            .mc {
-                box-sizing: border-box;
-                background-color: var(--bg);
-                color: var(--color);
-                padding: 2rem;
-                display: flex;
-                flex-direction: column;
-            }
-
-            .con {
-                display: flex;
-                align-items: center;
-                gap: 0.5rem;
-                margin: 0.5rem 0;
-
-                &:last-of-type {
-                    margin-bottom: 0;
-                    margin-top: 1rem;
-                }
-            }
-
-            input {
-                display: block;
-                width: 100%;
-                font-family: 'inter';
-                direction: ltr;
-                text-align: left;
-                flex-grow: 2;
-            }
-
-            select {
-                font-family: 'inter';
-            }
-
-            .btn:last-of-type {
-                margin-right: 0.8rem;
-                background-color: var(--muted);
-                color: var(--bg);
-            }
-        }
-    }
-</style>
 <div id="revMode" class="{{if not .RD.Title}}hidden{{end}}">
     <h3 id="title">{{.RD.Title}}</h3>
 
@@ -167,57 +32,56 @@
     </dialog>
 
     <div id="opts-con">
-        <!-- <div class="right">
-        </div> -->
-        <!-- <button class="btn" onclick="window.location.reload()">
-                next
-            </button> -->
-
         <div class="top-txt">
             بعد عدد الأيام
         </div>
         <div class="top">
-            <button class="btn" onclick="showAfter(-1)">
+            <button class="btn" onclick="showAfter(-1)" title="Repeat. Show agin in ~10m">
                 R
             </button>
             {{range .RevData.IV}}
-            <button class="btn" onclick="showAfter(parseInt('{{.}}'))">
+            <button class="btn" title="Show after {{.}} day{{if gt . 1}}s{{end}}"
+                onclick="showAfter(parseInt('{{.}}'))">
                 {{.}}
             </button>
             {{end}}
-            <button class="btn" onclick="customAfterInput.value = ''; selectCustomAfterDailouge.showModal()">
+            <button class="btn" title="Select a custom date"
+                onclick="customAfterInput.value = ''; selectCustomAfterDailouge.showModal()">
                 -
             </button>
         </div>
         <hr>
         <div class="bottom">
-            <button class="svg-btn" onclick="openDictionay('{{.RD.Title}}')">
-                <svg xmlns="http://www.w3.org/2000/svg" fill="currentColor" class="bi bi-eye-slash-fill"
-                    viewBox="0 0 16 16">
+            <button class="svg-btn" onclick="openDictionay('{{.RD.Title}}')"
+                title="Open dictionary with the word shown above">
+                <svg xmlns="http://www.w3.org/2000/svg" fill="currentColor" viewBox="0 0 16 16">
                     <path
                         d="M5.255 5.786a.237.237 0 0 0 .241.247h.825c.138 0 .248-.113.266-.25.09-.656.54-1.134 1.342-1.134.686 0 1.314.343 1.314 1.168 0 .635-.374.927-.965 1.371-.673.489-1.206 1.06-1.168 1.987l.003.217a.25.25 0 0 0 .25.246h.811a.25.25 0 0 0 .25-.25v-.105c0-.718.273-.927 1.01-1.486.609-.463 1.244-.977 1.244-2.056 0-1.511-1.276-2.241-2.673-2.241-1.267 0-2.655.59-2.75 2.286m1.557 5.763c0 .533.425.927 1.01.927.609 0 1.028-.394 1.028-.927 0-.552-.42-.94-1.029-.94-.584 0-1.009.388-1.009.94" />
                 </svg>
             </button>
-            <button class="svg-btn {{if (eq .HiIdx.MatchCount 0)}}hidden{{end}}"
+            <button class="svg-btn svg-btn-sm {{if (eq .HiIdx.MatchCount 0)}}hidden{{end}}"
+                title="Show found instances in the entries"
                 onclick="readerWrapper.classList.remove('hidden'); readerWrapper.scrollIntoView({ behavior: 'smooth'});">
-                <svg xmlns="http://www.w3.org/2000/svg" fill="currentColor" class="bi bi-eye-slash-fill"
-                    viewBox="0 0 16 16">
-                    <path fill-rule="evenodd"
-                        d="M5 11.5a.5.5 0 0 1 .5-.5h9a.5.5 0 0 1 0 1h-9a.5.5 0 0 1-.5-.5m0-4a.5.5 0 0 1 .5-.5h9a.5.5 0 0 1 0 1h-9a.5.5 0 0 1-.5-.5m0-4a.5.5 0 0 1 .5-.5h9a.5.5 0 0 1 0 1h-9a.5.5 0 0 1-.5-.5m-3 1a1 1 0 1 0 0-2 1 1 0 0 0 0 2m0 4a1 1 0 1 0 0-2 1 1 0 0 0 0 2m0 4a1 1 0 1 0 0-2 1 1 0 0 0 0 2" />
+                <svg xmlns="http://www.w3.org/2000/svg" fill="currentColor" viewBox="0 0 16 16">
+                    <path
+                        d="M14 1a1 1 0 0 1 1 1v8a1 1 0 0 1-1 1h-2.5a2 2 0 0 0-1.6.8L8 14.333 6.1 11.8a2 2 0 0 0-1.6-.8H2a1 1 0 0 1-1-1V2a1 1 0 0 1 1-1zM2 0a2 2 0 0 0-2 2v8a2 2 0 0 0 2 2h2.5a1 1 0 0 1 .8.4l1.9 2.533a1 1 0 0 0 1.6 0l1.9-2.533a1 1 0 0 1 .8-.4H14a2 2 0 0 0 2-2V2a2 2 0 0 0-2-2z" />
+                    <path
+                        d="M3 3.5a.5.5 0 0 1 .5-.5h9a.5.5 0 0 1 0 1h-9a.5.5 0 0 1-.5-.5M3 6a.5.5 0 0 1 .5-.5h9a.5.5 0 0 1 0 1h-9A.5.5 0 0 1 3 6m0 2.5a.5.5 0 0 1 .5-.5h5a.5.5 0 0 1 0 1h-5a.5.5 0 0 1-.5-.5" />
                 </svg>
             </button>
-            <button class="svg-btn" onclick="dontShow()">
-                <svg xmlns="http://www.w3.org/2000/svg" fill="currentColor" class="bi bi-eye-slash-fill"
-                    viewBox="0 0 16 16">
+            <button class="svg-btn" onclick="dontShow()" title="Hide this word form showing in review page">
+                <svg xmlns="http://www.w3.org/2000/svg" fill="currentColor" viewBox="0 0 16 16">
                     <path
-                        d="m10.79 12.912-1.614-1.615a3.5 3.5 0 0 1-4.474-4.474l-2.06-2.06C.938 6.278 0 8 0 8s3 5.5 8 5.5a7 7 0 0 0 2.79-.588M5.21 3.088A7 7 0 0 1 8 2.5c5 0 8 5.5 8 5.5s-.939 1.721-2.641 3.238l-2.062-2.062a3.5 3.5 0 0 0-4.474-4.474z" />
+                        d="M13.359 11.238C15.06 9.72 16 8 16 8s-3-5.5-8-5.5a7 7 0 0 0-2.79.588l.77.771A6 6 0 0 1 8 3.5c2.12 0 3.879 1.168 5.168 2.457A13 13 0 0 1 14.828 8q-.086.13-.195.288c-.335.48-.83 1.12-1.465 1.755q-.247.248-.517.486z" />
                     <path
-                        d="M5.525 7.646a2.5 2.5 0 0 0 2.829 2.829zm4.95.708-2.829-2.83a2.5 2.5 0 0 1 2.829 2.829zm3.171 6-12-12 .708-.708 12 12z" />
+                        d="M11.297 9.176a3.5 3.5 0 0 0-4.474-4.474l.823.823a2.5 2.5 0 0 1 2.829 2.829zm-2.943 1.299.822.822a3.5 3.5 0 0 1-4.474-4.474l.823.823a2.5 2.5 0 0 0 2.829 2.829" />
+                    <path
+                        d="M3.35 5.47q-.27.24-.518.487A13 13 0 0 0 1.172 8l.195.288c.335.48.83 1.12 1.465 1.755C4.121 11.332 5.881 12.5 8 12.5c.716 0 1.39-.133 2.02-.36l.77.772A7 7 0 0 1 8 13.5C3 13.5 0 8 0 8s.939-1.721 2.641-3.238l.708.709zm10.296 8.884-12-12 .708-.708 12 12z" />
                 </svg>
             </button>
-            <button class="svg-btn" onclick="window.location.href = '/rd/rev/list?past=new';">
-                <svg xmlns="http://www.w3.org/2000/svg" fill="currentColor" class="bi bi-eye-slash-fill"
-                    viewBox="0 0 16 16">
+            <button class="svg-btn svg-btn-sm" onclick="window.location.href = '/rd/rev/list?past=new';"
+                title="Go to word list view to undo or edit recently made changes">
+                <svg xmlns="http://www.w3.org/2000/svg" fill="currentColor" viewBox="0 0 16 16">
                     <path fill-rule="evenodd" d="M8 3a5 5 0 1 1-4.546 2.914.5.5 0 0 0-.908-.417A6 6 0 1 0 8 2z" />
                     <path
                         d="M8 4.466V.534a.25.25 0 0 0-.41-.192L5.23 2.308a.25.25 0 0 0 0 .384l2.36 1.966A.25.25 0 0 0 8 4.466" />
@@ -280,9 +144,9 @@
     }
 
     function postThen(url, func) {
-        fetch(url, { method: "POST" })
+        fetch(url, {method: "POST"})
             .then(((res) => {
-                if (res.ok) { if (func) func(); }
+                if (res.ok) {if (func) func();}
             })).catch((err) => {
                 console.error(err);
                 alert("Something went wrong (check console)");

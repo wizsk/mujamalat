@@ -82,7 +82,11 @@ func (dc *dictConf) mainPage(w http.ResponseWriter, r *http.Request) {
 		// word := harakatRgx.ReplaceAllString(r.FormValue("w"), "")
 		// arEn(arEnDict, word, w, dc.t)
 	default:
-		http.Redirect(w, r, "/"+dicts[0].En, http.StatusMovedPermanently)
+		if r.URL.Path == "/favicon.ico" {
+			http.Redirect(w, r, "/pub/fav.ico", http.StatusMovedPermanently)
+		} else {
+			http.Redirect(w, r, "/"+dicts[0].En, http.StatusSeeOther)
+		}
 		return
 	}
 }

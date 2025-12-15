@@ -7,7 +7,8 @@ function shouldCache(request) {
       return false;
     }
 
-    return u.pathname.startsWith('/content') || u.pathname.startsWith('/pub/');
+    return u.pathname.startsWith('/content') ||
+      (u.pathname.startsWith('/pub/') && !u.pathname.endsWith('/'));
   } catch {
     return false;
   }
@@ -27,7 +28,7 @@ self.addEventListener('fetch', event => {
     // Serve from cache if available
     const cached = await cache.match(request);
     if (cached) {
-      return cloneWithHeader(cached, 'true');
+      return await cloneWithHeader(cached, 'true');
     }
 
     // Otherwise fetch
@@ -39,7 +40,7 @@ self.addEventListener('fetch', event => {
         cache.put(request, fresh.clone());
       }
 
-      return cloneWithHeader(fresh, 'false');
+      return await cloneWithHeader(fresh, 'false');
 
     } catch (err) {
       // Offline + not cached => fail cleanly
@@ -78,13 +79,16 @@ async function clearCache() {
   }
 }
 
-function cloneWithHeader(response, wasCached) {
-  return new Response(response.body, {
+async function cloneWithHeader(response, wasCached) {
+  const headers = new Headers(response.headers);
+  headers.set('X-From-Cache', wasCached);
+
+  const buf = await response.clone().arrayBuffer();
+
+  return new Response(buf, {
     status: response.status,
     statusText: response.statusText,
-    headers: {
-      ...Object.fromEntries(response.headers.entries()),
-      'X-From-Cache': wasCached
-    }
+    headers
   });
 }
+

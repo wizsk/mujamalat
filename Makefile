@@ -31,6 +31,11 @@ install: curr
 pull:
 	git pull
 	sleep 1
+	@echo
+	@echo "Latest commit info"
+	@git rev-parse --short HEAD
+	@git log -1 --pretty=%B
+	@echo
 
 curr:
 	@echo "Building satatic version for for current os"

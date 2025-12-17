@@ -20,6 +20,7 @@ const poemStyle = document.getElementById("poem");
 const poemLineNumHide = document.getElementById("hide-line-numbers");
 const fontSelector = document.getElementById("font-selector");
 const scrollOnSearchC = document.getElementById("scroll-on-search");
+const dark = document.getElementById("dark");
 
 for (let i = 0; i < wordSpans.length; i++) {
   if (wordSpans[i].dataset.oar !== "") wordSpans[i].onclick = () => openPopup(wordSpans[i]);
@@ -313,6 +314,13 @@ function getPoemAlignLSN() {
 
 document.addEventListener("DOMContentLoaded", () => {
   const font = window.localStorage.getItem(getFontSelectorLSN());
+  if (window.localStorage.getItem("dark")) {
+    document.documentElement.classList.add("dark");
+    dark.checked = true;
+  } else {
+    dark.checked = false;
+  }
+
   if (font) {
     reader.style.fontFamily = font;
     fontSelector.value = font;
@@ -444,4 +452,14 @@ for (let i = 0; i < readerMenuAnkers.length; i++) {
     window.history.back();
     window.location.href = e.target.href;
   });
+}
+
+dark.onchange = () => {
+  if (dark.checked) {
+    document.documentElement.classList.add("dark");
+    window.localStorage.setItem("dark", "t")
+  } else {
+    document.documentElement.classList.remove("dark");
+    window.localStorage.removeItem("dark")
+  }
 }

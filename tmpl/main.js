@@ -40,6 +40,8 @@ document.addEventListener("DOMContentLoaded", () => {
     setSavedFontSize();
     setNavHeight();
 
+    window.localStorage.getItem("dark") && document.documentElement.classList.add("dark");
+
     const selected = document.getElementById('sw-dict-item-selected');
     if (selected && selected.scrollIntoView) {
         selected.scrollIntoView({

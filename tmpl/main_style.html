@@ -89,8 +89,36 @@
 		--ok: #42a98f;
 		--muted: #6b6b6b;
 		--border: #e8e2d9;
+		color-scheme: light;
 
 		--header-height: 0px;
+
+	}
+
+	.dark {
+		--bg: #000000;
+		--color: #f9f9f9;
+
+		--muted: #7a7e83;
+		--border: #161a1f;
+
+		--color-highlight: #4aa3b8;
+		--color-hi: #6ea8e5;
+		--accent: #5c8fc9;
+		--accent-dark: #3e6fa8;
+
+		--accent2: #d0644d;
+
+		--highlight: #3b3320;
+		--highlight2: #1f3a2b;
+
+		/* Tables / Arabic-English reader bg */
+		--ar-en-tbl-bg: rgba(51, 121, 183, 0.18);
+
+		--alert: #e07a78;
+		--ok: #56c2a3;
+		--selection-bg: #2b4f7c;
+		color-scheme: dark;
 	}
 
 
@@ -101,6 +129,7 @@
 		--max-width: 35em;
 		margin: 0 auto;
 		background-color: var(--bg);
+		color: var(--color);
 
 		@media (width < 768px) {
 			--font-size: 1.2rem;
@@ -119,19 +148,23 @@
 	.input-style {
 		all: unset;
 		direction: rtl;
-		background-color: #fff;
+		background-color: var(--bg);
+		color: var(--color);
 		background-image: none;
 		border: 1px solid #ccc;
 		border-radius: var(--border-radious);
-		color: #555;
 		padding: var(--btn-pad-y) var(--btn-pad-x);
 		transition: border-color .15s ease-in-out, box-shadow .15s ease-in-out;
 	}
 
 	.input-style:focus {
-		border-color: #66afe9;
-		box-shadow: 0 0 8px #66afe999;
+		border-color: var(--accent);
+		box-shadow: 0 0 8px color-mix(in srgb, var(--accent), transparent 95%);
 		outline: 0;
+	}
+
+	.dark .input-style:focus {
+		box-shadow: 0 0 8px var(--accent);
 	}
 
 	input[type="checkbox"] {

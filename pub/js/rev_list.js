@@ -1,3 +1,7 @@
+document.addEventListener("DOMContentLoaded", () => {
+    window.localStorage.getItem("dark") && document.documentElement.classList.add("dark");
+});
+
 const dialog = document.getElementById("dialog");
 const isRequesting = {
     val: false,

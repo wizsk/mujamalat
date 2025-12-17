@@ -93,12 +93,32 @@ main {
     }
 }
 
+.dark main {
+
+    table thead,
+    tr:nth-child(even) {
+        background-color:
+            color-mix(in srgb, var(--accent-dark), transparent 70%);
+    }
+
+    .row:hover {
+        cursor: pointer;
+        background-color:
+            color-mix(in srgb, var(--accent2), transparent 70%);
+    }
+}
+
 #dialog {
     border: 1px solid #ccc;
     border-radius: var(--border-radious);
     background-color: var(--bg);
     width: 90vw;
     max-width: 600px;
+
+    &::backdrop {
+        background-color: rgba(0, 0, 0, 0.5);
+        touch-action: none;
+    }
 
     &[open] {
         position: fixed;

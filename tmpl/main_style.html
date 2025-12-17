@@ -74,7 +74,6 @@
 
 
 		--color-highlight: #02647a;
-		--ar-en-tbl-bg: #3379b73d;
 
 		--bg: #fffaf3;
 		--color: #222223;
@@ -92,7 +91,6 @@
 		color-scheme: light;
 
 		--header-height: 0px;
-
 	}
 
 	.dark {
@@ -111,9 +109,6 @@
 
 		--highlight: #3b3320;
 		--highlight2: #1f3a2b;
-
-		/* Tables / Arabic-English reader bg */
-		--ar-en-tbl-bg: rgba(51, 121, 183, 0.18);
 
 		--alert: #e07a78;
 		--ok: #56c2a3;
@@ -550,6 +545,14 @@
 	tr:nth-child(even) {
 		background-color:
 			color-mix(in srgb, var(--accent), transparent 90%);
+	}
+
+	.dark {
+		table thead,
+		tr:nth-child(even) {
+			background-color:
+				color-mix(in srgb, var(--accent), transparent 70%);
+		}
 	}
 </style>
 <script>

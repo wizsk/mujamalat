@@ -152,9 +152,13 @@
 		transition: border-color .15s ease-in-out, box-shadow .15s ease-in-out;
 	}
 
+	.dark .input-style {
+		border-color: #777;
+	}
+
 	.input-style:focus {
 		border-color: var(--accent);
-		box-shadow: 0 0 8px color-mix(in srgb, var(--accent), transparent 95%);
+		box-shadow: 0 0 8px hsl(from var(--accent) h s l / .5);
 		outline: 0;
 	}
 
@@ -198,6 +202,17 @@
 		color: var(--bg);
 		border: none;
 		cursor: pointer;
+	}
+
+	hr {
+		border: 0;
+		border-top: 1px solid #ccc;
+	}
+
+	.dark {
+		hr {
+			border-color: #777;
+		}
 	}
 </style>
 {{end}}
@@ -248,7 +263,6 @@
 	#w-submit:hover {
 		background-color: var(--accent-dark);
 	}
-
 
 
 	.querySelector-item {
@@ -319,10 +333,6 @@
 		background: var(--accent-dark);
 	}
 
-	hr {
-		border: 0;
-		border-top: 1px solid #ccc;
-	}
 
 	.svg-btn {
 		background-color: var(--accent-dark);
@@ -544,14 +554,17 @@
 	table thead,
 	tr:nth-child(even) {
 		background-color:
-			color-mix(in srgb, var(--accent), transparent 90%);
+			hsl(from var(--accent) h s l / 0.1);
+		/* color-mix(in srgb, var(--accent), transparent 90%); */
 	}
 
 	.dark {
+
 		table thead,
 		tr:nth-child(even) {
 			background-color:
-				color-mix(in srgb, var(--accent), transparent 70%);
+				hsl(from var(--accent) h s l / 0.3);
+			/* color-mix(in srgb, var(--accent), transparent 70%); */
 		}
 	}
 </style>

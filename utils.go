@@ -68,19 +68,23 @@ func parseFlags() globalConf {
 	flag.BoolVar(&conf.migrate, "migrate", false,
 		"migrate entry files")
 
+	loc := ""
+	flag.StringVar(&loc, "zone", "",
+		"set time zone. Eg. Asia/Dhaka")
+
 	os.Args[0] = progName
 
 	flag.Parse()
+
+	if *showVersion {
+		printVersion()
+		os.Exit(0)
+	}
 
 	if debug && conf.debug {
 		conf.debug = false
 	} else if debug {
 		conf.debug = true
-	}
-
-	if *showVersion {
-		printVersion()
-		os.Exit(0)
 	}
 
 	if conf.tmpMode && conf.permDir != "" {
@@ -97,6 +101,15 @@ func parseFlags() globalConf {
 		if val, err := strconv.ParseUint(conf.port, 10, 16); err != nil || val == 0 || val >= 65535 {
 			fmt.Printf("FETAL: '%s' Not a valid port nubmer\n", conf.port)
 			os.Exit(1)
+		}
+	}
+
+	if loc != "" {
+		if tz, err := time.LoadLocation(loc); err != nil {
+			fmt.Printf("FETAL: '%s' Not a valid time zone\n", loc)
+			os.Exit(1)
+		} else {
+			timeZone = tz
 		}
 	}
 
@@ -152,7 +165,13 @@ func fmtUnix(v int64) string {
 		r = durToDHM(time.Until(t), false)
 	}
 
-	dateTime := t.Format("02/01/06 3:04 PM")
+	var dateTime string
+	if timeZone == nil {
+		dateTime = t.Format("3:04 PM 02/01/06")
+	} else {
+		dateTime = t.In(timeZone).Format("3:04 PM 02/01/06")
+	}
+
 	if r == "" {
 		return dateTime
 	}

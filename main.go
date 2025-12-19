@@ -43,6 +43,7 @@ var (
 	buildTime    string
 	gitCommit    string
 	gitCommitMsg string
+	timeZone     *time.Location
 
 	dicts = []Dict{
 		{"قاموس مباشر", arEnName},

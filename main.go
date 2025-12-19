@@ -21,7 +21,7 @@ const (
 	progName               = "mujamalat"
 	version                = "v3.0.0"
 	dbFileName             = "mujamalat.db"
-	dbSize                 = 152141824
+	dbSize                 = 152412160
 	mainTemplateName       = "main.html"
 	somethingWentWrong     = "something-wrong"
 	genricTemplateName     = "genric-dict"

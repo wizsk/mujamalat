@@ -26,6 +26,7 @@ document.querySelectorAll(".row").forEach((r) => {
 })
 
 const dw = document.getElementById("dw");
+const dwl = document.getElementById("dwl"); // word link
 /** future div */
 const dfd = document.getElementById("dfd");
 const df = document.getElementById("df");
@@ -73,6 +74,7 @@ function showModal(r) {
     // console.log(word, future, past, dontShow);
 
     dw.innerText = word;
+    dwl.href = `/rd/highlist/${word}`;
     df.innerText = future.dataset.f ? future.dataset.f : "Not set";
 
     let hidden = dontShow.dataset.h == "true";
@@ -95,7 +97,7 @@ function showModal(r) {
             return;
         }
 
-        if (!confirm(`Do you want to set due day of ${word} ${finalVal} day${1 < finalVal ? "s" : ""} later?`)) return;
+        if (!confirm(`Do you want to see ${word} after ${finalVal} day${1 < finalVal ? "s" : ""}?`)) return;
 
         isRequesting.set(true);
         dfsave.innerText = "Saving…";
@@ -129,7 +131,7 @@ function showModal(r) {
             isRequesting.show();
             return;
         }
-        if (!confirm(`Do you want to reset due date of ${word}?`)) return;
+        if (!confirm(`Do you want to reset due day of ${word}?`)) return;
 
         isRequesting.set(true);
         dfres.innerText = "Resetting…";

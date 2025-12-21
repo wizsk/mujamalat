@@ -216,7 +216,9 @@
     <h3 style="text-align: center; font-weight: bold;">
         {{- $n := .HiIdx.MatchCount -}}
 
-        {{- if eq $n 1 -}}
+        <span>{{.HiIdx.Word}} ~ </span>
+
+        {{if eq $n 1 -}}
         تم العثور على تطابق واحد
         {{- else if eq $n 2 -}}
         تم العثور على تطابقين
@@ -239,14 +241,11 @@
     </style>
     <div id="reader">
         {{range .HiIdx.Peras}}
-        <h3 id="title"><a href="/rd/{{.Sha}}" target="_blank">{{.Name}} &larr;</a></h3>
+        <h3 id="title"><a href="/rd/{{.Sha}}" target="_blank">{{.Name}} ({{len .Peras | arnum}}) &larr;</a></h3>
         {{range $i, $p := .Peras}}
         <div class="pera">
             <hr>
-            {{- if add $i 1 | isodd -}}
-            <span class="poem-line-num">{{qasidaLine $i}}- </span>
-            {{- end}}
-            {{- range $p}}<span data-oar="{{.Oar}}" class="rWord {{if .IsHi}}hi{{end}}">{{.Og}}</span> {{end -}}
+            {{- range $p}}<span data-oar="{{.Oar}}" class="rWord {{if .IsHi}}hi{{end}}" {{if .IsHi}}data-nohi="true"{{end}}>{{.Og}}</span> {{end -}}
         </div>
         {{end}}
         {{end}}

@@ -118,6 +118,27 @@ func rmNonAr(s string) string {
 	return ""
 }
 
+func fmtHistTitle(_s string) string {
+	sr := []rune(_s)
+	r := make([]rune, len(sr))
+
+	preSp := false
+	idx := 0
+	for _, v := range sr {
+		if _, ok := arabicAphabets[v]; ok {
+			r[idx] = v
+			preSp = false
+			idx++
+		} else if !preSp && v == ' ' {
+			r[idx] = ' '
+			preSp = true
+			idx++
+		}
+	}
+
+	return string(r[:idx])
+}
+
 // remove harakat
 func rmHarakats(s string) string {
 	r := make([]rune, 0, len(s))

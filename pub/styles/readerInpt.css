@@ -12,7 +12,7 @@
     border-radius: var(--border-radious);
     border: none;
     padding: 0;
-    --btn-wh: 2.0rem;
+    --btn-wh: 2rem;
     height: var(--btn-wh);
     width: var(--btn-wh);
 
@@ -23,7 +23,6 @@
         height: var(--_s);
     }
 }
-
 
 form {
     display: flex;
@@ -74,7 +73,7 @@ textarea {
 
 #resizeHandle {
     all: unset;
-    margin: .5rem auto 0;
+    margin: 0.5rem auto 0;
     touch-action: none;
     cursor: ns-resize;
 
@@ -85,9 +84,9 @@ textarea {
     border-radius: var(--border-radious);
     border: none;
     padding: 0;
-    --btn-wh: 4.0rem;
+    --btn-wh: 4rem;
     width: var(--btn-wh);
-    height: calc(var(--btn-wh)/4);
+    height: calc(var(--btn-wh) / 4);
 }
 
 #tmpModeDiv {
@@ -118,7 +117,6 @@ textarea {
     border: none;
     cursor: pointer;
 }
-
 
 #submit,
 .btn-mt {
@@ -158,50 +156,60 @@ textarea {
     margin-top: 2rem;
 }
 
-
 #hist {
-    margin: 3rem 1rem;
-}
+    box-sizing: border-box;
+    width: fit-content;
+    margin: 3rem auto;
+    width: 90vw;
+    max-width: 600px;
 
-.hist-item-div {
-    display: flex;
-    align-items: center;
-    justify-items: start;
-    /* this is ignored, so it said. but won't remove for now */
-    gap: 5px;
-    margin: 0.5rem 0;
-}
+    h3 {
+        margin: 0 0.5rem;
+        user-select: none;
+        cursor: pointer;
+        font-size: 1.1em;
+    }
 
-.hist-item {
-    margin: 0.7rem 0;
-    display: block;
-    flex: 1;
-    white-space: nowrap;
-    overflow: hidden;
-    text-overflow: ellipsis;
-    text-decoration: none;
-    color: var(--color);
-}
+    hr {
+        border: none;
+        border-top: 1px solid #ccc;
+    }
 
-h3 {
-    margin: 0 0.5rem;
-    user-select: none;
-    cursor: pointer;
-    font-size: 1.1em;
-}
+    #hist-s {
+        display: block;
+        width: 90%;
+        margin-bottom: 1rem;
+        margin: 0 auto;
+    }
 
-hr {
-    border: none;
-    border-top: 1px solid #ccc;
-}
-
-.dash {
-    padding-right: 0.2rem;
+    .dash {
+        padding-right: 0.2rem;
+    }
 }
 
 #hist-items {
     display: flex;
     flex-direction: column;
+
+    .hist-item-div {
+        display: flex;
+        align-items: center;
+        justify-items: start;
+        /* this is ignored, so it said. but won't remove for now */
+        gap: 5px;
+        margin: 0.5rem 0;
+    }
+
+    .hist-item {
+        margin: 0.7rem 0;
+        display: block;
+        flex: 1;
+        white-space: nowrap;
+        overflow: hidden;
+        text-overflow: ellipsis;
+        text-decoration: none;
+        color: var(--color);
+    }
 }
 
 .flex-rev {
@@ -217,7 +225,7 @@ hr {
 }
 
 .pin {
-    margin-left: .5rem;
+    margin-left: 0.5rem;
 }
 
 .pinned {
@@ -233,12 +241,8 @@ hr {
         flex-direction: column;
     }
 
-    .hist-item {
-        max-width: 500px;
-    }
-
     .svg-btn {
-        --btn-wh: 3.0rem;
+        --btn-wh: 3rem;
     }
 
     /* bandade solutions for now */

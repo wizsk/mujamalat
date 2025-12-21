@@ -133,8 +133,9 @@ var tmplFuncs = template.FuncMap{
 		return intToArnum((n + 2) / 2)
 	},
 	// "dec":   func(a, b int) int { return a - b },
-	"arnum":   intToArnum[int],
-	"fmtUnix": fmtUnix,
+	"arnum":        intToArnum[int],
+	"fmtUnix":      fmtUnix,
+	"fmtHistTitle": fmtHistTitle,
 	"nextRev": func(past, future int64) []int {
 		days := 1
 		if future != 0 && past != 0 &&

@@ -11,7 +11,7 @@ ifeq ($(origin BIN_DIR), undefined)
     ifeq ($(origin TERMUX__PREFIX), environment)
         BIN_DIR := $(TERMUX__PREFIX)/bin
     else
-        BIN_DIR := /usr/local/bin
+        BIN_DIR := $(HOME)/.local/bin
     endif
 endif
 
@@ -25,7 +25,7 @@ all: curr
 pi: pull install
 
 install: curr
-	@echo "INSTALLING TO" $(BIN_DIR)/$(APP_NAME)
+	@echo "installing TO:" $(BIN_DIR)/$(APP_NAME)
 	@mv $(OUTPUT_DIR)/$(APP_NAME) $(BIN_DIR)/
 
 pull:

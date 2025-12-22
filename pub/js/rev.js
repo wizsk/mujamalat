@@ -1,4 +1,5 @@
-const word = "{{.RD.Title}}";
+const ttl = document.querySelector("#title");
+const word = ttl ? ttl.dataset.title : "";
 const selectCustomAfterDailouge = document.getElementById(
   "selectCustomAfterDailouge",
 );

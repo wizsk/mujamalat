@@ -43,16 +43,26 @@ func (rd *readerConf) revPageList(w http.ResponseWriter, r *http.Request) {
 	// past=is_set|new|old
 	rl := RevList{}
 	past := r.FormValue("past")
-	if past == "new" {
-		rl.Past.New = true
-		rl.Hw = rd.hRev.ValuesFiltered(func(e ordmap.Entry[string, HiWord]) bool {
+	future := r.FormValue("future")
+	switch {
+	case past == "new":
+		// rl.Past.New = true
+		rl.Hw = rd.hRev.ValuesFiltered(func(e *ordmap.Entry[string, HiWord]) bool {
 			return e.Value.Past != 0
 		})
 
 		slices.SortStableFunc(rl.Hw, func(a HiWord, b HiWord) int {
 			return int(b.Past - a.Past)
 		})
-	} else {
+
+	case future == "due":
+		now := time.Now().Unix()
+		// data is already sorted
+		rl.Hw = rd.hRev.ValuesUntil(func(e *ordmap.Entry[string, HiWord]) bool {
+			return e.Value.Future != 0 && e.Value.Future < now
+		})
+
+	default:
 		rl.Hw = rd.hRev.Values()
 	}
 

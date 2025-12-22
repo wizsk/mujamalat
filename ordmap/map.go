@@ -313,14 +313,27 @@ func (om *OrderedMap[K, V]) GetMatchOrRand(match func(*V) bool,
 }
 
 // Values returns ordered values.
-func (om *OrderedMap[K, V]) ValuesFiltered(keep func(Entry[K, V]) bool) []V {
+func (om *OrderedMap[K, V]) ValuesFiltered(keep func(*Entry[K, V]) bool) []V {
 	vals := make([]V, len(om.data))
 	i := 0
 	for _, e := range om.data {
-		if keep(e) {
+		if keep(&e) {
 			vals[i] = e.Value
 			i++
 		}
+	}
+	return vals[:i]
+}
+
+func (om *OrderedMap[K, V]) ValuesUntil(match func(*Entry[K, V]) bool) []V {
+	vals := make([]V, len(om.data))
+	i := 0
+	for _, e := range om.data {
+		if !match(&e) {
+			break
+		}
+		vals[i] = e.Value
+		i++
 	}
 	return vals[:i]
 }

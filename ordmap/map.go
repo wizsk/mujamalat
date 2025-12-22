@@ -2,6 +2,7 @@ package ordmap
 
 import (
 	"fmt"
+	"math/rand/v2"
 	"slices"
 )
 
@@ -253,10 +254,57 @@ func (om *OrderedMap[K, V]) ValuesRev() []V {
 	return vals
 }
 
-func (om *OrderedMap[K, V]) GetFirst(match func(V) bool) (V, bool) {
-	for _, e := range om.data {
-		if match(e.Value) {
-			return e.Value, true
+func (om *OrderedMap[K, V]) GetFirstMatch(match func(*V) bool) (V, bool) {
+	for i := range om.data {
+		if match(&om.data[i].Value) {
+			return om.data[i].Value, true
+		}
+	}
+
+	var v V
+	return v, false
+}
+
+func (om *OrderedMap[K, V]) GetLastMatch(match func(*V) bool) (V, bool) {
+	for i := len(om.data) - 1; i > -1; i-- {
+		if match(&om.data[i].Value) {
+			return om.data[i].Value, true
+		}
+	}
+
+	var v V
+	return v, false
+}
+
+// i need to get the review card 1st
+// if there is no review cards then show a random card
+// I can be sure the card is review if past and future are both != 0
+// and hidden != true
+func (om *OrderedMap[K, V]) GetMatchOrRand(match func(*V) bool,
+	stopMatching func(*V) bool, rMatch func(*V) bool) (V, bool) {
+
+	// try to find a match
+	var i int
+	for i = range om.data {
+		if stopMatching(&om.data[i].Value) {
+			break
+		} else if match(&om.data[i].Value) {
+			return om.data[i].Value, true
+		}
+	}
+
+	mp := make(map[int]struct{}, len(om.data)-(i+1))
+	for {
+		idx := rand.IntN(len(om.data))
+		if _, ok := mp[idx]; idx < i || ok {
+			continue
+		}
+		mp[idx] = struct{}{}
+		if rMatch(&om.data[idx].Value) {
+			return om.data[idx].Value, true
+		}
+		if len(mp) == len(om.data)-(i+1) {
+			break
 		}
 	}
 

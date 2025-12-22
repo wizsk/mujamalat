@@ -66,9 +66,26 @@ func (rd *readerConf) revPage(w http.ResponseWriter, r *http.Request) {
 
 	// don't need to worry about time zones as unixtime is op
 	curr := time.Now().Unix()
-	hw, found := rd.hRev.GetFirst(func(e HiWord) bool {
-		return !e.DontShow && e.Future < curr
-	})
+	var hw HiWord
+	var found bool
+	if r.URL.Query().Get("rand") == "true" {
+		hw, found = rd.hRev.GetMatchOrRand(
+			func(e *HiWord) bool {
+				return !e.DontShow && e.Future < curr
+			},
+			func(e *HiWord) bool {
+				return e.Past == 0 && e.Future == 0
+			},
+			func(e *HiWord) bool {
+				return !e.DontShow
+			},
+		)
+
+	} else {
+		hw, found = rd.hRev.GetFirstMatch(func(e *HiWord) bool {
+			return !e.DontShow && e.Future < curr
+		})
+	}
 
 	rv := RevData{IV: [2]int{1, 3}, Past: hw.Past, Future: hw.Future}
 	idx := HiIdx{}

@@ -15,15 +15,15 @@ func TestDurToDHM(t *testing.T) {
 	}{
 		{
 			in: oneDay,
-			ex: "1d",
+			ex: "1d later",
 		},
 		{
 			in: oneDay + time.Hour + time.Minute,
-			ex: "1d 1h 1m",
+			ex: "1d 1h 1m later",
 		},
 		{
 			in: (oneDay * 30) + time.Hour + time.Minute,
-			ex: "30d 1h 1m",
+			ex: "30d 1h 1m later",
 		},
 	}
 	for i, c := range cases {

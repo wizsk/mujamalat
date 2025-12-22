@@ -155,6 +155,12 @@ func (rd *readerConf) loadHilightedWords() {
 // 1 -> b a		b comes before a
 //
 //	0 -> a b	no change
+//
+// the order is
+// 1. most old future
+// 2. hidden
+// 3. new
+// this is used in the getting rand val
 func hRevSortCmp(a, b ordmap.Entry[string, HiWord]) int {
 	// if i don't remove this the order wont be preserved
 	// if a.Value.DontShow != b.Value.DontShow {

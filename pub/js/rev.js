@@ -9,23 +9,45 @@ const customAfterSelect = document.getElementById(
 const customAfterInput = document.getElementById(
   "selectCustomAfterDailougeInput",
 );
-const rand = document.getElementById("rand");
+const ord = document.getElementById("ord");
 
 document.addEventListener("DOMContentLoaded", () => {
-  if (window.location.href.includes("rand=true")) {
-    rand.checked = true;
+  const s = new URLSearchParams(window.location.search);
+  console.log(s);
+  switch (s.get("ord")) {
+    case "new":
+      ord.value = "new";
+      break;
+
+    case "rand":
+      ord.value = "rand";
+      break;
+
+    default:
+      window.history.replaceState(null, "", `${window.location.pathname}`);
   }
 });
 
-rand.onchange = () => {
-  if (rand.checked) {
-    window.history.replaceState(
-      null,
-      "",
-      `${window.location.pathname}?rand=true`,
-    );
-  } else {
-    window.history.replaceState(null, "", `${window.location.pathname}`);
+ord.onchange = () => {
+  switch (ord.value) {
+    case "new":
+      window.history.replaceState(
+        null,
+        "",
+        `${window.location.pathname}?ord=new`,
+      );
+      break;
+
+    case "rand":
+      window.history.replaceState(
+        null,
+        "",
+        `${window.location.pathname}?ord=rand`,
+      );
+      break;
+
+    default:
+      window.history.replaceState(null, "", `${window.location.pathname}`);
   }
 };
 

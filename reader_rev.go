@@ -78,20 +78,32 @@ func (rd *readerConf) revPage(w http.ResponseWriter, r *http.Request) {
 	curr := time.Now().Unix()
 	var hw HiWord
 	var found bool
-	if r.URL.Query().Get("rand") == "true" {
+
+	switch r.URL.Query().Get("ord") {
+	case "rand":
 		hw, found = rd.hRev.GetMatchOrRand(
-			func(e *HiWord) bool {
-				return !e.DontShow && e.Future < curr
-			},
-			func(e *HiWord) bool {
-				return e.Past == 0 && e.Future == 0
-			},
-			func(e *HiWord) bool {
-				return !e.DontShow
-			},
+			func(e *HiWord) bool { return !e.DontShow && e.Future < curr },
+			func(e *HiWord) bool { return e.Past == 0 && e.Future == 0 },
+			func(e *HiWord) bool { return !e.DontShow },
 		)
 
-	} else {
+	case "new":
+		// 1s look for due word
+		hw, found = rd.hRev.GetFirstMatch(func(e *HiWord) bool {
+			return !e.DontShow && e.Future < curr
+		})
+
+		// if no future that means it is a new word (or empty)
+		// then get a new word.
+		if hw.Future == 0 {
+			hw, found = rd.hRev.GetLastMatch(func(e *HiWord) bool {
+				return !e.DontShow && e.Future == 0
+			})
+		}
+
+	case "old":
+		fallthrough
+	default:
 		hw, found = rd.hRev.GetFirstMatch(func(e *HiWord) bool {
 			return !e.DontShow && e.Future < curr
 		})

@@ -45,7 +45,7 @@
                 </svg>
             </button>
             <button class="svg-btn btn-mt"
-                onclick="if (txt.value.trim().length > 0 && confirm('هل ترغب أن تسمح؟')) txt.value = ''" type="button">
+                onclick="if (txt.value > 0 && confirm('هل ترغب أن تسمح؟')) txt.value = ''" type="button">
                 <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" fill="currentColor"
                     class="bi bi-arrow-down-up" viewBox="0 0 16 16">
                     <path
@@ -70,7 +70,7 @@
 
     {{if .}}
     <main id="hist">
-        <h3 id="hist-title">
+        <h3 id="hist-title" title="Click to change order">
             قائمة النص
             «<span id="hist-count">{{len . | arnum}}</span>»
             <span id="hist-sort-type"></span>

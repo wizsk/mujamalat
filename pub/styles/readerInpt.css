@@ -103,7 +103,6 @@ textarea {
     /* max-width: var(--max-width); */
     display: flex;
     gap: 1rem;
-    align-utems: center;
     justify-items: center;
 }
 
@@ -209,6 +208,10 @@ textarea {
         text-overflow: ellipsis;
         text-decoration: none;
         color: var(--color);
+
+        &:hover {
+            color: var(--accent-dark);
+        }
     }
 }
 
@@ -222,10 +225,18 @@ textarea {
 
 .del {
     color: var(--muted);
+    &:hover {
+        background-color: var(--alert);
+        color: white;
+    }
 }
 
 .pin {
     margin-left: 0.5rem;
+    &:hover {
+       background-color: var(--alert);
+       color: white;
+    }
 }
 
 .pinned {

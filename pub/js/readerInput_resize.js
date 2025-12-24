@@ -41,21 +41,3 @@ window.addEventListener("touchmove", duringDrag, { passive: false });
 
 window.addEventListener("mouseup", stopDrag);
 window.addEventListener("touchend", stopDrag);
-
-document.getElementById("tgl-cursor").onclick = () => {
-    const text = ta.value;
-    if (text.length == 0) return;
-    const cursorPos = ta.selectionStart;
-    const mid = text.length / 2;
-
-    if (cursorPos > mid) {
-        // go to top
-        ta.selectionStart = ta.selectionEnd = 0;
-    } else {
-        // go to bottom
-        const end = text.length;
-        ta.selectionStart = ta.selectionEnd = end;
-    }
-
-    ta.focus();
-};

@@ -94,7 +94,7 @@ func (rd *readerConf) revPage(w http.ResponseWriter, r *http.Request) {
 		// if no future that means it is a new word (or empty)
 		// then get a new word.
 		fallthrough
-	case "only_new":
+	case "new_only":
 		hw, found = rd.hRev.GetLastMatch(func(e *HiWord) bool {
 			return !e.DontShow && e.Future == 0
 		})
@@ -110,14 +110,14 @@ func (rd *readerConf) revPage(w http.ResponseWriter, r *http.Request) {
 		}
 
 		fallthrough
-	case "only_rand":
+	case "rand_only":
 		hw, found = rd.hRev.GetMatchOrRand(
 			func(e *HiWord) bool { return false },
 			func(e *HiWord) bool { return e.Past == 0 && e.Future == 0 },
 			func(e *HiWord) bool { return !e.DontShow },
 		)
 
-	case "only_old":
+	case "old_only":
 		hw, found = rd.hRev.GetFirstMatch(func(e *HiWord) bool {
 			return !e.DontShow && e.Future == 0
 		})

@@ -188,14 +188,13 @@ main {
             color: inherit;
             font-family: inherit;
             background: var(--bg);
-            --_b: #4b4b4b;
-            border: 2px solid var(--_b);
+            border: 2px solid var(--border);
             border-radius: var(--border-radious);
             padding: 0.5rem;
 
             &:hover {
                 cursor: pointer;
-                background-color: var(--_b);
+                background-color: var(--border);
                 color: var(--bg);
             }
 

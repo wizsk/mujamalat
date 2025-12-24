@@ -255,6 +255,10 @@ func (om *OrderedMap[K, V]) ValuesRev() []V {
 }
 
 func (om *OrderedMap[K, V]) GetFirstMatch(match func(*V) bool) (V, bool) {
+	if len(om.data) == 0 {
+		var v V
+		return v, false
+	}
 	for i := range om.data {
 		if match(&om.data[i].Value) {
 			return om.data[i].Value, true
@@ -266,6 +270,10 @@ func (om *OrderedMap[K, V]) GetFirstMatch(match func(*V) bool) (V, bool) {
 }
 
 func (om *OrderedMap[K, V]) GetLastMatch(match func(*V) bool) (V, bool) {
+	if len(om.data) == 0 {
+		var v V
+		return v, false
+	}
 	for i := len(om.data) - 1; i > -1; i-- {
 		if match(&om.data[i].Value) {
 			return om.data[i].Value, true
@@ -282,6 +290,10 @@ func (om *OrderedMap[K, V]) GetLastMatch(match func(*V) bool) (V, bool) {
 // and hidden != true
 func (om *OrderedMap[K, V]) GetMatchOrRand(match func(*V) bool,
 	stopMatching func(*V) bool, rMatch func(*V) bool) (V, bool) {
+	if len(om.data) == 0 {
+		var v V
+		return v, false
+	}
 
 	// try to find a match
 	var i int
@@ -314,6 +326,10 @@ func (om *OrderedMap[K, V]) GetMatchOrRand(match func(*V) bool,
 
 // Values returns ordered values.
 func (om *OrderedMap[K, V]) ValuesFiltered(keep func(*Entry[K, V]) bool) []V {
+	if len(om.data) == 0 {
+		return nil
+	}
+
 	vals := make([]V, len(om.data))
 	i := 0
 	for _, e := range om.data {
@@ -326,6 +342,10 @@ func (om *OrderedMap[K, V]) ValuesFiltered(keep func(*Entry[K, V]) bool) []V {
 }
 
 func (om *OrderedMap[K, V]) ValuesUntil(match func(*Entry[K, V]) bool) []V {
+	if len(om.data) == 0 {
+		return nil
+	}
+
 	vals := make([]V, len(om.data))
 	i := 0
 	for _, e := range om.data {
@@ -339,6 +359,10 @@ func (om *OrderedMap[K, V]) ValuesUntil(match func(*Entry[K, V]) bool) []V {
 }
 
 func (om *OrderedMap[K, V]) Sort(cmp func(a Entry[K, V], b Entry[K, V]) int) {
+	if len(om.data) == 0 {
+		return
+	}
+
 	slices.SortStableFunc(om.data, cmp)
 	clear(om.index)
 	for i, v := range om.data {

@@ -80,26 +80,47 @@ func (rd *readerConf) revPage(w http.ResponseWriter, r *http.Request) {
 	var found bool
 
 	switch r.URL.Query().Get("ord") {
-	case "rand":
-		hw, found = rd.hRev.GetMatchOrRand(
-			func(e *HiWord) bool { return !e.DontShow && e.Future < curr },
-			func(e *HiWord) bool { return e.Past == 0 && e.Future == 0 },
-			func(e *HiWord) bool { return !e.DontShow },
-		)
-
 	case "new":
 		// 1s look for due word
 		hw, found = rd.hRev.GetFirstMatch(func(e *HiWord) bool {
 			return !e.DontShow && e.Future < curr
 		})
 
+		// found some a due word
+		if hw.Future != 0 {
+			break
+		}
+
 		// if no future that means it is a new word (or empty)
 		// then get a new word.
-		if hw.Future == 0 {
-			hw, found = rd.hRev.GetLastMatch(func(e *HiWord) bool {
-				return !e.DontShow && e.Future == 0
-			})
+		fallthrough
+	case "only_new":
+		hw, found = rd.hRev.GetLastMatch(func(e *HiWord) bool {
+			return !e.DontShow && e.Future == 0
+		})
+
+	case "rand":
+		hw, found = rd.hRev.GetMatchOrRand(
+			func(e *HiWord) bool { return !e.DontShow && e.Future < curr },
+			func(e *HiWord) bool { return e.Past == 0 && e.Future == 0 },
+			func(e *HiWord) bool { return !e.DontShow },
+		)
+		if hw.Future != 0 {
+			break
 		}
+
+		fallthrough
+	case "only_rand":
+		hw, found = rd.hRev.GetMatchOrRand(
+			func(e *HiWord) bool { return false },
+			func(e *HiWord) bool { return e.Past == 0 && e.Future == 0 },
+			func(e *HiWord) bool { return !e.DontShow },
+		)
+
+	case "only_old":
+		hw, found = rd.hRev.GetFirstMatch(func(e *HiWord) bool {
+			return !e.DontShow && e.Future == 0
+		})
 
 	case "old":
 		fallthrough
@@ -194,6 +215,13 @@ func (rd *readerConf) revPagePost(w http.ResponseWriter, r *http.Request) {
 		h.Future = 0
 		rd.hMap.Set(h.Word, h)
 		rd.saveHMap(w)
+
+		if api {
+			w.WriteHeader(http.StatusAccepted)
+			w.Header().Add("Content-Type", "application/json")
+			fmt.Fprintf(w, `{"f": %q, "fu": %d,  "p": %q, "pu": %d}`,
+				fmtUnix(h.Future), h.Future, fmtUnix(h.Past), h.Past)
+		}
 
 	default:
 		http.Error(w, "ILLIGAL", http.StatusBadGateway)

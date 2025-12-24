@@ -1,6 +1,9 @@
-<div id="revMode" class="{{if not .RD.Title}}hidden{{end}}">
+<div id="revMode">
+    {{if .RD.Title}}
     <h3 id="title" data-title="{{.RD.Title}}">{{.RD.Title}}</h3>
-
+    {{else}}
+    <h3 id="title" data-title="{{.RD.Title}}">لا موجود</h3>
+    {{end}}
     <dialog id="selectCustomAfterDailouge">
         <div class="mc">
             <div class="con">
@@ -12,12 +15,6 @@
                     {{- range nextRev .RevData.Past .RevData.Future}}
                     <option value="{{.}}">{{.}}</option>
                     {{end -}}
-                    <!-- <option value="7">7</option> -->
-                    <!-- <option value="10">10</option> -->
-                    <!-- <option value="15">15</option> -->
-                    <!-- <option value="20">20</option> -->
-                    <!-- <option value="25">25</option> -->
-                    <!-- <option value="30">30</option> -->
                 </select>
             </div>
             <div class="con">
@@ -51,11 +48,16 @@
         <div id="ord-div">
             <!--<label for="ord">الترتيب:</label>-->
             <select name="ord" id="ord">
-               <option value="old">قديم</option>
-               <option value="new">جديد</option>
-               <option value="rand">عشوائي</option>
+                <option value="old">قديم</option>
+                <option value="new">جديد</option>
+                <option value="rand">عشوائي</option>
+                <option value="old_only">قديم فقط</option>
+                <option value="new_only">جديد فقط</option>
+                <option value="rand_only">عشوائي فقط</option>
             </select>
         </div>
+
+        {{if .RD.Title}}
         <div class="top-txt">بعد عدد الأيام</div>
         <div class="top">
             <button
@@ -164,14 +166,6 @@
                 </svg>
             </button>
         </div>
+        {{end}}
     </div>
 </div>
-
-{{if not .RD.Title}}
-<center>
-    <p>لا جديد موجود</p>
-</center>
-<!-- <button class="btn" onclick="reset()">
-        reset
-    </button> -->
-{{end}}

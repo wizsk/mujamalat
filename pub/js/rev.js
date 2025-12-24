@@ -9,45 +9,30 @@ const customAfterSelect = document.getElementById(
 const customAfterInput = document.getElementById(
   "selectCustomAfterDailougeInput",
 );
+
 const ord = document.getElementById("ord");
+const ordLSN = () => `${window.location.pathname}-ord`;
 
 document.addEventListener("DOMContentLoaded", () => {
-  const s = new URLSearchParams(window.location.search);
-  console.log(s);
-  switch (s.get("ord")) {
-    case "new":
-      ord.value = "new";
-      break;
+  const rwh = (url) => window.history.replaceState(null, "", url);
 
-    case "rand":
-      ord.value = "rand";
-      break;
-
-    default:
-      window.history.replaceState(null, "", `${window.location.pathname}`);
+  const v = window.localStorage.getItem(ordLSN());
+  if (!v) {
+    rwh(`${window.location.pathname}`);
+  } else {
+    ord.value = v;
+    rwh(`${window.location.pathname}?ord=${v}`);
   }
 });
 
 ord.onchange = () => {
-  switch (ord.value) {
-    case "new":
-      window.history.replaceState(
-        null,
-        "",
-        `${window.location.pathname}?ord=new`,
-      );
-      break;
-
-    case "rand":
-      window.history.replaceState(
-        null,
-        "",
-        `${window.location.pathname}?ord=rand`,
-      );
-      break;
-
-    default:
-      window.history.replaceState(null, "", `${window.location.pathname}`);
+  const v = ord.value;
+  if (v == "old") {
+    window.localStorage.removeItem(ordLSN());
+    window.location.href = window.location.pathname;
+  } else {
+    window.localStorage.setItem(ordLSN(), v);
+    window.location.href = `${window.location.pathname}?ord=${v}`;
   }
 };
 

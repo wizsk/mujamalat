@@ -116,7 +116,7 @@ function showModal(r) {
             future.dataset.fu = res.data.fu;
             past.dataset.pu = res.data.pu;
             past.innerText = res.data.p;
-            past.dataset.pu = res.data.pu;
+            past.dataset.p = res.data.p;
         } else {
             alert("Failed to set new date");
         }
@@ -162,7 +162,7 @@ function showModal(r) {
             isRequesting.show();
             return;
         }
-        if (!confirm(`Do you want hide ${word}?`)) return;
+        if (!confirm(`Do you want to ${hidden? "show" : "hide"} ${word}?`)) return;
 
         isRequesting.set(true);
 
@@ -171,16 +171,27 @@ function showModal(r) {
         dh.innerText = hidden ? "Showing…" : "Hiding…";
 
         // req here
+        let res;
         try {
-            if (true == !await post202(`${window.location.pathname}?w=${word}&dont_show=${hidden}`)) {
-                hidden = !hidden;
-            }
+            res = await post202(`${window.location.pathname}?w=${word}&dont_show=${hidden}&api=true`, true);
         } catch (err) {
             hidden = !hidden;
             console.error(err)
+            return;
         }
 
-        dh.innerText = "Reset";
+
+        if (res && res.ok) {
+            df.innerText = res.data.f;
+            future.dataset.f = res.data.f;
+            future.innerText = res.data.f;
+            future.dataset.fu = res.data.fu;
+            past.dataset.pu = res.data.pu;
+            past.innerText = res.data.p;
+            past.dataset.p = res.data.p;
+        } else {
+          hidden = !hidden;
+        }
 
         if (hidden) dfd.classList.add('hidden');
         else dfd.classList.remove('hidden');

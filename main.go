@@ -15,6 +15,7 @@ import (
 	"time"
 
 	_ "github.com/glebarez/go-sqlite"
+	"github.com/wizsk/mujamalat/tls"
 )
 
 const (
@@ -231,9 +232,16 @@ func main() {
 	}
 
 	fmt.Println()
-	fmt.Printf("-- localnet:\thttp://localhost:%s\n", gc.port)
+
+	https := ""
+	if gc.tls {
+		https = "s"
+		fmt.Println("INFO: serving in https mode")
+	}
+
+	fmt.Printf("-- localnet:\thttp%s://localhost:%s\n", https, gc.port)
 	if l := localIp(); l != "localhost" {
-		fmt.Printf("-- internet:\thttp://%s:%s\n", l, gc.port)
+		fmt.Printf("-- internet:\thttp%s://%s:%s\n", https, l, gc.port)
 	}
 	fmt.Println()
 
@@ -243,8 +251,21 @@ func main() {
 	}
 
 	serveErr := make(chan error)
-	go func(err chan<- error) {
-		err <- server.ListenAndServe()
+	go func(errCh chan<- error) {
+		if !gc.tls {
+			errCh <- server.ListenAndServe()
+		} else {
+			tp, err := tls.New(rd.tlsDir)
+			if err != nil {
+				errCh <- err
+				return
+			}
+			if err := tp.Ensure(); err != nil {
+				errCh <- err
+				return
+			}
+			errCh <- server.ListenAndServeTLS(tp.CertFile, tp.KeyFile)
+		}
 	}(serveErr)
 
 	var err, fErr error

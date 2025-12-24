@@ -24,6 +24,7 @@ type readerConf struct {
 	gc      globalConf
 	t       templateWraper
 	permDir string
+	tlsDir  string
 
 	hFilePath  string
 	enFilePath string
@@ -70,6 +71,14 @@ func newReader(gc globalConf, t templateWraper) *readerConf {
 	if _, err := os.Stat(n); err != nil {
 		if err = os.MkdirAll(n, 0700); err != nil && !os.IsExist(err) {
 			fmt.Printf("FETAL: Could not create the hist file! %s\n", n)
+			os.Exit(1)
+		}
+	}
+
+	rd.tlsDir = filepath.Join(rd.permDir, "tls-cert")
+	if gc.tls {
+		if err = os.Mkdir(rd.tlsDir, 0700); err != nil && !os.IsExist(err) {
+			fmt.Printf("FETAL: Could not create the tls-cert file! %s\n", n)
 			os.Exit(1)
 		}
 	}

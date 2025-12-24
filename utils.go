@@ -29,6 +29,7 @@ type globalConf struct {
 	deleteSessions bool
 	noCompress     bool
 	migrate        bool
+	tls            bool
 }
 
 func parseFlags() globalConf {
@@ -55,6 +56,9 @@ func parseFlags() globalConf {
 
 	flag.BoolVar(&conf.tmpMode, "tmp", false,
 		"tempurary mode. creates a directory in to os's tmp and deletes it on close")
+
+	flag.BoolVar(&conf.tls, "tls", false,
+		"use https")
 
 	showVersion := flag.Bool("v", false, "print version information")
 

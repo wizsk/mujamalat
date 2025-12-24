@@ -106,7 +106,7 @@
     }
 
     #selectCustomAfterDailouge {
-        border: 1px solid #ccc;
+        border: 1px solid var(--border);
         border-radius: var(--border-radious);
         width: 90vw;
         max-width: 400px;

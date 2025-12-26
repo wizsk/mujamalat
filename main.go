@@ -223,8 +223,14 @@ func main() {
 		mw = middleware(mw)
 	}
 
-	if gc.port == "" {
-		gc.port = findFreePort(portRangeStart, portrangeEnd)
+	{
+		p, sp := findFreePorts(portRangeStart, portrangeEnd, gc.port == "", gc.portHttps == "")
+		if gc.port == "" {
+			gc.port = p
+		}
+		if gc.portHttps == "" {
+			gc.portHttps = sp
+		}
 	}
 
 	if gc.pass != "" {
@@ -233,28 +239,40 @@ func main() {
 
 	fmt.Println()
 
-	https := ""
-	if gc.tls {
-		https = "s"
-		fmt.Println("INFO: serving in https mode")
-	}
-
-	fmt.Printf("-- localnet:\thttp%s://localhost:%s\n", https, gc.port)
-	if l := localIp(); l != "localhost" {
-		fmt.Printf("-- internet:\thttp%s://%s:%s\n", https, l, gc.port)
+	l := localIp()
+	fmt.Println("\n--     http:")
+	fmt.Printf("-- localnet:\thttp://localhost:%s\n", gc.port)
+	if l != "localhost" {
+		fmt.Printf("-- internet:\thttp://%s:%s\n", l, gc.port)
 	}
 	fmt.Println()
+
+	if !gc.noHttps {
+		fmt.Println("\n--    https:")
+		fmt.Printf("-- localnet:\thttps://localhost:%s\n", gc.portHttps)
+		if l != "localhost" {
+			fmt.Printf("-- internet:\thttps://%s:%s\n", l, gc.portHttps)
+		}
+		fmt.Println()
+	}
 
 	server := &http.Server{
 		Addr:    ":" + gc.port,
 		Handler: mw,
 	}
 
+	serverSq := &http.Server{
+		Addr:    ":" + gc.portHttps,
+		Handler: mw,
+	}
+
 	serveErr := make(chan error)
 	go func(errCh chan<- error) {
-		if !gc.tls {
-			errCh <- server.ListenAndServe()
-		} else {
+		errCh <- server.ListenAndServe()
+	}(serveErr)
+
+	if !gc.noHttps {
+		go func(errCh chan<- error) {
 			tp, err := tls.New(rd.tlsDir)
 			if err != nil {
 				errCh <- err
@@ -264,9 +282,9 @@ func main() {
 				errCh <- err
 				return
 			}
-			errCh <- server.ListenAndServeTLS(tp.CertFile, tp.KeyFile)
-		}
-	}(serveErr)
+			errCh <- serverSq.ListenAndServeTLS(tp.CertFile, tp.KeyFile)
+		}(serveErr)
+	}
 
 	var err, fErr error
 	sig := make(chan os.Signal, 1)
@@ -278,15 +296,22 @@ func main() {
 	}
 
 	fmt.Println()
+	fmt.Println("Closing db")
+	db.Close()
+
 	if err != nil {
 		fmt.Println("while serving err:", err)
 	} else {
 		fmt.Println("Shuttingdown http server")
-		server.Shutdown(context.Background())
+		c1, cn1 := context.WithTimeout(context.Background(), time.Second*1)
+		c2, cn2 := context.WithTimeout(context.Background(), time.Second*1)
+		server.Shutdown(c1)
+		if !gc.noHttps {
+			serverSq.Shutdown(c2)
+		}
+		defer cn1()
+		defer cn2()
 	}
-
-	fmt.Println("Closing db")
-	db.Close()
 	if gc.tmpMode {
 		fmt.Println("Deleting:", rd.permDir)
 		os.RemoveAll(rd.permDir)

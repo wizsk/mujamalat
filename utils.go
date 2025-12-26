@@ -21,6 +21,7 @@ import (
 // every value should be passed by value
 type globalConf struct {
 	port           string
+	portHttps      string
 	verbose        bool
 	debug          bool
 	pass           string
@@ -29,7 +30,7 @@ type globalConf struct {
 	deleteSessions bool
 	noCompress     bool
 	migrate        bool
-	tls            bool
+	noHttps        bool
 }
 
 func parseFlags() globalConf {
@@ -42,6 +43,10 @@ func parseFlags() globalConf {
 
 	flag.StringVar(&conf.port, "p", "",
 		fmt.Sprintf("port number for the server (defaut: %d-%d)",
+			portRangeStart, portrangeEnd))
+
+	flag.StringVar(&conf.portHttps, "sp", "",
+		fmt.Sprintf("https port number for the server (defaut: %d-%d)",
 			portRangeStart, portrangeEnd))
 
 	flag.StringVar(&conf.permDir, "save-dir", "",
@@ -57,7 +62,7 @@ func parseFlags() globalConf {
 	flag.BoolVar(&conf.tmpMode, "tmp", false,
 		"tempurary mode. creates a directory in to os's tmp and deletes it on close")
 
-	flag.BoolVar(&conf.tls, "tls", false,
+	flag.BoolVar(&conf.noHttps, "nohttps", false,
 		"use https")
 
 	showVersion := flag.Bool("v", false, "print version information")
@@ -104,6 +109,13 @@ func parseFlags() globalConf {
 	if conf.port != "" {
 		if val, err := strconv.ParseUint(conf.port, 10, 16); err != nil || val == 0 || val >= 65535 {
 			fmt.Printf("FETAL: '%s' Not a valid port nubmer\n", conf.port)
+			os.Exit(1)
+		}
+	}
+
+	if conf.portHttps != "" {
+		if val, err := strconv.ParseUint(conf.portHttps, 10, 16); err != nil || val == 0 || val >= 65535 {
+			fmt.Printf("FETAL: '%s' Not a valid portHttps nubmer\n", conf.portHttps)
 			os.Exit(1)
 		}
 	}
@@ -254,26 +266,29 @@ func le(err error, comments ...string) bool {
 }
 
 // it looks for form start to including end
-func findFreePort(start, end int) string {
-	if p := os.Getenv("PORT"); p != "" {
-		if c, err := net.Listen("tcp", "0.0.0.0:"+p); err == nil &&
-			c.Close() == nil {
-			return p
-		}
-	}
-
+func findFreePorts(start, end int, _p, _sp bool) (string, string) {
+	p1, p2 := "", ""
 	for i := start; i <= end; i++ {
 		p := strconv.Itoa(i)
 		if c, err := net.Listen("tcp", "0.0.0.0:"+p); err == nil &&
 			c.Close() == nil {
-			return p
+			if (p1 != "" || !_p) && (p2 != "" || !_sp) {
+				break
+			} else if _p && p1 == "" {
+				p1 = p
+			} else if _sp && p2 == "" {
+				p2 = p
+			}
 		}
 	}
 
-	lg.Printf("findFreePort: count not find a free port! from %d to %d\n",
-		start, end)
-	os.Exit(1)
-	return ""
+	if _p && p1 == "" || _sp && p2 == "" {
+		lg.Printf("findFreePort: count not find a free port! from %d to %d\n",
+			start, end)
+		os.Exit(1)
+	}
+
+	return p1, p2
 }
 
 func localIp() string {

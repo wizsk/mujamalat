@@ -178,7 +178,8 @@ func main() {
 	mux.HandleFunc("/", dc.mainPage)
 	mux.HandleFunc("/content", dc.api)
 
-	mux.HandleFunc("GET /rd/", rd.page)
+	mux.HandleFunc("GET /rd/", rd.input)
+	mux.HandleFunc("GET /rd/{sha}", rd.page)
 	mux.HandleFunc("POST /rd/", rd.post)
 	mux.HandleFunc("POST /rd/delete/{sha}", rd.deletePage)
 	mux.HandleFunc("POST /rd/entryEdit", rd.entryEdit)

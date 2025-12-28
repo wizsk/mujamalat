@@ -166,6 +166,43 @@ func (om *OrderedMap[K, V]) Delete(k K) bool {
 	return true
 }
 
+func (om *OrderedMap[K, V]) DeleteMatches(m func(*V) bool) {
+	if len(om.data) == 0 {
+		return
+	}
+
+	idxs := make([]int, 0, len(om.data)/10)
+	for i, v := range om.data {
+		if m(&v.Value) {
+			idxs = append(idxs, i)
+		}
+	}
+
+	if len(idxs) == 0 {
+		return
+	}
+
+	nd := make([]Entry[K, V], cap(om.data))
+	c := 0
+	ic := 0
+	clear(om.index)
+	for i := range len(om.data) {
+		if i == idxs[ic] {
+			ic++
+			continue
+		}
+		nd[c] = om.data[i]
+		om.index[om.data[i].Key] = c
+		c++
+	}
+	nd = nd[:c]
+	om.data = nd
+
+	if len(om.listeners) > 0 {
+		om.emit(Event[K, V]{Type: EventDeleteMatch})
+	}
+}
+
 func (om *OrderedMap[K, V]) Reset() {
 	if om.data != nil {
 		om.data = om.data[:0]
@@ -244,7 +281,7 @@ func (om *OrderedMap[K, V]) Values() []V {
 	return vals
 }
 
-// Values returns ordered values.
+// Values returns ordered values in reverse
 func (om *OrderedMap[K, V]) ValuesRev() []V {
 	vals := make([]V, len(om.data))
 	for i, j := len(om.data)-1, 0; i > -1; i-- {

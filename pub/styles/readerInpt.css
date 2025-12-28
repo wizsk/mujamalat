@@ -155,7 +155,7 @@ textarea {
     margin-top: 2rem;
 }
 
-#hist {
+#hist, #hidden-hist {
     box-sizing: border-box;
     width: fit-content;
     margin: 3rem auto;
@@ -186,7 +186,7 @@ textarea {
     }
 }
 
-#hist-items {
+#hist-items, #hidden-hist-items {
     display: flex;
     flex-direction: column;
 

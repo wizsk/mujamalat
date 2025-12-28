@@ -6,29 +6,39 @@ import (
 	"net/http"
 	"os"
 	"path/filepath"
-	"strings"
 )
 
-func (rd *readerConf) page(w http.ResponseWriter, r *http.Request) {
-	t := rd.t
+func (rd *readerConf) input(w http.ResponseWriter, _ *http.Request) {
 	rd.RLock()
 	defer rd.RUnlock()
 
-	h := strings.TrimPrefix(r.URL.Path, "/rd/")
-	if h == "" {
-		// meaning the readerPage.
-		err := t.ExecuteTemplate(w, "readerInpt.html", rd.enMap.ValuesRev())
-		if debug && err != nil {
-			lg.Println(err)
-		}
-		return
+	tmp := make([]EntryInfo, rd.tmpData.Len())
+	for i, v := range rd.tmpData.ValuesRev() {
+		tmp[i] = v.EntryInfo
 	}
 
+	d := struct {
+		Perm, Tmp []EntryInfo
+	}{
+		rd.enMap.ValuesRev(),
+		tmp,
+	}
+
+	err := rd.t.ExecuteTemplate(w, "readerInpt.html", &d)
+	if debug && err != nil {
+		lg.Println(err)
+	}
+}
+
+func (rd *readerConf) page(w http.ResponseWriter, r *http.Request) {
+	rd.RLock()
+	defer rd.RUnlock()
+	h := r.PathValue("sha")
 	// serve the saved file
 	ei, ok := rd.enMap.Get(h)
 	if !ok {
 		w.WriteHeader(http.StatusNotFound)
-		t.ExecuteTemplate(w, somethingWentWrong, &SomethingWentW{"Could not find page", "/rd/"})
+		rd.t.ExecuteTemplate(w, somethingWentWrong, &SomethingWentW{"Could not find page", "/rd/"})
 		return
 	}
 
@@ -45,7 +55,7 @@ func (rd *readerConf) page(w http.ResponseWriter, r *http.Request) {
 
 	readerConf := ReaderData{ei.Name, data}
 	tm := TmplData{Curr: "ar_en", Dicts: dicts, DictsMap: dictsMap, RD: readerConf, RDMode: true}
-	if err := t.ExecuteTemplate(w, mainTemplateName, &tm); debug && err != nil {
+	if err := rd.t.ExecuteTemplate(w, mainTemplateName, &tm); debug && err != nil {
 		lg.Println(err)
 	}
 }

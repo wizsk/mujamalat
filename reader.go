@@ -40,6 +40,8 @@ type readerConf struct {
 	hIdx         *ordmap.OrderedMap[string, HiIdx]
 	hIdxFilePath string
 	// hIdxMtx      sync.RWMutex
+
+	tmpData *ordmap.OrderedMap[string, TmpPageEntry]
 }
 
 func newReader(gc globalConf, t templateWraper) *readerConf {
@@ -115,7 +117,8 @@ func newReader(gc globalConf, t templateWraper) *readerConf {
 	rd.addOnChangeListeners()
 	fmt.Println("INFO: highlight and indexing loadtime:", time.Since(thenMian).String())
 
-	startCleanTmpPageDataTicker()
+	rd.tmpData = ordmap.New[string, TmpPageEntry]()
+	rd.startCleanTmpPageDataTicker()
 	return &rd
 }
 

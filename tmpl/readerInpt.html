@@ -68,17 +68,17 @@
         &larr;
     </a>
 
-    {{if .}}
+    {{if .Perm}}
     <main id="hist">
         <h3 id="hist-title" title="Click to change order">
-            قائمة النص
-            «<span id="hist-count">{{len . | arnum}}</span>»
+            قائمة
+            «<span id="hist-count">{{len .Perm | arnum}}</span>»
             <span id="hist-sort-type"></span>
         </h3>
         <hr>
         <input type="text" class="input-style" id="hist-s" placeholder="ابحث بدون تشكيل" value="" spellcheck="false" autocorrect="off">
         <div id="hist-items">
-            {{range $i, $v := .}}
+            {{range $i, $v := .Perm}}
             {{if not $v.Pin}}{{continue}}{{end}}
             <div class="hist-item-div" data-idx="{{$i}}" data-pin="{{if $v.Pin}}1{{else}}0{{end}}" data-ar="{{.Name | fmtHistTitle}}">
                 <span class="dash">-</span>
@@ -98,7 +98,7 @@
             </div>
             {{end}}
 
-            {{range $i, $v := .}}
+            {{range $i, $v := .Perm}}
             {{if $v.Pin}}{{continue}}{{end}}
             <div class="hist-item-div" data-idx="{{$i}}" data-pin="{{if $v.Pin}}1{{else}}0{{end}}" data-ar="{{.Name | fmtHistTitle}}">
                 <span class="dash">-</span>
@@ -115,10 +115,28 @@
                             d="M2.5 1a1 1 0 0 0-1 1v1a1 1 0 0 0 1 1H3v9a2 2 0 0 0 2 2h6a2 2 0 0 0 2-2V4h.5a1 1 0 0 0 1-1V2a1 1 0 0 0-1-1H10a1 1 0 0 0-1-1H7a1 1 0 0 0-1 1zm3 4a.5.5 0 0 1 .5.5v7a.5.5 0 0 1-1 0v-7a.5.5 0 0 1 .5-.5M8 5a.5.5 0 0 1 .5.5v7a.5.5 0 0 1-1 0v-7A.5.5 0 0 1 8 5m3 .5v7a.5.5 0 0 1-1 0v-7a.5.5 0 0 1 1 0" />
                     </svg>
                 </button>
-                </button>
             </div>
             {{end}}
         </div>
+    </main>
+    {{end}}
+
+
+    {{if .Tmp}}
+    <main id="hidden-hist">
+        <h3 id="hidden-hist-title" title="Click to change order">
+            قائمة مؤقتة
+            «<span>{{len .Tmp | arnum}}</span>»
+        </h3>
+        <hr>
+    {{range $i, $v := .Tmp}}
+    <aside id="hidden-hist-items">
+        <div class="hist-item-div" data-idx="{{$i}}" data-pin="{{if $v.Pin}}1{{else}}0{{end}}" data-ar="{{.Name | fmtHistTitle}}">
+            <span class="dash">-</span>
+            <a class="hist-item" href="/rd/tmp/{{$v.Sha}}">{{.Name}}</a>
+        </div>
+    </aside>
+    {{end}}
     </main>
     {{end}}
 </body>

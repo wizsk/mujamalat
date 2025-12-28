@@ -141,7 +141,6 @@ func (rd *readerConf) loadEntriesCocurrenty() {
 	rd.enData = entreis
 }
 
-// if buf == nil it will take buf from buf pool
 func (rd *readerConf) loadEntry(en EntryInfo, data []byte) MEntry {
 	res := MEntry{}
 

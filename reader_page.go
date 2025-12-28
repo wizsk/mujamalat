@@ -1,72 +1,51 @@
 package main
 
 import (
-	"bufio"
-	"bytes"
 	"crypto/sha256"
 	"fmt"
 	"net/http"
-	"sort"
-	"sync"
 	"time"
+
+	"github.com/wizsk/mujamalat/ordmap"
 )
 
-var tmpPageData = struct {
-	sync.RWMutex
-	data map[string]tmpPageEntry
-}{
-	data: make(map[string]tmpPageEntry),
+type TmpPageEntry struct {
+	EntryInfo
+	Data [][]ReaderWord
+	// EnteredAt int64
 }
 
-type tmpPageEntry struct {
-	sha       string
-	pageName  string
-	data      []byte
-	enteredAt int64
-}
-
-func startCleanTmpPageDataTicker() {
+func (rd *readerConf) startCleanTmpPageDataTicker() {
 	ticker := time.NewTicker(10 * time.Minute)
 	go func() {
 		for range ticker.C {
-			cleanTmpPageData()
+			rd.cleanTmpPageData()
 		}
 	}()
 
 }
 
-const tmpPageDataDeadline = 60 * 40 // 40 min
-func cleanTmpPageData() {
-	tmpPageData.Lock()
-	defer tmpPageData.Unlock()
+const (
+	tmpPageDataMaxCount = 10
+)
 
-	now := time.Now().Unix()
+func (rd *readerConf) cleanTmpPageData() {
+	rd.Lock()
+	defer rd.Unlock()
+	l := rd.tmpData.Len()
 
-	for k, v := range tmpPageData.data {
-		if now-v.enteredAt > tmpPageDataDeadline {
-			delete(tmpPageData.data, k)
-		}
-	}
-
-	const maxSize = 5
-	if len(tmpPageData.data) <= maxSize {
+	if l < tmpPageDataMaxCount {
 		return
 	}
 
-	arr := make([]tmpPageEntry, 0, len(tmpPageData.data))
-	for _, v := range tmpPageData.data {
-		arr = append(arr, v)
-	}
-
-	sort.Slice(arr, func(i, j int) bool {
-		return arr[i].enteredAt < arr[j].enteredAt
+	rd.tmpData.DeleteMatches(func(t *TmpPageEntry) bool {
+		// we know for a fact that new data lives at the start of the map
+		if l > tmpPageDataMaxCount {
+			l--
+			return true
+		}
+		return false
 	})
-
-	arr = arr[:maxSize]
-	clear(tmpPageData.data)
-	for _, v := range arr {
-		tmpPageData.data[v.sha] = v
-	}
 }
 
 // save
@@ -79,53 +58,59 @@ func (rd *readerConf) tmpPagePost(w http.ResponseWriter, r *http.Request) {
 	sha := fmt.Sprintf("%x", sha256.Sum256(data))
 	pageName := rd.postPageName(data)
 
-	tmpPageData.Lock()
-	tmpPageData.data[sha] = tmpPageEntry{
-		sha:       sha,
-		pageName:  pageName,
-		data:      data,
-		enteredAt: time.Now().Unix(),
+	rd.Lock()
+	if rd.tmpData == nil {
+		rd.tmpData = ordmap.New[string, TmpPageEntry]()
 	}
-	tmpPageData.Unlock()
+
+	e := EntryInfo{
+		Sha:  sha,
+		Name: pageName,
+	}
+
+	buf := getBuf()
+	defer putBuf(buf)
+	formatInputText(data, buf)
+	d := rd.loadEntry(e, buf.Bytes())
+
+	rd.tmpData.Set(sha, TmpPageEntry{
+		EntryInfo: e,
+		Data:      d.Peras,
+		// EnteredAt: time.Now().Unix(),
+	})
+	rd.Unlock()
 
 	http.Redirect(w, r, "/rd/tmp/"+sha, http.StatusSeeOther)
 }
 
 func (rd *readerConf) tmpPage(w http.ResponseWriter, r *http.Request) {
-	tmpPageData.RLock()
-	defer tmpPageData.RUnlock()
+	rd.RLock()
+	defer rd.RUnlock()
+
+	if rd.tmpData == nil {
+		http.NotFound(w, r)
+		return
+	}
 
 	sha := r.PathValue("sha")
-	td, ok := tmpPageData.data[sha]
+	td, ok := rd.tmpData.Get(sha)
 	if !ok {
 		http.NotFound(w, r)
 		return
 	}
 
-	sc := bufio.NewScanner(bytes.NewReader(td.data))
-	peras := [][]ReaderWord{}
-	for sc.Scan() {
-		l := bytes.TrimSpace(sc.Bytes())
-		if len(l) == 0 {
-			continue
+	// copying
+	src := td.Data
+	data := make([][]ReaderWord, len(src))
+	for i, l := range src {
+		data[i] = make([]ReaderWord, len(l))
+		for j, w := range l {
+			w.IsHi = rd.hMap.IsSet(w.Oar)
+			data[i][j] = w
 		}
-		p := []ReaderWord{}
-		for w := range bytes.SplitSeq(l, []byte(" ")) {
-			if len(w) == 0 {
-				continue
-			}
-			w := string(w)
-			c := keepOnlyArabic(w)
-			p = append(p, ReaderWord{
-				Og:   w,
-				Oar:  c,
-				IsHi: rd.hMap.IsSet(c),
-			})
-		}
-		peras = append(peras, p)
 	}
 
-	readerConf := ReaderData{td.pageName, peras}
+	readerConf := ReaderData{td.Name, data}
 	tm := TmplData{Curr: "ar_en", Dicts: dicts, DictsMap: dictsMap, RD: readerConf, RDMode: true}
 	if err := rd.t.ExecuteTemplate(w, mainTemplateName, &tm); debug && err != nil {
 		lg.Println(err)

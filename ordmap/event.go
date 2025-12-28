@@ -8,6 +8,7 @@ const (
 	EventInsert EventType = iota
 	EventUpdate
 	EventDelete
+	EventDeleteMatch
 	EventReset
 	EventSort
 )

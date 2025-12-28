@@ -1,5 +1,5 @@
 <!DOCTYPE html>
-<html lang="en">
+<html lang="ar">
 
 <head>
     <meta charset="UTF-8">
@@ -21,6 +21,8 @@
     {{end}}
 
     {{if .RDMode}}
+    <link rel="stylesheet" href="/pub/styles/reader.css">
+    <script src="/pub/js/reader_info.js" defer></script>
     <style>
         #dict_container {
             position: fixed;
@@ -104,12 +106,10 @@
         // {{template "main.js" .}}
         // {{template "nav.js" .}}
         // {{template "btn.js" .}}
-        // {{template "key.js" .}}
         // {{if .RDMode}}
         // {{template "reader.js" .}}
         // {{end}}
     </script>
-    <!-- {{if not .DebugMode}} -->
     <script>
         if ("serviceWorker" in navigator) {
             navigator.serviceWorker.register(
@@ -119,7 +119,6 @@
                 .catch(e => console.log("SW Error:", e));
         } else console.log("no service worker");
     </script>
-    <!-- {{end}} -->
 </body>
 
 </html>

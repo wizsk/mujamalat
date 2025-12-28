@@ -10,6 +10,8 @@ const readerWrapper = document.getElementById("readerWrapper");
 const popup = document.getElementById("popup");
 const highlight = document.getElementById("highlight");
 const openDictBtn = document.getElementById("openDictBtn");
+const infoBtn = document.getElementById("infoBtn");
+const infoDialog = document.getElementById("infoDialog");
 const readerMenu = document.getElementById("readerMenu");
 const readerMenuBtn = document.getElementById("readerMenuBtn");
 const wordSpans = document.querySelectorAll(".rWord");
@@ -23,7 +25,8 @@ const scrollOnSearchC = document.getElementById("scroll-on-search");
 const dark = document.getElementById("dark");
 
 for (let i = 0; i < wordSpans.length; i++) {
-  if (wordSpans[i].dataset.oar !== "") wordSpans[i].onclick = () => openPopup(wordSpans[i]);
+  if (wordSpans[i].dataset.oar !== "")
+    wordSpans[i].onclick = () => openPopup(wordSpans[i]);
 }
 
 function closePopup() {
@@ -31,7 +34,7 @@ function closePopup() {
   lastClikedWord.classList.remove("clicked");
   lastClikedWord = null;
   popup.classList.add("hidden");
-  openDictBtn.onclick = () => { };
+  openDictBtn.onclick = () => {};
 }
 
 async function addOrRmHiClass(word, add) {
@@ -106,6 +109,11 @@ function openPopup(e) {
     openDictionay(onlyAr);
   };
 
+  infoBtn.onclick = async () => {
+    closePopup();
+    showInfoModal(onlyAr);
+  };
+
   lastClikedWord = e;
   e.classList.add("clicked");
   popup.classList.remove("hidden");
@@ -170,8 +178,7 @@ function openDictionay(w) {
 // Handle browser back/forward
 window.addEventListener("popstate", (e) => {
   if (readerMenuOpen) {
-    if (readerMenu.open)
-      readerMenu.close();
+    if (readerMenu.open) readerMenu.close();
 
     document.body.style.overflow = "auto";
     readerMenuOpen = false;
@@ -194,10 +201,8 @@ readerMenuBtn.onclick = () => {
 };
 
 readerMenu.onclose = () => {
-  if (readerMenuOpen)
-    window.history.back();
-
-}
+  if (readerMenuOpen) window.history.back();
+};
 
 fontSelector.onchange = (e) => {
   const val = e.target.value;
@@ -289,7 +294,6 @@ function getTextAlignLSN() {
   return `${window.location.pathname}-textAlign`;
 }
 
-
 const poemCenterClassName = "poem-center";
 poemAlign.onchange = (e) => {
   const val = e.target.value;
@@ -348,7 +352,6 @@ document.addEventListener("DOMContentLoaded", () => {
     scrollOnSearch = true;
   }
 });
-
 
 if (readerPageR.test(window.location.pathname)) {
   /** LSN = local storage name */
@@ -457,9 +460,9 @@ for (let i = 0; i < readerMenuAnkers.length; i++) {
 dark.onchange = () => {
   if (dark.checked) {
     document.documentElement.classList.add("dark");
-    window.localStorage.setItem("dark", "t")
+    window.localStorage.setItem("dark", "t");
   } else {
     document.documentElement.classList.remove("dark");
-    window.localStorage.removeItem("dark")
+    window.localStorage.removeItem("dark");
   }
-}
+};

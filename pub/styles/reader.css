@@ -1,0 +1,55 @@
+#infoDialog {
+    box-sizing: border-box;
+    padding: 0;
+    width: 96vw;
+    max-width: 600px;
+    border: none;
+    border-radius: var(--border-radious);
+    border: 1px solid var(--border);
+    color: var(--color);
+    background-color: var(--bg);
+
+    &::backdrop {
+        background-color: rgba(0, 0, 0, 0.5);
+        touch-action: none;
+    }
+
+    > div {
+        box-sizing: border-box;
+        display: flex;
+        align-items: center;
+        flex-direction: column;
+
+        padding: 1rem;
+
+        h3, form {
+            margin-top: 1rem;
+            margin-bottom: 1rem;
+        }
+
+        textarea {
+            box-sizing: border-box;
+            /*all: unset;*/
+            width: 95%;
+            height: 40vh;
+            /*padding: 1rem;*/
+
+            &:read-only {
+                pointer-events: none;
+            }
+        }
+
+        form {
+            margin-left: 0;
+            margin-right: 0;
+            width: 95%;
+            max-width: 95%;
+            margin-top: 1rem;
+            gap: 1rem;
+
+            button[type=submit] {
+                background-color: var(--muted);
+            }
+        }
+    }
+}

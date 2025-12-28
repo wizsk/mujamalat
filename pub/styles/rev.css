@@ -58,14 +58,14 @@
 
         .top button {
             width: 3rem;
-            font-family: 'inter', 'Sans-serif';
+            font-family: "inter", "Sans-serif";
             padding: 0;
             height: 3rem;
 
             transition: background 150ms;
 
             @media (width < 768px) {
-                font-size: calc(var(--font-size)*1.6);
+                font-size: calc(var(--font-size) * 1.6);
             }
 
             &:hover {
@@ -84,7 +84,7 @@
         .svg-btn {
             color: var(--muted);
             background-color: transparent;
-            --svg-wh: 3rem;
+            --svg-wh: 2.5rem;
             transition: all 150ms;
 
             /* svg { */

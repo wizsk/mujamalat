@@ -190,6 +190,8 @@ func main() {
 	mux.HandleFunc("GET /rd/highlist/{word}", rd.highlightWord)
 	mux.HandleFunc("GET /rd/highlist/", rd.highlightList)
 	mux.HandleFunc("POST /rd/high", rd.highlightPost)
+	mux.HandleFunc("GET /rd/high_info/{word}", rd.highInfo)
+	mux.HandleFunc("POST /rd/high_info/{word}", rd.highInfoPost)
 
 	mux.HandleFunc("GET /rd/rev/", rd.revPage)
 	mux.HandleFunc("GET /rd/rev/list", rd.revPageList)

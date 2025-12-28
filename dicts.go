@@ -77,7 +77,11 @@ func (dc *dictConf) mainPage(w http.ResponseWriter, r *http.Request) {
 			le(dc.t.ExecuteTemplate(w, mainTemplateName, t))
 		}
 	case "/cache.js":
-		serveCacheSw(w, r)
+		if !debug {
+			serveCacheSw(w, r)
+		} else {
+			http.NotFound(w, r)
+		}
 		// old way show all at once. keeping code just incase
 		// word := harakatRgx.ReplaceAllString(r.FormValue("w"), "")
 		// arEn(arEnDict, word, w, dc.t)

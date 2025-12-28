@@ -26,8 +26,9 @@ type readerConf struct {
 	permDir string
 	tlsDir  string
 
-	hFilePath  string
-	enFilePath string
+	hFilePath     string
+	enFilePath    string
+	hNoteFilePath string
 	// enMap is saved manually to report the error to the user
 	enMap  *ordmap.OrderedMap[string, EntryInfo] // sha
 	enData entryData
@@ -39,7 +40,7 @@ type readerConf struct {
 	// it's expensive to calculate
 	hIdx         *ordmap.OrderedMap[string, HiIdx]
 	hIdxFilePath string
-	// hIdxMtx      sync.RWMutex
+	hwi          *ordmap.OrderedMap[string, string] // hi word info.. info about a word
 
 	tmpData *ordmap.OrderedMap[string, TmpPageEntry]
 }
@@ -119,6 +120,9 @@ func newReader(gc globalConf, t templateWraper) *readerConf {
 
 	rd.tmpData = ordmap.New[string, TmpPageEntry]()
 	rd.startCleanTmpPageDataTicker()
+
+	rd.hNoteFilePath = filepath.Join(rd.permDir, "high_notes.txt")
+	rd.loadHighNotes()
 	return &rd
 }
 

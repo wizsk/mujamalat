@@ -19,10 +19,9 @@ type TmplData struct {
 	RDMode            bool
 	RD                ReaderData
 
-	HiIdx     HiIdxData
-	RevMode   bool // review mode
-	RevData   RevData
-	DebugMode bool
+	HiIdx   HiIdxData
+	RevMode bool // review mode
+	RevData RevData
 }
 
 // dict names

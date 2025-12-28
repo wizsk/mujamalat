@@ -91,4 +91,3 @@ async function cloneWithHeader(response, wasCached) {
     headers
   });
 }
-

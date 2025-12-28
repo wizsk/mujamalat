@@ -17,7 +17,6 @@ func (s *dictConf) getQueries(w http.ResponseWriter, r *http.Request, curr strin
 	}
 
 	t := TmplData{Curr: curr, Dicts: dicts, DictsMap: dictsMap}
-	t.DebugMode = debug
 
 	if len(queries) == 0 {
 		le(s.t.ExecuteTemplate(w, mainTemplateName, &t))

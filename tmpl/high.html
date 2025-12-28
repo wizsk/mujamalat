@@ -43,6 +43,10 @@
             flex: 1;
             color: inherit;
             text-decoration: none;
+
+            &:hover {
+                color: var(--accent);
+            }
         }
 
         .word:nth-child(2n) {
@@ -50,8 +54,7 @@
         }
 
 
-        .del,
-        .update {
+        .del{
             all: unset;
             user-select: none;
             cursor: pointer;
@@ -69,13 +72,12 @@
             justify-content: center;
             margin-right: auto;
             /* box-shadow: 0 2px 4px rgba(0, 0, 0, 0.15); */
-        }
 
-        .del svg,
-        .update svg {
-            --svg-wh: 1.5rem;
-            width: var(--svg-wh);
-            height: var(--svg-wh);
+            svg {
+                --svg-wh: 1.5rem;
+                width: var(--svg-wh);
+                height: var(--svg-wh);
+            }
         }
     </style>
 </head>
@@ -101,8 +103,10 @@
     </div>
 
     <script>
+        document.addEventListener("DOMContentLoaded", () => {
+            window.localStorage.getItem("dark") && document.documentElement.classList.add("dark");
+        });
         const wordList = document.getElementById("word-list");
-
         const update = document.getElementsByClassName("update");
         for (let i = 0; i < update.length; i++) {
             const btn = update[i];

@@ -45,7 +45,7 @@
             width: 95%;
             max-width: 95%;
             margin-top: 1rem;
-            gap: 1rem;
+            gap: 0.5rem;
 
             button[type=submit] {
                 background-color: var(--muted);

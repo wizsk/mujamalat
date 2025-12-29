@@ -15,11 +15,7 @@ func (rd *readerConf) highInfo(w http.ResponseWriter, r *http.Request) {
 	defer rd.RUnlock()
 
 	word := r.PathValue("word")
-	info, f := rd.hwi.Get(word)
-	if !f {
-		return
-	}
-
+	info, _ := rd.hwi.Get(word)
 	w.WriteHeader(http.StatusAccepted)
 	w.Write([]byte(info))
 }

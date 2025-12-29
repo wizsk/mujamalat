@@ -15,6 +15,7 @@ let oldInfo = "";
 async function showInfoModal(word, callBack) {
   // book keeping
   noteWord.textContent = word;
+  infoTxt.value = "";
 
   infoIsEditing = false;
 
@@ -33,16 +34,27 @@ async function showInfoModal(word, callBack) {
   });
 
   if (res.ok && res.status == 202) {
-    infoTxt.value = await res.text();
+    const val = await res.text();
+    // if there is no note start in editing mode
+    if (val) {
+      infoEditBtn.textContent = infoEditBtnTxtEdit;
+    } else {
+      infoIsEditing = true;
+      infoEditBtn.textContent = infoEditBtnTxtSave;
+      infoTxt.readOnly = false;
+      infoTxt.removeAttribute("tabindex");
+      infoTxt.focus();
+    }
+    infoEditBtn.disabled = false;
+    infoTxt.value = val;
   } else {
-    infoTxt.value = "";
+    alert("Something went wrong. Could not fetch note");
   }
 
-  infoEditBtn.textContent = infoEditBtnTxtEdit;
-  infoEditBtn.disabled = false;
 
   // when deleting just keep the note empty
   infoEditBtn.onclick = async () => {
+    // was in editing mode now save and exit it
     if (infoIsEditing) {
       infoEditBtn.textContent = infoEditBtnTxtWait;
       infoEditBtn.disabled = true;
@@ -63,15 +75,19 @@ async function showInfoModal(word, callBack) {
       infoTxt.readOnly = true;
       infoTxt.setAttribute("tabindex", "-1");
       infoEditBtn.textContent = infoEditBtnTxtEdit;
+
+      infoIsEditing = false;
       return;
     }
 
+    // enable editing mode
     infoEditBtn.textContent = infoEditBtnTxtSave;
-    infoIsEditing = true;
     oldInfo = infoTxt.value.trim() ? infoTxt.value.trim() : "";
     infoTxt.readOnly = false;
     infoTxt.removeAttribute("tabindex");
     infoTxt.focus();
+
+    infoIsEditing = true;
   };
 
   noteDelBtn.onclick = async () => {

@@ -49,6 +49,7 @@ func (rd *readerConf) page(w http.ResponseWriter, r *http.Request) {
 		data[i] = make([]ReaderWord, len(l))
 		for j, w := range l {
 			w.IsHi = rd.hMap.IsSet(w.Oar)
+			w.HasNote = rd.hwi.IsSet(w.Oar)
 			data[i][j] = w
 		}
 	}

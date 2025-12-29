@@ -111,7 +111,15 @@ function openPopup(e) {
 
   infoBtn.onclick = async () => {
     closePopup();
-    showInfoModal(onlyAr);
+    showInfoModal(onlyAr, (rm) => {
+      wordSpans.forEach((e) => {
+        if (rm) {
+          e.classList.remove("hn");
+        } else if (e.dataset.oar == onlyAr) {
+          e.classList.add("hn");
+        }
+      });
+    });
   };
 
   lastClikedWord = e;

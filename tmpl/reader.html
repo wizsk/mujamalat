@@ -44,6 +44,10 @@
         color: var(--bg); */
     }
 
+    .hn {
+        color: var(--hn);
+    }
+
     .clicked {
         border-radius: var(--border-radious);
         background-color: var(--highlight2);
@@ -258,7 +262,7 @@
             {{- if add $i 1 | isodd -}}
             <span class="poem-line-num">{{qasidaLine $i}}- </span>
             {{- end}}
-            {{- range $p}}<span data-oar="{{.Oar}}" class="rWord {{if .IsHi}}hi{{end}}">{{.Og}}</span> {{end -}}
+            {{- range $p}}<span data-oar="{{.Oar}}" class="rWord {{if .IsHi}}hi{{end}} {{if .HasNote}}hn{{end}}">{{.Og}}</span> {{end -}}
         </div>
         {{end}}
     </div>

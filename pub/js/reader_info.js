@@ -13,7 +13,7 @@ let oldInfo = "";
 let noteIsInReq = false;
 
 /** @param {string} word */
-async function showInfoModal(word) {
+async function showInfoModal(word, callBack) {
   if (noteIsInReq) return;
 
   noteWord.textContent = word;
@@ -25,7 +25,6 @@ async function showInfoModal(word) {
   infoTxt.setAttribute("tabindex", "-1");
 
   infoDialog.showModal();
-
 
   noteIsInReq = true;
   const res = await fetch(`/rd/high_info/${word}`).catch((err) =>
@@ -50,12 +49,15 @@ async function showInfoModal(word) {
       infoEditBtn.textContent = infoEditBtnTxtWait;
       noteIsInReq = true;
       infoCloseBtn.disabled = true;
+      const val = infoTxt.value.trim();
       const res = await fetch(
-        `/rd/high_info/${word}?note=${encodeURIComponent(infoTxt.value.trim())}`,
+        `/rd/high_info/${word}?note=${encodeURIComponent(val)}`,
         { method: "POST" },
       ).catch((err) => console.error(err));
 
-      if (!res.ok || res.status != 202) {
+      if (res.status == 202) {
+        if (callBack) callBack(val == "");
+      } else {
         alert("Could not save note");
       }
 
@@ -85,6 +87,7 @@ async function showInfoModal(word) {
     );
 
     if (res.ok || res.status == 202) {
+      if (callBack) callBack(true);
       infoTxt.value = "";
     } else {
       alert("Could not delete note");

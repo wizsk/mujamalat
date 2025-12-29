@@ -35,9 +35,10 @@ type ReaderData struct {
 }
 
 type ReaderWord struct {
-	Og   string // origianl
-	Oar  string // only arabic
-	IsHi bool   // is heighlihted
+	Og      string // origianl
+	Oar     string // only arabic
+	IsHi    bool   // is heighlihted
+	HasNote bool
 }
 
 type SomethingWentW struct {

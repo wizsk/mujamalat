@@ -20,6 +20,7 @@ func (rd *readerConf) highInfo(w http.ResponseWriter, r *http.Request) {
 	w.Write([]byte(info))
 }
 
+// if info == "" then it deletes the note
 func (rd *readerConf) highInfoPost(w http.ResponseWriter, r *http.Request) {
 	rd.Lock()
 	defer rd.Unlock()
@@ -35,7 +36,6 @@ func (rd *readerConf) highInfoPost(w http.ResponseWriter, r *http.Request) {
 		mod = rd.hwi.Delete(word)
 	} else {
 		mod = true
-		// info = strings.ReplaceAll(info, "\n", "<br>")
 		rd.hwi.Set(word, info)
 	}
 
@@ -44,10 +44,12 @@ func (rd *readerConf) highInfoPost(w http.ResponseWriter, r *http.Request) {
 	}, "\n")
 
 	if mod {
-		f, err := fetalErrVal(os.Create(rd.hNoteFilePath))
+		tf := rd.hNoteFilePath + ".tmp"
+		f, err := fetalErrVal(os.Create(tf))
 		if err != nil || !fetalErrOkD(f.WriteString(str)) ||
-			!fetalErrOk(f.Close()) {
-			http.Error(w, "some horrible happend", http.StatusInternalServerError)
+			!fetalErrOk(f.Close()) ||
+			!fetalErrOk(os.Rename(tf, rd.hNoteFilePath)) {
+			http.Error(w, "something horrible happend", http.StatusInternalServerError)
 			return
 		}
 	}

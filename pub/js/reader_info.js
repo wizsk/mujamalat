@@ -23,18 +23,19 @@ async function showInfoModal(word, callBack) {
   noteEditBtn.disabled = true;
 
   noteTxtAr.readOnly = true;
-  noteTxtAr.setAttribute("tabindex", "-1");
 
   infoDialog.showModal();
   noteTxtAr.blur();
 
   const res = await fetch(`/rd/high_info/${word}`).catch((err) => {
     console.error(err);
-    alert("Something went wrong. Could not fetch not");
+    alert("Something went wrong. Could not fetch note");
   });
 
   if (res.ok && res.status == 202) {
     const val = await res.text();
+    noteTxtAr.value = val;
+    oldNote = val;
     // if there is no note start in editing mode
     if (val) {
       noteEditBtn.textContent = noteEditBtnTxtEdit;
@@ -42,12 +43,9 @@ async function showInfoModal(word, callBack) {
       infoIsEditing = true;
       noteEditBtn.textContent = noteEditBtnTxtSave;
       noteTxtAr.readOnly = false;
-      noteTxtAr.removeAttribute("tabindex");
       noteTxtAr.focus();
     }
     noteEditBtn.disabled = false;
-    noteTxtAr.value = val;
-    oldNote = val;
   } else {
     alert("Something went wrong. Could not fetch note");
   }
@@ -57,24 +55,26 @@ async function showInfoModal(word, callBack) {
   noteEditBtn.onclick = async () => {
     // was in editing mode now save and exit it
     if (infoIsEditing) {
-      noteEditBtn.textContent = noteEditBtnTxtWait;
       noteEditBtn.disabled = true;
+      noteEditBtn.textContent = noteEditBtnTxtWait;
 
+      noteTxtAr.readOnly = true;
       const val = noteTxtAr.value.trim();
+      noteTxtAr.value = val;
+
       const res = await fetch(
         `/rd/high_info/${word}?note=${encodeURIComponent(val)}`,
         { method: "POST" },
       ).catch((err) => console.error(err));
 
       if (res.status == 202) {
+        oldNote = val;
         if (callBack) callBack(val == "");
       } else {
         alert("Could not save note");
       }
 
       noteEditBtn.disabled = false;
-      noteTxtAr.readOnly = true;
-      noteTxtAr.setAttribute("tabindex", "-1");
       noteEditBtn.textContent = noteEditBtnTxtEdit;
 
       infoIsEditing = false;
@@ -84,7 +84,6 @@ async function showInfoModal(word, callBack) {
     // enable editing mode
     noteEditBtn.textContent = noteEditBtnTxtSave;
     noteTxtAr.readOnly = false;
-    noteTxtAr.removeAttribute("tabindex");
     noteTxtAr.focus();
 
     infoIsEditing = true;
@@ -93,8 +92,10 @@ async function showInfoModal(word, callBack) {
   noteDelBtn.onclick = async () => {
     if (!confirm("Do you really want to delete note?")) return;
 
-    noteDelBtn.disabled = true;
     noteEditBtn.disabled = true;
+    noteDelBtn.disabled = true;
+    noteTxtAr.readOnly = true;
+
     noteEditBtn.textContent = noteEditBtnTxtEdit;
     infoIsEditing = false;
 
@@ -104,6 +105,7 @@ async function showInfoModal(word, callBack) {
 
     if (res.ok || res.status == 202) {
       noteTxtAr.value = "";
+      oldNote = "";
       if (callBack) callBack(true);
     } else {
       alert("Could not delete note");

@@ -1,32 +1,32 @@
 const noteWord = document.getElementById("noteWord");
-const infoTxt = document.getElementById("infoTxt");
-const infoEditBtn = document.getElementById("infoEditBtn");
-const infoCloseBtn = document.getElementById("infoCloseBtn");
+const noteTxtAr = document.getElementById("infoTxt");
+const noteEditBtn = document.getElementById("infoEditBtn");
+const noteCloseBtn = document.getElementById("infoCloseBtn");
 const noteDelBtn = document.getElementById("noteDelBtn");
 
-const infoEditBtnTxtEdit = "Edit";
-const infoEditBtnTxtSave = "Save";
-const infoEditBtnTxtWait = "Wait...";
+const noteEditBtnTxtEdit = "Edit";
+const noteEditBtnTxtSave = "Save";
+const noteEditBtnTxtWait = "Wait…";
 
 let infoIsEditing = false;
-let oldInfo = "";
+let oldNote = "";
 
 /** @param {string} word */
 async function showInfoModal(word, callBack) {
   // book keeping
   noteWord.textContent = word;
-  infoTxt.value = "";
+  noteTxtAr.value = "";
 
   infoIsEditing = false;
 
-  infoEditBtn.textContent = infoEditBtnTxtWait;
-  infoEditBtn.disabled = true;
+  noteEditBtn.textContent = noteEditBtnTxtWait;
+  noteEditBtn.disabled = true;
 
-  infoTxt.readOnly = true;
-  infoTxt.setAttribute("tabindex", "-1");
+  noteTxtAr.readOnly = true;
+  noteTxtAr.setAttribute("tabindex", "-1");
 
   infoDialog.showModal();
-  infoTxt.blur();
+  noteTxtAr.blur();
 
   const res = await fetch(`/rd/high_info/${word}`).catch((err) => {
     console.error(err);
@@ -37,29 +37,30 @@ async function showInfoModal(word, callBack) {
     const val = await res.text();
     // if there is no note start in editing mode
     if (val) {
-      infoEditBtn.textContent = infoEditBtnTxtEdit;
+      noteEditBtn.textContent = noteEditBtnTxtEdit;
     } else {
       infoIsEditing = true;
-      infoEditBtn.textContent = infoEditBtnTxtSave;
-      infoTxt.readOnly = false;
-      infoTxt.removeAttribute("tabindex");
-      infoTxt.focus();
+      noteEditBtn.textContent = noteEditBtnTxtSave;
+      noteTxtAr.readOnly = false;
+      noteTxtAr.removeAttribute("tabindex");
+      noteTxtAr.focus();
     }
-    infoEditBtn.disabled = false;
-    infoTxt.value = val;
+    noteEditBtn.disabled = false;
+    noteTxtAr.value = val;
+    oldNote = val;
   } else {
     alert("Something went wrong. Could not fetch note");
   }
 
 
   // when deleting just keep the note empty
-  infoEditBtn.onclick = async () => {
+  noteEditBtn.onclick = async () => {
     // was in editing mode now save and exit it
     if (infoIsEditing) {
-      infoEditBtn.textContent = infoEditBtnTxtWait;
-      infoEditBtn.disabled = true;
+      noteEditBtn.textContent = noteEditBtnTxtWait;
+      noteEditBtn.disabled = true;
 
-      const val = infoTxt.value.trim();
+      const val = noteTxtAr.value.trim();
       const res = await fetch(
         `/rd/high_info/${word}?note=${encodeURIComponent(val)}`,
         { method: "POST" },
@@ -71,21 +72,20 @@ async function showInfoModal(word, callBack) {
         alert("Could not save note");
       }
 
-      infoEditBtn.disabled = false;
-      infoTxt.readOnly = true;
-      infoTxt.setAttribute("tabindex", "-1");
-      infoEditBtn.textContent = infoEditBtnTxtEdit;
+      noteEditBtn.disabled = false;
+      noteTxtAr.readOnly = true;
+      noteTxtAr.setAttribute("tabindex", "-1");
+      noteEditBtn.textContent = noteEditBtnTxtEdit;
 
       infoIsEditing = false;
       return;
     }
 
     // enable editing mode
-    infoEditBtn.textContent = infoEditBtnTxtSave;
-    oldInfo = infoTxt.value.trim() ? infoTxt.value.trim() : "";
-    infoTxt.readOnly = false;
-    infoTxt.removeAttribute("tabindex");
-    infoTxt.focus();
+    noteEditBtn.textContent = noteEditBtnTxtSave;
+    noteTxtAr.readOnly = false;
+    noteTxtAr.removeAttribute("tabindex");
+    noteTxtAr.focus();
 
     infoIsEditing = true;
   };
@@ -94,8 +94,8 @@ async function showInfoModal(word, callBack) {
     if (!confirm("Do you really want to delete note?")) return;
 
     noteDelBtn.disabled = true;
-    infoEditBtn.disabled = true;
-    infoEditBtn.textContent = infoEditBtnTxtEdit;
+    noteEditBtn.disabled = true;
+    noteEditBtn.textContent = noteEditBtnTxtEdit;
     infoIsEditing = false;
 
     const res = await fetch(`/rd/high_info/${word}`, { method: "POST" }).catch(
@@ -103,19 +103,19 @@ async function showInfoModal(word, callBack) {
     );
 
     if (res.ok || res.status == 202) {
-      infoTxt.value = "";
+      noteTxtAr.value = "";
       if (callBack) callBack(true);
     } else {
       alert("Could not delete note");
     }
 
     noteDelBtn.disabled = false;
-    infoEditBtn.disabled = false;
+    noteEditBtn.disabled = false;
   };
 }
 
 infoDialog.addEventListener("close", (e) => {
-  if (infoIsEditing && !confirm("Do you really want to close?")) {
+  if (oldNote != noteTxtAr.value && !confirm("Do you really want to close?")) {
     infoDialog.showModal();
   }
 });

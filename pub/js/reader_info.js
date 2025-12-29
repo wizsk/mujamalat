@@ -10,45 +10,43 @@ const infoEditBtnTxtWait = "Wait...";
 
 let infoIsEditing = false;
 let oldInfo = "";
-let noteIsInReq = false;
 
 /** @param {string} word */
 async function showInfoModal(word, callBack) {
-  if (noteIsInReq) return;
-
+  // book keeping
   noteWord.textContent = word;
+
   infoIsEditing = false;
+
   infoEditBtn.textContent = infoEditBtnTxtWait;
-  infoCloseBtn.disabled = true;
+  infoEditBtn.disabled = true;
 
   infoTxt.readOnly = true;
   infoTxt.setAttribute("tabindex", "-1");
 
   infoDialog.showModal();
+  infoTxt.blur();
 
-  noteIsInReq = true;
-  const res = await fetch(`/rd/high_info/${word}`).catch((err) =>
-    console.error(err),
-  );
+  const res = await fetch(`/rd/high_info/${word}`).catch((err) => {
+    console.error(err);
+    alert("Something went wrong. Could not fetch not");
+  });
+
   if (res.ok && res.status == 202) {
     infoTxt.value = await res.text();
   } else {
     infoTxt.value = "";
   }
-  noteIsInReq = false;
-  infoTxt.blur();
 
   infoEditBtn.textContent = infoEditBtnTxtEdit;
-  infoCloseBtn.disabled = false;
+  infoEditBtn.disabled = false;
 
   // when deleting just keep the note empty
   infoEditBtn.onclick = async () => {
     if (infoIsEditing) {
-      if (noteIsInReq) return;
-
       infoEditBtn.textContent = infoEditBtnTxtWait;
-      noteIsInReq = true;
-      infoCloseBtn.disabled = true;
+      infoEditBtn.disabled = true;
+
       const val = infoTxt.value.trim();
       const res = await fetch(
         `/rd/high_info/${word}?note=${encodeURIComponent(val)}`,
@@ -61,10 +59,7 @@ async function showInfoModal(word, callBack) {
         alert("Could not save note");
       }
 
-      noteIsInReq = false;
-      infoCloseBtn.disabled = false;
-
-      infoIsEditing = false;
+      infoEditBtn.disabled = false;
       infoTxt.readOnly = true;
       infoTxt.setAttribute("tabindex", "-1");
       infoEditBtn.textContent = infoEditBtnTxtEdit;
@@ -80,20 +75,26 @@ async function showInfoModal(word, callBack) {
   };
 
   noteDelBtn.onclick = async () => {
-    if (!confirm("Do you really want to delete note?") && noteIsInReq) return;
-    noteIsInReq = true;
+    if (!confirm("Do you really want to delete note?")) return;
+
+    noteDelBtn.disabled = true;
+    infoEditBtn.disabled = true;
+    infoEditBtn.textContent = infoEditBtnTxtEdit;
+    infoIsEditing = false;
+
     const res = await fetch(`/rd/high_info/${word}`, { method: "POST" }).catch(
       (err) => console.error(err),
     );
 
     if (res.ok || res.status == 202) {
-      if (callBack) callBack(true);
       infoTxt.value = "";
+      if (callBack) callBack(true);
     } else {
       alert("Could not delete note");
     }
 
-    noteIsInReq = false;
+    noteDelBtn.disabled = false;
+    infoEditBtn.disabled = false;
   };
 }
 
@@ -103,6 +104,6 @@ infoDialog.addEventListener("close", (e) => {
   }
 });
 
-infoCloseBtn.onclick = () => {
-  infoDialog.close();
-};
+// infoCloseBtn.onclick = () => {
+//   infoDialog.close();
+// };

@@ -25,7 +25,7 @@ all: curr
 pi: pull install
 
 install: curr
-	@echo "installing TO:" $(BIN_DIR)/$(APP_NAME)
+	@echo "installing to:" $(BIN_DIR)/$(APP_NAME)
 	@mv $(OUTPUT_DIR)/$(APP_NAME) $(BIN_DIR)/
 
 pull:

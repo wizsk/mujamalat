@@ -46,12 +46,12 @@ document.addEventListener("keydown", (e) => {
     case "KeyS":
       e.preventDefault();
       input.focus();
-      input.setSelectionRange(input.value.length, input.value.length);
+      input.select();
       break;
     case "KeyI":
       e.preventDefault();
       input.focus();
-      input.select();
+      input.setSelectionRange(input.value.length, input.value.length);
       break;
 
     case "Equal":
@@ -136,11 +136,11 @@ document.addEventListener("keydown", (e) => {
   if (e.code && /^Digit[1-9]$/.test(e.code)) {
     const i = parseInt(e.code.at(5)) - 1;
 
-    if (e.shiftKey && i < dicts.length) {
-      e.preventDefault();
-      dicts[i].click();
-      return;
-    }
+    // if (e.shiftKey && i < dicts.length) {
+    //   e.preventDefault();
+    //   dicts[i].click();
+    //   return;
+    // }
 
     const q = document.getElementsByClassName("querySelector-item");
     if (i < q.length) {

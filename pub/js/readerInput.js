@@ -46,6 +46,7 @@ const histSortLSK = "hist-sort-items-key";
 const histTitleNorm = " (من جديد إلى قديم)";
 const histTitleRev = " (من قديم إلى جديد)";
 document.addEventListener("DOMContentLoaded", (e) => {
+  tmpMode.checked = false;
   if (window.localStorage.getItem("dark"))
     document.documentElement.classList.add("dark");
 

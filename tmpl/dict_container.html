@@ -5,28 +5,26 @@
 <div id="navSpace" style="transition: height 0.1s ease;"></div>
 
 <div id="content">
-    {{if and (not .Query) (not .RDMode)}}
-    <h3 class="eng">Shortcuts</h3>
-
-    <ul class="s-list">
-        <li class="s-list-item"><span class="shortcut">Ctrl+p</span>: Open dictionary selector</li>
-        <li class="s-list-item"><span class="shortcut">p</span>: Open dictionary selector when input is not
-            focused
-        </li>
-        <li class="s-list-item"><span class="shortcut">+ / -</span>: Increase/Decrease font size</li>
-        <li class="s-list-item"><span class="shortcut">0</span>: Reset font size to default</li>
-        <li class="s-list-item"><span class="shortcut">u</span>: Scroll to the top of the page</li>
-        <li class="s-list-item"><span class="shortcut">i</span>: Focus on input and select text</li>
-        <li class="s-list-item"><span class="shortcut">s</span>: Focus on input (without selecting text)</li>
-    </ul>
-
-    <p class="eng"><em></em>Note: These shortcuts work regardless of your keyboard layout (Arabic/English).</em>
-    </p>
-    {{if eq "ar_en" .Curr}}
-    <p class="eng"><em></em>You can search multiple words at the same time only in this dictionary.</em></p>
-    {{end}}
-
-    {{else if .RDMode}}
+    <!-- <h3 class="eng">Shortcuts</h3> -->
+    <!---->
+    <!-- <ul class="s-list"> -->
+    <!--     <li class="s-list-item"><span class="shortcut">Ctrl+p</span>: Open dictionary selector</li> -->
+    <!--     <li class="s-list-item"><span class="shortcut">p</span>: Open dictionary selector when input is not -->
+    <!--         focused -->
+    <!--     </li> -->
+    <!--     <li class="s-list-item"><span class="shortcut">+ / -</span>: Increase/Decrease font size</li> -->
+    <!--     <li class="s-list-item"><span class="shortcut">0</span>: Reset font size to default</li> -->
+    <!--     <li class="s-list-item"><span class="shortcut">u</span>: Scroll to the top of the page</li> -->
+    <!--     <li class="s-list-item"><span class="shortcut">i</span>: Focus on input and select text</li> -->
+    <!--     <li class="s-list-item"><span class="shortcut">s</span>: Focus on input (without selecting text)</li> -->
+    <!-- </ul> -->
+    <!---->
+    <!-- <p class="eng"><em></em>Note: These shortcuts work regardless of your keyboard layout (Arabic/English).</em> -->
+    <!-- </p> -->
+    <!---->
+    <!-- <p class="eng"><em></em>You can search multiple words at the same time only in this dictionary.</em></p> -->
+    <!---->
+    {{if .RDMode}}
     <!-- do nothing here. Hense skiping the next ifs -->
 
     {{else if .Mujamul_ghoni}}

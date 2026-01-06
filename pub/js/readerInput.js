@@ -9,6 +9,7 @@ const histCS = document.getElementById("hist-count");
 const histSortType = document.getElementById("hist-sort-type");
 let histItemsRev = false;
 let histC = parseInt("{{len .}}");
+const histS = document.getElementById("hist-s");
 
 form.onsubmit = (e) => {
   e.preventDefault();
@@ -47,6 +48,7 @@ const histTitleNorm = " (من جديد إلى قديم)";
 const histTitleRev = " (من قديم إلى جديد)";
 document.addEventListener("DOMContentLoaded", (e) => {
   tmpMode.checked = false;
+  histS.value = "";
   if (window.localStorage.getItem("dark"))
     document.documentElement.classList.add("dark");
 
@@ -241,3 +243,22 @@ document.addEventListener("keydown", (e) => {
       break;
   }
 });
+
+if (histS)
+  histS.oninput = () => {
+    const itms = document
+      .querySelector("#hist-items")
+      .querySelectorAll(".hist-item-div");
+    const v = histS.value.trim();
+
+    for (let i of itms) {
+      if (v == "") i.classList.remove("hidden");
+
+      const ar = i.dataset.ar;
+      if (!ar || !ar.includes(v)) {
+        i.classList.add("hidden");
+      } else {
+        i.classList.remove("hidden");
+      }
+    }
+  };

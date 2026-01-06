@@ -155,6 +155,10 @@ textarea {
     margin-top: 2rem;
 }
 
+#hist {
+    min-height: 30vh;
+}
+
 #hist, #hidden-hist {
     box-sizing: border-box;
     width: fit-content;

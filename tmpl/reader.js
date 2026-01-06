@@ -394,10 +394,20 @@ if (readerPageR.test(window.location.pathname)) {
   // {{end}}
 }
 
+// let logWakeLockRemmaing = 0;
+// let logWakeLockInterval;
 if ("wakeLock" in navigator) {
   async function requestWakeLock() {
     try {
       wakeLock = await navigator.wakeLock.request("screen");
+      logWakeLockRemmaing = INACTIVITY_MINUTES * 60;
+
+      // if (logWakeLockInterval) clearInterval(logWakeLockInterval);
+      // logWakeLockInterval = setInterval(() => {
+      //   logWakeLockRemmaing--;
+      //   console.log(`remmaing ${logWakeLockRemmaing}`);
+      // }, 1000)
+
 
       wakeLock.addEventListener("release", async () => {
         wakelockOptn.value = "off";
@@ -412,6 +422,9 @@ if ("wakeLock" in navigator) {
       // console.error("Wake Lock request failed:", err);
     }
   }
+
+  // call
+  requestWakeLock();
 
   function releaseWakeLock() {
     if (wakeLock) {

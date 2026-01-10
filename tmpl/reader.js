@@ -218,14 +218,15 @@ readerMenu.onclose = () => {
 fontSelector.onchange = (e) => {
   const val = e.target.value;
   if (val === "font") {
-    reader.style.fontFamily = "";
+    reader.style.fontFamily = ""; // root already has inter and font aka kitab
     setPopUpPos();
     window.localStorage.removeItem(getFontSelectorLSN());
     return;
   }
-  reader.style.fontFamily = val;
+  const f = `'${val}', 'inter'`;
+  reader.style.fontFamily = f;
   setPopUpPos();
-  window.localStorage.setItem(getFontSelectorLSN(), val);
+  window.localStorage.setItem(getFontSelectorLSN(), f);
 };
 
 /** LSN = local storage name */

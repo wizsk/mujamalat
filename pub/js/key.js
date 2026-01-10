@@ -1,7 +1,7 @@
 // key.js
 
 document.addEventListener("keydown", (e) => {
-  console.log(e.ctrlKey, e.shiftKey);
+  // console.log(e.ctrlKey, e.shiftKey);
 
   if (e.code && e.code == "Escape") {
     try {
@@ -114,7 +114,7 @@ document.addEventListener("keydown", (e) => {
       querySelectorNextPre(false, "sw-dict-item", "sw-dict-item-selected");
       break;
 
-    case "KeyK":
+    case "KeyJ":
       e.preventDefault();
       querySelectorNextPre(
         true,
@@ -123,7 +123,7 @@ document.addEventListener("keydown", (e) => {
       );
       break;
 
-    case "KeyJ":
+    case "KeyK":
       e.preventDefault();
       querySelectorNextPre(
         false,

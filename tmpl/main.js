@@ -37,12 +37,16 @@ window.addEventListener("resize", () => {
 });
 
 document.addEventListener("DOMContentLoaded", () => {
-    setSavedFontSize();
-    setNavHeight();
-
     window.localStorage.getItem("dark") && document.documentElement.classList.add("dark");
 
-    const selected = document.getElementById('sw-dict-item-selected');
+    setSavedFontSize();
+
+    requestAnimationFrame(() => {
+      setNavHeight();
+    }, 100);
+
+    // {{if not .RDMode}}
+    let selected = document.getElementById('sw-dict-item-selected');
     if (selected && selected.scrollIntoView) {
         selected.scrollIntoView({
             // behavior: 'smooth',    // auto Or 'smooth' if you want animation
@@ -51,7 +55,15 @@ document.addEventListener("DOMContentLoaded", () => {
         });
     }
 
-    // {{if not .RDMode}}
+    selected = document.getElementById('querySelector-item-selected');
+    if (selected && selected.scrollIntoView) {
+        selected.scrollIntoView({
+            // behavior: 'smooth',    // auto Or 'smooth' if you want animation
+            block: 'nearest',
+            inline: 'center'     // Center the element horizontally
+        });
+    }
+
     if (w.value.length === 0) w.focus();
     let p = "";
     if (currWord !== "") {
@@ -104,13 +116,32 @@ let searhInvId;
 w.oninput = () => {
     clearInterval(searhInvId);
     searhInvId = setTimeout(async () => {
+        // cleaning
         const query = w.value.trim().replace(/(\s+)/, " ");
         if (query === preQuery) return;
-        preQuery = query;
+
+        const preQueryArr = preQuery.split(" ");
         const queryArr = query.split(" ");
+
+        // by defaul use the newst at the idx
         queryIdx = queryArr.length - 1;
+
+        // maybe some word in the middle has been changed
+        if (preQueryArr.length == queryArr.length) {
+          for (let i = 0; i < preQueryArr.length; i++) {
+            if (preQueryArr[i] != queryArr[i]) {
+              queryIdx = i;
+              break;
+            }
+          }
+        }
+
+
         const word = queryArr[queryIdx];
         currWord = word;
+
+        // set it as preQuery
+        preQuery = query;
 
         // its async hence non blocking u stupid
         getResAndShow(word);
@@ -125,7 +156,7 @@ w.oninput = () => {
                     idx = `${enToArNum(i + 1)}:`;
 
                 b += `<button onclick='changeQueryIdx(this, ${JSON.stringify(v)}, ${i})'
-                class="querySelector-item" id="${queryArr.length - 1 === i ? 'querySelector-item-selected' : ''}">
+                class="querySelector-item" id="${queryIdx == i ? 'querySelector-item-selected' : ''}">
                 ${idx}${v}</button>`
             }
             querySelector.innerHTML = b;
@@ -139,7 +170,8 @@ w.oninput = () => {
 
         // {{if not .RDMode}}
         document.title = `${selectedDictAr}: ${word}`;
-        window.history.replaceState(null, '', `${window.location.pathname}?w=${query}&idx=${queryIdx}`);
+        const q = query ? `?w=${query}&idx=${queryIdx}` : "";
+        window.history.replaceState(null, '', `${window.location.pathname}${q}`);
         // {{end}}
     }, 250);
 }

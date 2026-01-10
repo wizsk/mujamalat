@@ -46,9 +46,19 @@ document.addEventListener("DOMContentLoaded", () => {
     setNavHeight();
   }, 100);
 
+  if (window.localStorage.getItem(getScrollOnSearchLSN())) {
+    scrollOnSearch = true;
+  }
+
   // wBtnTgl(); // handeled by the go template
 
   // {{if not .RDMode}}
+  if (scrollOnSearch) {
+    const target = document.querySelector(".search-hi");
+    if (target) {
+      target.scrollIntoView({ behavior: "smooth", block: "start" });
+    }
+  }
   let selected = document.getElementById("sw-dict-item-selected");
   if (selected && selected.scrollIntoView) {
     selected.scrollIntoView({
@@ -124,6 +134,7 @@ form.onsubmit = (e) => {
 
 wBtn.onclick = () => {
   w.value = "";
+  w.focus();
   if (w.oninput) w.oninput();
   wBtn.classList.add("hidden");
 };
@@ -182,7 +193,7 @@ w.oninput = () => {
     setNavHeight();
 
     // {{if not .RDMode}}
-    document.title = `${selectedDictAr}: ${word}`;
+    document.title = `${selectedDictAr}${word ? ": " + word : ""}`;
     const q = query ? `?w=${query}&idx=${queryIdx}` : "";
     window.history.replaceState(null, "", `${window.location.pathname}${q}`);
     // {{end}}
@@ -264,7 +275,13 @@ function changeColor(darkMode) {
   } catch (e) {}
 }
 
-function wBtnTgl() {
+function wBtnTgl(focus) {
   if (w.value) wBtn.classList.remove("hidden");
   else wBtn.classList.add("hidden");
+}
+
+/** LSN = local storage name */
+function getScrollOnSearchLSN() {
+  // return `${window.location.pathname}-`
+  return "scroll-on-search";
 }

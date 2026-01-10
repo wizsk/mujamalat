@@ -267,12 +267,6 @@ poemLineNumHide.onchange = (e) => {
   }
 };
 
-/** LSN = local storage name */
-function getScrollOnSearchLSN() {
-  // return `${window.location.pathname}-`
-  return "scroll-on-search";
-}
-
 scrollOnSearchC.onchange = (e) => {
   if (e.target.checked) {
     window.localStorage.setItem(getScrollOnSearchLSN(), "true");
@@ -358,10 +352,7 @@ document.addEventListener("DOMContentLoaded", () => {
     poemLineNumHide.checked = true;
   }
 
-  if (window.localStorage.getItem(getScrollOnSearchLSN())) {
-    scrollOnSearchC.checked = true;
-    scrollOnSearch = true;
-  }
+  // for scrollOnSearch look into main.js (maybe)
 });
 
 if (readerPageR.test(window.location.pathname)) {

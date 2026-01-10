@@ -367,16 +367,16 @@ func fetalErr(err error) {
 
 func intToArnum[T int64 | int | uint](n T) string {
 	numStr := strconv.FormatInt(int64(n), 10)
-	res := ""
-	for _, digit := range numStr {
+	res := make([]rune, len(numStr))
+	for i, digit := range numStr {
 		if digit >= '0' && digit <= '9' {
 			arabicDigit := rune(digit - '0' + 0x0660)
-			res += string(arabicDigit)
+			res[i] = arabicDigit
 		} else {
-			res += string(digit)
+			res[i] = rune(digit) // for minus
 		}
 	}
-	return res
+	return string(res)
 }
 
 type templateWraper interface {

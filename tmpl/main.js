@@ -190,7 +190,9 @@ w.oninput = () => {
       querySelector.classList.add("hidden");
     }
 
-    setNavHeight();
+    requestAnimationFrame(() => {
+      setNavHeight();
+    }, 100);
 
     // {{if not .RDMode}}
     document.title = `${selectedDictAr}${word ? ": " + word : ""}`;

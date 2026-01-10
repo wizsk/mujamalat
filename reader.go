@@ -79,7 +79,7 @@ func newReader(gc globalConf, t templateWraper) *readerConf {
 	}
 
 	rd.tlsDir = filepath.Join(rd.permDir, "tls-cert")
-	if !gc.noHttps {
+	if gc.https {
 		if err = os.Mkdir(rd.tlsDir, 0700); err != nil && !os.IsExist(err) {
 			fmt.Printf("FETAL: Could not create the tls-cert file! %s\n", n)
 			os.Exit(1)

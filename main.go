@@ -227,11 +227,15 @@ func main() {
 	}
 
 	{
-		p, sp := findFreePorts(portRangeStart, portrangeEnd, gc.port == "", gc.portHttps == "")
+		sp := gc.portHttps
+		if !gc.https {
+			sp = "_skip"
+		}
+		p, sp := findFreePorts(portRangeStart, portrangeEnd, gc.port, sp)
 		if gc.port == "" {
 			gc.port = p
 		}
-		if gc.portHttps == "" {
+		if gc.https && gc.portHttps == "" {
 			gc.portHttps = sp
 		}
 	}
@@ -250,7 +254,7 @@ func main() {
 	}
 	fmt.Println()
 
-	if !gc.noHttps {
+	if gc.https {
 		fmt.Println("\n--    https:")
 		fmt.Printf("-- localnet:\thttps://localhost:%s\n", gc.portHttps)
 		if l != "localhost" {
@@ -274,7 +278,7 @@ func main() {
 		errCh <- server.ListenAndServe()
 	}(serveErr)
 
-	if !gc.noHttps {
+	if gc.https {
 		go func(errCh chan<- error) {
 			tp, err := tls.New(rd.tlsDir)
 			if err != nil {
@@ -309,7 +313,7 @@ func main() {
 		c1, cn1 := context.WithTimeout(context.Background(), time.Second*1)
 		c2, cn2 := context.WithTimeout(context.Background(), time.Second*1)
 		server.Shutdown(c1)
-		if !gc.noHttps {
+		if gc.https {
 			serverSq.Shutdown(c2)
 		}
 		defer cn1()

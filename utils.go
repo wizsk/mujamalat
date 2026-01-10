@@ -30,7 +30,7 @@ type globalConf struct {
 	deleteSessions bool
 	noCompress     bool
 	migrate        bool
-	noHttps        bool
+	https          bool
 }
 
 func parseFlags() globalConf {
@@ -62,8 +62,8 @@ func parseFlags() globalConf {
 	flag.BoolVar(&conf.tmpMode, "tmp", false,
 		"tempurary mode. creates a directory in to os's tmp and deletes it on close")
 
-	flag.BoolVar(&conf.noHttps, "nohttps", false,
-		"use https")
+	flag.BoolVar(&conf.https, "https", false,
+		"run another server in https mode")
 
 	showVersion := flag.Bool("v", false, "print version information")
 
@@ -266,29 +266,32 @@ func le(err error, comments ...string) bool {
 }
 
 // it looks for form start to including end
-func findFreePorts(start, end int, _p, _sp bool) (string, string) {
-	p1, p2 := "", ""
+// when p != "" skip... same for sp
+func findFreePorts(start, end int, p, sp string) (string, string) {
 	for i := start; i <= end; i++ {
-		p := strconv.Itoa(i)
-		if c, err := net.Listen("tcp", "0.0.0.0:"+p); err == nil &&
+		if p != "" && sp != "" {
+			break
+		}
+
+		cp := strconv.Itoa(i)
+		if c, err := net.Listen("tcp", "0.0.0.0:"+cp); err == nil &&
 			c.Close() == nil {
-			if (p1 != "" || !_p) && (p2 != "" || !_sp) {
-				break
-			} else if _p && p1 == "" {
-				p1 = p
-			} else if _sp && p2 == "" {
-				p2 = p
+
+			if p == "" {
+				p = cp
+			} else if sp == "" {
+				sp = cp
 			}
 		}
 	}
 
-	if _p && p1 == "" || _sp && p2 == "" {
+	if p == "" || sp == "" {
 		lg.Printf("findFreePort: count not find a free port! from %d to %d\n",
 			start, end)
 		os.Exit(1)
 	}
 
-	return p1, p2
+	return p, sp
 }
 
 func localIp() string {

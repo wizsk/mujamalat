@@ -10,6 +10,7 @@ const dicts = document.getElementsByClassName("sw-dict-item");
 const changeDict = document.getElementById("change-dict");
 const changeDictInpt = document.getElementById("change-dict-inpt");
 const w = document.getElementById("w");
+const wBtn = document.getElementById("w-btn");
 const input = w;
 let currWord = "{{if .Queries}}{{index .Queries .Idx}}{{end}}";
 let preQuery = "{{.Query}}"; // this is current query belive it or not! lol
@@ -44,6 +45,8 @@ document.addEventListener("DOMContentLoaded", () => {
   requestAnimationFrame(() => {
     setNavHeight();
   }, 100);
+
+  // wBtnTgl(); // handeled by the go template
 
   // {{if not .RDMode}}
   let selected = document.getElementById("sw-dict-item-selected");
@@ -119,12 +122,19 @@ form.onsubmit = (e) => {
   // {{end}}
 };
 
+wBtn.onclick = () => {
+  w.value = "";
+  if (w.oninput) w.oninput();
+  wBtn.classList.add("hidden");
+};
+
 let searhInvId;
 w.oninput = () => {
+  wBtnTgl();
   clearInterval(searhInvId);
   searhInvId = setTimeout(async () => {
     // cleaning
-    const queryArr = w.value.split(" ").filter(e => e != "");
+    const queryArr = w.value.split(" ").filter((e) => e != "");
     const query = queryArr.join(" ");
     if (query === preQuery) return;
 
@@ -176,7 +186,7 @@ w.oninput = () => {
     const q = query ? `?w=${query}&idx=${queryIdx}` : "";
     window.history.replaceState(null, "", `${window.location.pathname}${q}`);
     // {{end}}
-  }, 250);
+  }, 300);
 };
 
 async function getResAndShow(word) {
@@ -252,4 +262,9 @@ function changeColor(darkMode) {
   try {
     dark.checked = darkMode ? true : false;
   } catch (e) {}
+}
+
+function wBtnTgl() {
+  if (w.value) wBtn.classList.remove("hidden");
+  else wBtn.classList.add("hidden");
 }

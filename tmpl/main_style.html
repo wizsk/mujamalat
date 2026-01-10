@@ -1,598 +1,628 @@
 {{define "common-css"}}
 <style>
-	/* this is used in the root. so, default font unless changed */
-	@font-face {
-		font-family: "font";
-		src: url("/pub/fonts/kitab/Kitab-Regular.woff2") format("woff2");
-		font-weight: normal;
-		font-style: normal;
-	}
+    /* this is used in the root. so, default font unless changed */
+    @font-face {
+        font-family: "font";
+        src: url("/pub/fonts/kitab/Kitab-Regular.woff2") format("woff2");
+        font-weight: normal;
+        font-style: normal;
+    }
 
-	@font-face {
-		font-family: "font";
-		src: url("/pub/fonts/kitab/Kitab-Bold.woff2") format("woff2");
-		font-weight: bold;
-		font-style: normal;
-	}
+    @font-face {
+        font-family: "font";
+        src: url("/pub/fonts/kitab/Kitab-Bold.woff2") format("woff2");
+        font-weight: bold;
+        font-style: normal;
+    }
 
-	@font-face {
-		font-family: "uthman";
-		src: url("/pub/fonts/uthman.woff2") format("woff2");
-		font-weight: normal;
-		font-style: normal;
-	}
+    @font-face {
+        font-family: "uthman";
+        src: url("/pub/fonts/uthman.woff2") format("woff2");
+        font-weight: normal;
+        font-style: normal;
+    }
 
-	@font-face {
-		font-family: "amiri-ext";
-		src: url("/pub/fonts/amiri/Amiri-Regular_ext.woff2") format("woff2");
-		font-weight: normal;
-		font-style: normal;
-	}
+    @font-face {
+        font-family: "amiri-ext";
+        src: url("/pub/fonts/amiri/Amiri-Regular_ext.woff2") format("woff2");
+        font-weight: normal;
+        font-style: normal;
+    }
 
-	@font-face {
-		font-family: "amiri";
-		src: url("/pub/fonts/amiri/Amiri-Regular.woff2") format("woff2");
-		font-weight: normal;
-		font-style: normal;
-	}
+    @font-face {
+        font-family: "amiri";
+        src: url("/pub/fonts/amiri/Amiri-Regular.woff2") format("woff2");
+        font-weight: normal;
+        font-style: normal;
+    }
 
-	@font-face {
-		font-family: "amiri";
-		src: url("/pub/fonts/amiri/Amiri-Bold.woff2") format("woff2");
-		font-weight: bold;
-		font-style: normal;
-	}
+    @font-face {
+        font-family: "amiri";
+        src: url("/pub/fonts/amiri/Amiri-Bold.woff2") format("woff2");
+        font-weight: bold;
+        font-style: normal;
+    }
 
-	@font-face {
-		font-family: "amiri";
-		src: url("/pub/fonts/amiri/Amiri-Italic.woff2") format("woff2");
-		font-weight: normal;
-		font-style: italic;
-	}
+    @font-face {
+        font-family: "amiri";
+        src: url("/pub/fonts/amiri/Amiri-Italic.woff2") format("woff2");
+        font-weight: normal;
+        font-style: italic;
+    }
 
-	@font-face {
-		font-family: "amiri";
-		src: url("/pub/fonts/amiri/Amiri-BoldItalic.woff2") format("woff2");
-		font-weight: bold;
-		font-style: italic;
-	}
+    @font-face {
+        font-family: "amiri";
+        src: url("/pub/fonts/amiri/Amiri-BoldItalic.woff2") format("woff2");
+        font-weight: bold;
+        font-style: italic;
+    }
 
-	@font-face {
-		font-family: "playpen";
-		src: url("/pub/fonts/PlaypenSansArabic-VariableFont_wght.woff2") format('woff2-variations');
-		font-weight: 100 900;
-	}
+    @font-face {
+        font-family: "playpen";
+        src: url("/pub/fonts/PlaypenSansArabic-VariableFont_wght.woff2")
+            format("woff2-variations");
+        font-weight: 100 900;
+    }
 
-	@font-face {
-		font-family: "inter";
-		src: url("/pub/fonts/Inter-VariableFont.woff2") format('woff2-variations');
-		font-weight: 100 900;
-	}
+    @font-face {
+        font-family: "inter";
+        src: url("/pub/fonts/Inter-VariableFont.woff2")
+            format("woff2-variations");
+        font-weight: 100 900;
+    }
 
-	:root {
-		direction: rtl;
-		font-family: 'font';
-		box-sizing: border-box;
+    :root {
+        direction: rtl;
+        font-family: "font";
+        box-sizing: border-box;
 
-		--btn-pad-y: 6px;
-		--btn-pad-x: 12px;
-		--border-radious: 4px;
-		--main-padding-x: 2rem;
+        --btn-pad-y: 6px;
+        --btn-pad-x: 12px;
+        --border-radious: 4px;
+        --main-padding-x: 2rem;
 
+        --color-highlight: #02647a;
 
-		--color-highlight: #02647a;
+        --bg: #fffaf3;
+        --color: #222223;
+        --color-hi: #4c88c7;
+        --accent: #3a6fa6;
+        --accent2: #b22100;
+        --accent-dark: #285a8c;
+        --highlight: #fff3a3;
+        --hn: #701313;
+        --highlight2: #d9f7be;
+        --muted: #a8a29e;
+        --alert: #a94442;
+        --ok: #42a98f;
+        --muted: #6b6b6b;
+        --border: #ccc;
+        color-scheme: light;
 
-		--bg: #fffaf3;
-		--color: #222223;
-		--color-hi: #4c88c7;
-		--accent: #3a6fa6;
-		--accent2: #b22100;
-		--accent-dark: #285a8c;
-		--highlight: #fff3a3;
-		--hn: #701313;
-		--highlight2: #d9f7be;
-		--muted: #a8a29e;
-		--alert: #a94442;
-		--ok: #42a98f;
-		--muted: #6b6b6b;
-		--border: #ccc;
-		color-scheme: light;
+        --nav-height: 0px;
+    }
 
-		--nav-height: 0px;
-	}
+    .dark {
+        --bg: #000000;
+        --color: #f9f9f9;
 
-	.dark {
-		--bg: #000000;
-		--color: #f9f9f9;
+        --muted: #7a7e83;
+        --border: #777;
 
-		--muted: #7a7e83;
-		--border: #777;
+        --color-highlight: #4aa3b8;
+        --color-hi: #6ea8e5;
+        --accent: #5c8fc9;
+        --accent-dark: #3e6fa8;
 
-		--color-highlight: #4aa3b8;
-		--color-hi: #6ea8e5;
-		--accent: #5c8fc9;
-		--accent-dark: #3e6fa8;
+        --accent2: #d0644d;
 
-		--accent2: #d0644d;
+        --highlight: #513f13;
+        --highlight2: #25543b;
+        --hn: #e6aaaa;
 
-		--highlight: #513f13;
-		--highlight2: #25543b;
-		--hn: #e6aaaa;
+        --alert: #e07a78;
+        --ok: #56c2a3;
+        --selection-bg: #2b4f7c;
+        color-scheme: dark;
+    }
 
+    body {
+        --font-size: 1.8rem;
+        font-size: var(--font-size);
 
-		--alert: #e07a78;
-		--ok: #56c2a3;
-		--selection-bg: #2b4f7c;
-		color-scheme: dark;
-	}
+        --max-width: 35em;
+        margin: 0 auto;
+        background-color: var(--bg);
+        color: var(--color);
 
+        @media (width < 768px) {
+            --font-size: 1.2rem;
+            font-size: var(--font-size);
+        }
+    }
 
-	body {
-		--font-size: 1.8rem;
-		font-size: var(--font-size);
+    .hidden {
+        display: none !important;
+    }
 
-		--max-width: 35em;
-		margin: 0 auto;
-		background-color: var(--bg);
-		color: var(--color);
+    .no-select {
+        user-select: none;
+    }
 
-		@media (width < 768px) {
-			--font-size: 1.2rem;
-			font-size: var(--font-size);
-		}
-	}
+    .input-style {
+        all: unset;
+        direction: rtl;
+        background-color: var(--bg);
+        color: var(--color);
+        background-image: none;
+        border: 1px solid #ccc;
+        border-radius: var(--border-radious);
+        padding: var(--btn-pad-y) var(--btn-pad-x);
+        transition:
+            border-color 0.15s ease-in-out,
+            box-shadow 0.15s ease-in-out;
+    }
 
-	.hidden {
-		display: none !important;
-	}
+    .dark .input-style {
+        border-color: #777;
+    }
 
-	.no-select {
-		user-select: none
-	}
+    .input-style:focus {
+        border-color: var(--accent);
+        box-shadow: 0 0 8px hsl(from var(--accent) h s l / 0.5);
+        outline: 0;
+    }
 
-	.input-style {
-		all: unset;
-		direction: rtl;
-		background-color: var(--bg);
-		color: var(--color);
-		background-image: none;
-		border: 1px solid #ccc;
-		border-radius: var(--border-radious);
-		padding: var(--btn-pad-y) var(--btn-pad-x);
-		transition: border-color .15s ease-in-out, box-shadow .15s ease-in-out;
-	}
+    .dark .input-style:focus {
+        box-shadow: 0 0 8px var(--accent);
+    }
 
-	.dark .input-style {
-		border-color: #777;
-	}
+    input[type="checkbox"] {
+        accent-color: var(--accent);
+    }
 
-	.input-style:focus {
-		border-color: var(--accent);
-		box-shadow: 0 0 8px hsl(from var(--accent) h s l / .5);
-		outline: 0;
-	}
+    /* Remove spinner buttons (Chrome, Edge, Safari) */
+    input[type="number"]::-webkit-inner-spin-button,
+    input[type="number"]::-webkit-outer-spin-button {
+        -webkit-appearance: none;
+        margin: 0;
+    }
 
-	.dark .input-style:focus {
-		box-shadow: 0 0 8px var(--accent);
-	}
+    /* Remove spinner buttons (Firefox) */
+    input[type="number"] {
+        -moz-appearance: textfield;
+    }
 
-	input[type="checkbox"] {
-		accent-color: var(--accent);
-	}
+    select {
+        font-family: inherit;
+        font-size: inherit;
+        padding: 0.1rem 0.5rem;
+        border-radius: var(--border-radious);
+        background-color: var(--bg);
+        color: var(--color);
+        border: 1px solid #ccc;
+    }
 
-	/* Remove spinner buttons (Chrome, Edge, Safari) */
-	input[type=number]::-webkit-inner-spin-button,
-	input[type=number]::-webkit-outer-spin-button {
-		-webkit-appearance: none;
-		margin: 0;
-	}
+    .dark select {
+        border-color: #777;
+    }
 
-	/* Remove spinner buttons (Firefox) */
-	input[type=number] {
-		-moz-appearance: textfield;
-	}
+    .btn {
+        font-size: inherit;
+        font-family: inherit;
+        padding: var(--btn-pad-y) var(--btn-pad-x);
+        border-radius: var(--border-radious);
+        background-color: var(--accent-dark);
+        color: var(--bg);
+        border: none;
+        cursor: pointer;
+    }
 
-	select {
-		font-family: inherit;
-		font-size: inherit;
-		padding: 0.1rem 0.5rem;
-		border-radius: var(--border-radious);
-		background-color: var(--bg);
-		color: var(--color);
-		border: 1px solid #ccc;
-	}
-
-	.dark select {
-    	border-color: #777;
-	}
-
-
-	.btn {
-		font-size: inherit;
-		font-family: inherit;
-		padding: var(--btn-pad-y) var(--btn-pad-x);
-		border-radius: var(--border-radious);
-		background-color: var(--accent-dark);
-		color: var(--bg);
-		border: none;
-		cursor: pointer;
-	}
-
-	.btn-eng {
+    .btn-eng {
         direction: ltr;
-        font-family: 'inter';
-	}
+        font-family: "inter";
+    }
 
-	hr {
-		border: 0;
-		border-top: 1px solid #ccc;
-	}
+    hr {
+        border: 0;
+        border-top: 1px solid #ccc;
+    }
 
-	.dark {
-		hr {
-			border-color: #777;
-		}
-	}
+    .dark {
+        hr {
+            border-color: #777;
+        }
+    }
 </style>
 {{end}}
 
 <style>
-	#nav {
-		position: fixed;
-		top: 0;
-		right: 0;
-		width: 100vw;
-		background-color: var(--bg);
-		border-bottom: 1px solid #ccc;
-		padding-top: 1rem;
-		transition: transform 0.3s ease;
-	}
+    #nav {
+        position: fixed;
+        top: 0;
+        right: 0;
+        width: 100vw;
+        background-color: var(--bg);
+        border-bottom: 1px solid #ccc;
+        padding-top: 1rem;
+        transition: transform 0.3s ease;
+    }
 
-	.dark #nav{
+    .dark #nav {
         border-color: #777;
-	}
+    }
 
-	.hide-nav {
-		transform: translateY(-100%);
-	}
+    .hide-nav {
+        transform: translateY(-100%);
+    }
 
-	form {
-		margin: 0 auto;
-		display: flex;
-		width: fit-content;
-		max-width: 90%;
-		align-items: center;
-		gap: .5rem;
-	}
+    form {
+        margin: 0 auto;
+        width: 90vw;
+        max-width: 600px;
+        display: flex;
+        gap: 0.5rem;
+        box-sizing: border-box;
+    }
 
-	#w,
-	#change-dict-inpt {
-		width: 75%;
-	}
+    #w-wrap {
+        flex-grow: 2;
+        position: relative;
+        width: 80%;
+    }
 
-	#w-submit {
-		font-size: inherit;
-		font-family: inherit;
-		padding: var(--btn-pad-y) var(--btn-pad-x);
-		background-color: var(--accent);
-		border-radius: var(--border-radious);
-		border: none;
-		color: var(--bg);
-		cursor: pointer;
-		user-select: none;
-		transition: all .15s ease-in-out, box-shadow .15s ease-in-out;
-	}
+    #w {
+        box-sizing: border-box;
+        width: 100%;
+    }
 
-	#w-submit:hover {
-		background-color: var(--accent-dark);
-	}
+    #w-btn {
+        all: unset;
 
+        color: #777;
+        position: absolute;
 
-	.querySelector-item {
-		all: unset;
-		cursor: pointer;
-	}
+        inset-inline-end: 0.4em;
+        cursor: pointer;
+        top: 50%;
+        transform: translateY(-50%);
 
-	#sw_dict,
-	#querySelector {
-		display: flex;
-		width: 90%;
-		max-width: var(--max-width);
-		align-items: start;
-		margin: 1rem auto;
-		gap: 0.5rem;
-		overflow-x: scroll;
-	}
+        --wh: 2rem;
+        width: var(--wh);
+        height: var(--wh);
 
-	.sw-dict-item,
-	.querySelector-item {
-		display: inline-block;
-		padding: var(--btn-pad-y) var(--btn-pad-x);
-		text-decoration: none;
-		color: var(--color);
-		border: solid 1px var(--accent);
-		white-space: nowrap;
-		border-radius: var(--border-radious);
-		user-select: none;
-		transition: all .15s ease-in-out, box-shadow .15s ease-in-out;
-	}
+        display: flex;
+        align-items: center;
+        justify-content: center;
 
-	/* for scroll pading */
-	.sw-dict-item:first-child,
-	.querySelector-item:first-child {
-		margin-right: 0.5rem;
-	}
+        svg {
+            width: 100%;
+            height: 100%;
+        }
+    }
 
-	.sw-dict-item:last-child,
-	.querySelector-item:last-child {
-		margin-left: 0.5rem;
-	}
+    .dark #w-btn {
+        color: #ccc;
+    }
 
+    #w-submit {
+        font-size: inherit;
+        font-family: inherit;
+        padding: var(--btn-pad-y) var(--btn-pad-x);
+        background-color: var(--accent);
+        border-radius: var(--border-radious);
+        border: none;
+        color: var(--bg);
+        cursor: pointer;
+        user-select: none;
+        transition:
+            all 0.15s ease-in-out,
+            box-shadow 0.15s ease-in-out;
+    }
 
-	#sw-dict-item-selected,
-	.sw-dict-item:hover,
-	.querySelector-item:hover,
-	#querySelector-item-selected {
-		color: var(--bg);
-		background-color: var(--accent);
-	}
+    #w-submit:hover {
+        background-color: var(--accent-dark);
+    }
 
-	#content {
-		padding: 0 var(--main-padding-x);
-		margin: 0 auto;
-		/* margin-top: 15rem; */
-		margin-bottom: 12rem;
-		max-width: var(--max-width);
-		/* text-align: justify; */
-	}
+    .querySelector-item {
+        all: unset;
+        cursor: pointer;
+    }
 
-	/* this is for both word, or roots */
-	.word {
-		color: var(--accent);
-	}
+    #sw_dict,
+    #querySelector {
+        display: flex;
+        width: 90%;
+        max-width: var(--max-width);
+        align-items: start;
+        margin: 1rem auto;
+        gap: 0.5rem;
+        overflow-x: scroll;
+    }
 
-	.highlight {
-		color: var(--bg);
-		background: var(--accent-dark);
-	}
+    .sw-dict-item,
+    .querySelector-item {
+        display: inline-block;
+        padding: var(--btn-pad-y) var(--btn-pad-x);
+        text-decoration: none;
+        color: var(--color);
+        border: solid 1px var(--accent);
+        white-space: nowrap;
+        border-radius: var(--border-radious);
+        user-select: none;
+        transition:
+            all 0.15s ease-in-out,
+            box-shadow 0.15s ease-in-out;
+    }
 
+    /* for scroll pading */
+    .sw-dict-item:first-child,
+    .querySelector-item:first-child {
+        margin-right: 0.5rem;
+    }
 
-	.svg-btn {
-		background-color: var(--accent-dark);
-		color: #fff;
-		padding: 0;
-		--svg-wh: 2.5rem;
-		width: var(--svg-wh);
-		height: var(--svg-wh);
-		border-radius: var(--border-radious);
-		border: none;
-		cursor: pointer;
-		display: flex;
-		align-items: center;
-		justify-content: center;
-		/* box-shadow: 0 2px 4px rgba(0, 0, 0, 0.15); */
+    .sw-dict-item:last-child,
+    .querySelector-item:last-child {
+        margin-left: 0.5rem;
+    }
 
-		svg {
-			--_wh: calc(var(--svg-wh) - calc(var(--svg-wh)/5));
-			width: var(--_wh);
-			height: var(--_wh);
-		}
+    #sw-dict-item-selected,
+    .sw-dict-item:hover,
+    .querySelector-item:hover,
+    #querySelector-item-selected {
+        color: var(--bg);
+        background-color: var(--accent);
+    }
 
-		&:hover {
-			background-color: var(--accent);
-		}
-	}
+    #content {
+        padding: 0 var(--main-padding-x);
+        margin: 0 auto;
+        /* margin-top: 15rem; */
+        margin-bottom: 12rem;
+        max-width: var(--max-width);
+        /* text-align: justify; */
+    }
 
-	#overlay {
-		position: fixed;
-		right: 0;
-		bottom: 0;
-		margin: 1rem 2rem;
-		transition: all 0.3s ease;
-		transition-property: fill, color, transform;
-		cursor: default;
-		display: flex;
-		align-items: start;
-		gap: 0.8rem;
-	}
+    /* this is for both word, or roots */
+    .word {
+        color: var(--accent);
+    }
 
-	/* schortcut or instructions */
-	.s-list {
-		list-style-type: disc;
-		padding-left: 20px;
-		direction: ltr !important;
-		text-align: left;
-	}
+    .highlight {
+        color: var(--bg);
+        background: var(--accent-dark);
+    }
 
-	.s-list-item {
-		margin-bottom: 10px;
-		direction: ltr !important;
-	}
+    .svg-btn {
+        background-color: var(--accent-dark);
+        color: #fff;
+        padding: 0;
+        --svg-wh: 2.5rem;
+        width: var(--svg-wh);
+        height: var(--svg-wh);
+        border-radius: var(--border-radious);
+        border: none;
+        cursor: pointer;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        /* box-shadow: 0 2px 4px rgba(0, 0, 0, 0.15); */
 
-	.shortcut {
-		font-family: monospace;
-		background-color: var(--accent-dark);
-		padding: 2px 6px;
-		border-radius: 4px;
-		color: var(--bg);
-	}
+        svg {
+            --_wh: calc(var(--svg-wh) - calc(var(--svg-wh)/5));
+            width: var(--_wh);
+            height: var(--_wh);
+        }
 
-	#change-dict {
-		width: 100vw;
-		height: 100vh;
-		position: fixed;
-		top: 0;
-		left: 0;
-		backdrop-filter: blur(5px);
-		background-color: rgba(0, 0, 0, 0.3);
-		justify-content: center;
-		align-items: center;
-		z-index: 999;
-	}
+        &:hover {
+            background-color: var(--accent);
+        }
+    }
 
-	#change-dict-items {
-		background: var(--bg);
-		padding: 20px;
-		border-radius: 8px;
-		width: 400px;
-		max-width: 90%;
-		box-shadow: 0 10px 30px rgba(0, 0, 0, 0.3);
-	}
+    #overlay {
+        position: fixed;
+        right: 0;
+        bottom: 0;
+        margin: 1rem 2rem;
+        transition: all 0.3s ease;
+        transition-property: fill, color, transform;
+        cursor: default;
+        display: flex;
+        align-items: start;
+        gap: 0.8rem;
+    }
 
+    /* schortcut or instructions */
+    .s-list {
+        list-style-type: disc;
+        padding-left: 20px;
+        direction: ltr !important;
+        text-align: left;
+    }
 
-	.change-dict-btn-style {
-		font-size: inherit;
-		font-family: inherit;
-		background: none;
-		color: inherit;
-		border: none;
-		cursor: pointer;
-	}
+    .s-list-item {
+        margin-bottom: 10px;
+        direction: ltr !important;
+    }
 
-	#change-dict-inpt {
-		display: block;
-		width: 93%;
-	}
+    .shortcut {
+        font-family: monospace;
+        background-color: var(--accent-dark);
+        padding: 2px 6px;
+        border-radius: 4px;
+        color: var(--bg);
+    }
 
-	#change-dict-inpt:focus {
-		border-color: var(--accent);
-		outline: 0;
-	}
+    #change-dict {
+        width: 100vw;
+        height: 100vh;
+        position: fixed;
+        top: 0;
+        left: 0;
+        backdrop-filter: blur(5px);
+        background-color: rgba(0, 0, 0, 0.3);
+        justify-content: center;
+        align-items: center;
+        z-index: 999;
+    }
 
-	#change-dict-items-list {
-		margin-top: 0.5rem;
-		max-height: 70vh;
-		overflow-y: scroll;
-	}
+    #change-dict-items {
+        background: var(--bg);
+        padding: 20px;
+        border-radius: 8px;
+        width: 400px;
+        max-width: 90%;
+        box-shadow: 0 10px 30px rgba(0, 0, 0, 0.3);
+    }
 
-	.change-dict-item {
-		margin: 0.1em 0;
-		text-align: right;
-		display: block;
-		font-size: inherit;
-		font-family: inherit;
-		color: inherit;
-		border: none;
-		cursor: pointer;
-		width: 100%;
-		padding-right: 0.3em;
-		background: none;
-	}
+    .change-dict-btn-style {
+        font-size: inherit;
+        font-family: inherit;
+        background: none;
+        color: inherit;
+        border: none;
+        cursor: pointer;
+    }
 
-	.change-dict-item:hover {
-		background-color: var(--accent);
-		color: var(--bg);
-	}
+    #change-dict-inpt {
+        display: block;
+        width: 93%;
+    }
 
-	.no-scroll {
-		overflow: hidden;
-	}
+    #change-dict-inpt:focus {
+        border-color: var(--accent);
+        outline: 0;
+    }
 
-	.flex {
-		display: flex;
-	}
+    #change-dict-items-list {
+        margin-top: 0.5rem;
+        max-height: 70vh;
+        overflow-y: scroll;
+    }
 
-	@media (max-width: 768px) {
-		#change-dict {
-			align-items: start;
-		}
+    .change-dict-item {
+        margin: 0.1em 0;
+        text-align: right;
+        display: block;
+        font-size: inherit;
+        font-family: inherit;
+        color: inherit;
+        border: none;
+        cursor: pointer;
+        width: 100%;
+        padding-right: 0.3em;
+        background: none;
+    }
 
-		#change-dict-items {
-			border-radius: 0;
-			padding-top: 10px;
-			padding-bottom: 10px;
-			width: 100%;
-		}
+    .change-dict-item:hover {
+        background-color: var(--accent);
+        color: var(--bg);
+    }
 
-		#change-dict-items-list {
-			max-height: 80vh;
-		}
+    .no-scroll {
+        overflow: hidden;
+    }
 
-		#content {
-			padding: 0 .8rem;
-		}
+    .flex {
+        display: flex;
+    }
 
-	}
+    @media (max-width: 768px) {
+        #change-dict {
+            align-items: start;
+        }
 
+        #change-dict-items {
+            border-radius: 0;
+            padding-top: 10px;
+            padding-bottom: 10px;
+            width: 100%;
+        }
 
-	.eng {
-		direction: ltr !important;
-	}
+        #change-dict-items-list {
+            max-height: 80vh;
+        }
+
+        #content {
+            padding: 0 0.8rem;
+        }
+    }
+
+    .eng {
+        direction: ltr !important;
+    }
 </style>
 
 {{define "eng-style"}}
 <style id="eng_style">
-	#content,
-	#content div {
-		font-family: "amiri", "amiri-ext";
-		direction: ltr !important;
-	}
+    #content,
+    #content div {
+        font-family: "amiri", "amiri-ext";
+        direction: ltr !important;
+    }
 
-	.word {
-		display: none;
-	}
+    .word {
+        display: none;
+    }
 
-	.search-hi {
-		color: var(--color-hi);
-		scroll-margin-top: calc(var(--nav-height) + .4rem);
-	}
+    .search-hi {
+        color: var(--color-hi);
+        scroll-margin-top: calc(var(--nav-height) + 0.4rem);
+    }
 </style>
 <script>
-	if ('{{if not (or (eq "lanelexcon" .Curr) (eq "hanswehr" .Curr))}}y{{end}}' === 'y')
-		eng_style.disabled = true;
+    if (
+        '{{if not (or (eq "lanelexcon" .Curr) (eq "hanswehr" .Curr))}}y{{end}}' ===
+        "y"
+    )
+        eng_style.disabled = true;
 </script>
-{{end}}
-
-{{define "ar_en-style"}}
+{{end}} {{define "ar_en-style"}}
 <style id="ar_en_style">
-	table {
-		margin: 0 auto;
-		direction: ltr;
-		text-align: left;
-	}
+    table {
+        margin: 0 auto;
+        direction: ltr;
+        text-align: left;
+    }
 
-	.w-4 {
-		/* width: 4rem; */
-		padding-left: 0.5rem;
-		/* background-color: rgba(255, 0, 0, 0.493); */
-	}
+    .w-4 {
+        /* width: 4rem; */
+        padding-left: 0.5rem;
+        /* background-color: rgba(255, 0, 0, 0.493); */
+    }
 
-	.w-def {
-		/* width: 12.5rem; */
-		padding-left: 0.5rem;
-		/* background-color: rgba(0, 0, 255, 0.336); */
-	}
+    .w-def {
+        /* width: 12.5rem; */
+        padding-left: 0.5rem;
+        /* background-color: rgba(0, 0, 255, 0.336); */
+    }
 
-	.padd {
-		padding-top: .5rem;
-		padding-bottom: .5rem;
-	}
+    .padd {
+        padding-top: 0.5rem;
+        padding-bottom: 0.5rem;
+    }
 
-	/* data left  */
-	.dl {
-		direction: ltr;
-		text-align: left;
-	}
+    /* data left  */
+    .dl {
+        direction: ltr;
+        text-align: left;
+    }
 
-	table thead,
-	tr:nth-child(even) {
-		background-color:
-			hsl(from var(--accent) h s l / 0.1);
-		/* color-mix(in srgb, var(--accent), transparent 90%); */
-	}
+    table thead,
+    tr:nth-child(even) {
+        background-color: hsl(from var(--accent) h s l / 0.1);
+        /* color-mix(in srgb, var(--accent), transparent 90%); */
+    }
 
-	.dark {
-
-		table thead,
-		tr:nth-child(even) {
-			background-color:
-				hsl(from var(--accent) h s l / 0.3);
-			/* color-mix(in srgb, var(--accent), transparent 70%); */
-		}
-	}
+    .dark {
+        table thead,
+        tr:nth-child(even) {
+            background-color: hsl(from var(--accent) h s l / 0.3);
+            /* color-mix(in srgb, var(--accent), transparent 70%); */
+        }
+    }
 </style>
 <script>
-	if ('{{if ne "ar_en" .Curr}}y{{end}}' === 'y')
-		ar_en_style.disabled = true;
+    if ('{{if ne "ar_en" .Curr}}y{{end}}' === "y") ar_en_style.disabled = true;
 </script>
 {{end}}

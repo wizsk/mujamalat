@@ -175,9 +175,12 @@ function openDictionay(w) {
   currWord = w;
   queryIdx = 0;
   input.value = w;
+  wBtnTgl();
   dict_container.classList.remove("hidden");
   showHideNav(true, true);
-  setNavHeight();
+  requestAnimationFrame(() => {
+    setNavHeight();
+  });
   history.pushState({}, "", window.location.href);
 
   getResAndShow(w);
@@ -407,7 +410,6 @@ if ("wakeLock" in navigator) {
       //   logWakeLockRemmaing--;
       //   console.log(`remmaing ${logWakeLockRemmaing}`);
       // }, 1000)
-
 
       wakeLock.addEventListener("release", async () => {
         wakelockOptn.value = "off";

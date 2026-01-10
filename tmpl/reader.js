@@ -479,11 +479,5 @@ for (let i = 0; i < readerMenuAnkers.length; i++) {
 }
 
 dark.onchange = () => {
-  if (dark.checked) {
-    document.documentElement.classList.add("dark");
-    window.localStorage.setItem("dark", "t");
-  } else {
-    document.documentElement.classList.remove("dark");
-    window.localStorage.removeItem("dark");
-  }
+  changeColor(dark.checked);
 };

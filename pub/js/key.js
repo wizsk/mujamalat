@@ -72,9 +72,9 @@ document.addEventListener("keydown", (e) => {
       scroolToTop();
       break;
 
-    case "KeyT":
+    case "KeyB":
       e.preventDefault();
-      changeColor();
+      changeColor(!document.documentElement.classList.contains("dark"));
       break;
 
     case "KeyR":
@@ -131,23 +131,6 @@ document.addEventListener("keydown", (e) => {
         "querySelector-item-selected",
       );
       break;
-  }
-
-  if (e.code && /^Digit[1-9]$/.test(e.code)) {
-    const i = parseInt(e.code.at(5)) - 1;
-
-    // if (e.shiftKey && i < dicts.length) {
-    //   e.preventDefault();
-    //   dicts[i].click();
-    //   return;
-    // }
-
-    const q = document.getElementsByClassName("querySelector-item");
-    if (i < q.length) {
-      e.preventDefault();
-      q[i].click();
-    }
-    return;
   }
 });
 

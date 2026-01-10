@@ -9,6 +9,7 @@ import (
 	"html/template"
 	"io"
 	"net"
+	"net/http"
 	"os"
 	"runtime"
 	rDebug "runtime/debug"
@@ -471,4 +472,11 @@ func copyFile(src, dst string) error {
 	}
 
 	return nil
+}
+
+func redirectPubData(path string) http.HandlerFunc {
+	return func(w http.ResponseWriter, r *http.Request) {
+		r.URL.Path = path
+		servePubData().ServeHTTP(w, r)
+	}
 }

@@ -76,21 +76,9 @@ func (dc *dictConf) mainPage(w http.ResponseWriter, r *http.Request) {
 			t.ArEn = dc.arEnDict.FindWord(q)
 			le(dc.t.ExecuteTemplate(w, mainTemplateName, t))
 		}
-	case "/cache.js":
-		if !debug {
-			serveCacheSw(w, r)
-		} else {
-			http.NotFound(w, r)
-		}
-		// old way show all at once. keeping code just incase
-		// word := harakatRgx.ReplaceAllString(r.FormValue("w"), "")
-		// arEn(arEnDict, word, w, dc.t)
+
 	default:
-		if r.URL.Path == "/favicon.ico" {
-			http.Redirect(w, r, "/pub/fav.ico", http.StatusMovedPermanently)
-		} else {
-			http.Redirect(w, r, "/"+dicts[0].En, http.StatusSeeOther)
-		}
+		http.Redirect(w, r, "/"+dicts[0].En, http.StatusSeeOther)
 		return
 	}
 }

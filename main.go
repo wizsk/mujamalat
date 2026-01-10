@@ -29,7 +29,6 @@ const (
 	engDictTemplateName    = "eng-dict"
 	highLightsTemplateName = "high.html"
 	loginTemplateName      = "login.html"
-	cacheSWFilePath        = "tmpl/cache.js"
 	portRangeStart         = 8080
 	portrangeEnd           = 8099
 
@@ -198,6 +197,14 @@ func main() {
 	mux.HandleFunc("POST /rd/rev/", rd.revPagePost)
 
 	mux.Handle("/pub/", servePubData())
+	mux.HandleFunc("/rm", redirectPubData("/pub/static/rm.html"))
+	mux.HandleFunc("/favicon.ico", redirectPubData("/pub/fav.ico"))
+
+	if debug {
+		mux.HandleFunc("/cache.js", func(w http.ResponseWriter, r *http.Request) { http.NotFound(w, r) })
+	} else {
+		mux.HandleFunc("/cache.js", redirectPubData("/pub/js/cache.js"))
+	}
 
 	if debug {
 		mux.Handle("/tmp/", http.StripPrefix("/tmp/", http.FileServer(http.Dir("tmp"))))

@@ -54,7 +54,7 @@
         }
 
 
-        .del{
+        .del {
             all: unset;
             user-select: none;
             cursor: pointer;
@@ -93,7 +93,7 @@
 
             <a class="word-span" href="/rd/highlist/{{.Oar}}">{{.Oar}} «{{.Count | arnum}}»</a>
 
-            <button data-oar="{{.Oar}}" class="update">
+            <button data-oar="{{.Oar}}" class="del">
                 <svg xmlns="http://www.w3.org/2000/svg" fill="currentColor" viewBox="0 0 16 16">
                     <path d="M2.5 1a1 1 0 0 0-1 1v1a1 1 0 0 0 1 1H3v9a2 2 0 0 0 2 2h6a2 2 0 0 0 2-2V4h.5a1 1 0 0 0 1-1V2a1 1 0 0 0-1-1H10a1 1 0 0 0-1-1H7a1 1 0 0 0-1 1zm3 4a.5.5 0 0 1 .5.5v7a.5.5 0 0 1-1 0v-7a.5.5 0 0 1 .5-.5M8 5a.5.5 0 0 1 .5.5v7a.5.5 0 0 1-1 0v-7A.5.5 0 0 1 8 5m3 .5v7a.5.5 0 0 1-1 0v-7a.5.5 0 0 1 1 0"/>
                 </svg>
@@ -107,13 +107,13 @@
             window.localStorage.getItem("dark") && document.documentElement.classList.add("dark");
         });
         const wordList = document.getElementById("word-list");
-        const update = document.getElementsByClassName("update");
-        for (let i = 0; i < update.length; i++) {
-            const btn = update[i];
+        const del = document.getElementsByClassName("del");
+        for (let i = 0; i < del.length; i++) {
+            const btn = del[i];
 
             btn.onclick =
                 async () => {
-                    const hWord = update[i].dataset.oar;
+                    const hWord = del.dataset.oar;
 
                     if (!confirm(`هل تريد أن تسمح: ${hWord}`)) return;
 

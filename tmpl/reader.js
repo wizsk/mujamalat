@@ -223,10 +223,9 @@ fontSelector.onchange = (e) => {
     window.localStorage.removeItem(getFontSelectorLSN());
     return;
   }
-  const f = `'${val}', 'inter'`;
-  reader.style.fontFamily = f;
+  reader.style.fontFamily = `'${val}', 'inter'`;
   setPopUpPos();
-  window.localStorage.setItem(getFontSelectorLSN(), f);
+  window.localStorage.setItem(getFontSelectorLSN(), val);
 };
 
 /** LSN = local storage name */
@@ -323,7 +322,6 @@ function getPoemAlignLSN() {
 }
 
 document.addEventListener("DOMContentLoaded", () => {
-  const font = window.localStorage.getItem(getFontSelectorLSN());
   if (window.localStorage.getItem("dark")) {
     document.documentElement.classList.add("dark");
     dark.checked = true;
@@ -331,8 +329,9 @@ document.addEventListener("DOMContentLoaded", () => {
     dark.checked = false;
   }
 
+  const font = window.localStorage.getItem(getFontSelectorLSN());
   if (font) {
-    reader.style.fontFamily = font;
+    reader.style.fontFamily = `'${font}', 'inter'`;
     fontSelector.value = font;
   }
 

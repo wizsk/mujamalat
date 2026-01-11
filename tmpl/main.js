@@ -149,33 +149,54 @@ w.oninput = () => {
   clearInterval(searhInvId);
 
   searhInvId = setTimeout(async () => {
+    const wv = w.value;
     // cleaning
     const queryArr = w.value.split(" ").filter((e) => e != "");
     const query = queryArr.join(" ");
-    if (query === preQuery) return;
 
-    const preQueryArr = preQuery.split(" ");
+    const curPos = w.selectionEnd;
+    let curWord = null; // word under the cursor
+    let wordIdx = -1;
+    if (curPos == wv.length) {
+      wordIdx = queryArr.length - 1;
+      curWord = queryArr[wordIdx];
+    } else {
+      for (let i = 0; i < wv.length; ) {
+        while (i < wv.length && wv[i] == " ") {
+          i++;
+        }
+        if (i >= wv.length) break;
 
-    if (queryArr.length > 0) {
-      // by defaul use the newst at the idx
-      queryIdx = queryArr.length - 1;
-
-      // maybe some word in the middle has been changed
-      if (preQueryArr.length == queryArr.length) {
-        for (let i = 0; i < preQueryArr.length; i++) {
-          if (preQueryArr[i] != queryArr[i]) {
-            queryIdx = i;
+        wordIdx++;
+        const next = wv.slice(i, wv.length);
+        const nextSpace = next.indexOf(" ");
+        // the end of and there are no spaces
+        if (nextSpace < 0) {
+          curWord = next;
+          break;
+        } else {
+          const cw = next.slice(0, nextSpace);
+          i += cw.length;
+          while (i < wv.length && wv[i] == " ") {
+            i++;
+          }
+          if (curPos < i) {
+            curWord = cw;
             break;
           }
         }
       }
     }
 
-    const word = queryArr[queryIdx];
+    // console.log(curPos, curWord, wordIdx);
+    // console.log(queryArr)
+
+    const word = curWord;
     currWord = word;
+    queryIdx = wordIdx;
 
     // set it as preQuery
-    preQuery = query;
+    preQuery = wv;
 
     // its async hence non blocking u stupid
     getResAndShow(word);

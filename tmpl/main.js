@@ -147,6 +147,7 @@ let searhInvId;
 w.oninput = () => {
   wBtnTgl();
   clearInterval(searhInvId);
+
   searhInvId = setTimeout(async () => {
     // cleaning
     const queryArr = w.value.split(" ").filter((e) => e != "");
@@ -155,15 +156,17 @@ w.oninput = () => {
 
     const preQueryArr = preQuery.split(" ");
 
-    // by defaul use the newst at the idx
-    queryIdx = queryArr.length - 1;
+    if (queryArr.length > 0) {
+      // by defaul use the newst at the idx
+      queryIdx = queryArr.length - 1;
 
-    // maybe some word in the middle has been changed
-    if (preQueryArr.length == queryArr.length) {
-      for (let i = 0; i < preQueryArr.length; i++) {
-        if (preQueryArr[i] != queryArr[i]) {
-          queryIdx = i;
-          break;
+      // maybe some word in the middle has been changed
+      if (preQueryArr.length == queryArr.length) {
+        for (let i = 0; i < preQueryArr.length; i++) {
+          if (preQueryArr[i] != queryArr[i]) {
+            queryIdx = i;
+            break;
+          }
         }
       }
     }

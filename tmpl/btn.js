@@ -21,9 +21,9 @@ function fontSizeInc() {
     const s = `${v + fontDiffCVal}px`;
     document.body.style.fontSize = s;
     saveFont(s);
-    requestAnimationFrame(() => {
-      setNavHeight();
-    }, 100);
+    setTimeout(() => {
+        setNavHeight();
+    }, navSetHeightDelay);
     resetFont.classList.remove("hidden");
 }
 
@@ -32,9 +32,9 @@ function fontSizeDec() {
     const s = `${v - fontDiffCVal}px`;
     document.body.style.fontSize = s;
     saveFont(s);
-    requestAnimationFrame(() => {
-      setNavHeight();
-    }, 100);
+    setTimeout(() => {
+        setNavHeight();
+    }, navSetHeightDelay);
     resetFont.classList.remove("hidden");
 }
 
@@ -56,9 +56,9 @@ function resetFontSize() {
     console.log("fontsize reset-edd")
     localStorage.removeItem("font-size-for-kamusssss");
     document.body.style.fontSize = "";
-    requestAnimationFrame(() => {
-      setNavHeight();
-    }, 100);
+    setTimeout(() => {
+        setNavHeight();
+    }, navSetHeightDelay);
     resetFont.classList.add("hidden");
 }
 

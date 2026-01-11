@@ -178,9 +178,9 @@ function openDictionay(w) {
   wBtnTgl();
   dict_container.classList.remove("hidden");
   showHideNav(true, true);
-  requestAnimationFrame(() => {
+  setTimeout(() => {
     setNavHeight();
-  });
+  }, navSetHeightDelay);
   history.pushState({}, "", window.location.href);
 
   getResAndShow(w);

@@ -268,12 +268,13 @@
     #w-wrap {
         flex-grow: 2;
         position: relative;
-        width: 80%;
+        width: 100%;
     }
 
     #w {
         box-sizing: border-box;
         width: 100%;
+        padding-left: 2rem;
     }
 
     #w-btn {
@@ -285,7 +286,7 @@
         }
         position: absolute;
 
-        inset-inline-end: 0.4em;
+        inset-inline-end: 0.2rem;
         cursor: pointer;
         top: 50%;
         transform: translateY(-50%);
@@ -309,25 +310,6 @@
         &:hover {
             color: #eee;
         }
-    }
-
-    #w-submit {
-        font-size: inherit;
-        font-family: inherit;
-        padding: var(--btn-pad-y) var(--btn-pad-x);
-        background-color: var(--accent);
-        border-radius: var(--border-radious);
-        border: none;
-        color: var(--bg);
-        cursor: pointer;
-        user-select: none;
-        transition:
-            all 0.15s ease-in-out,
-            box-shadow 0.15s ease-in-out;
-    }
-
-    #w-submit:hover {
-        background-color: var(--accent-dark);
     }
 
     .querySelector-item {
@@ -376,7 +358,7 @@
     .sw-dict-item:hover,
     .querySelector-item:hover,
     #querySelector-item-selected {
-        color: var(--bg);
+        color: white;
         background-color: var(--accent);
     }
 

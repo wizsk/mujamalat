@@ -6,6 +6,7 @@ let readerMode = "{{if .RDMode}}y{{end}}" === "y";
 let selectedDictAr = "{{index .DictsMap .Curr}}";
 const contentHolder = document.getElementById("content");
 const navSpace = document.getElementById("navSpace");
+const navSetHeightDelay = 100; // ms
 const dicts = document.getElementsByClassName("sw-dict-item");
 const changeDict = document.getElementById("change-dict");
 const changeDictInpt = document.getElementById("change-dict-inpt");
@@ -42,9 +43,10 @@ document.addEventListener("DOMContentLoaded", () => {
 
   setSavedFontSize();
 
-  requestAnimationFrame(() => {
+  setTimeout(() => {
+    // it's a promise btw
     setNavHeight();
-  }, 100);
+  }, navSetHeightDelay);
 
   if (window.localStorage.getItem(getScrollOnSearchLSN())) {
     scrollOnSearch = true;
@@ -54,10 +56,12 @@ document.addEventListener("DOMContentLoaded", () => {
 
   // {{if not .RDMode}}
   if (scrollOnSearch) {
-    const target = document.querySelector(".search-hi");
-    if (target) {
-      target.scrollIntoView({ behavior: "smooth", block: "start" });
-    }
+    setTimeout(() => {
+      const target = document.querySelector(".search-hi");
+      if (target) {
+        target.scrollIntoView({ behavior: "smooth", block: "start" });
+      }
+    }, navSetHeightDelay + 20);
   }
   let selected = document.getElementById("sw-dict-item-selected");
   if (selected && selected.scrollIntoView) {
@@ -190,9 +194,9 @@ w.oninput = () => {
       querySelector.classList.add("hidden");
     }
 
-    requestAnimationFrame(() => {
+    setTimeout(() => {
       setNavHeight();
-    }, 100);
+    }, navSetHeightDelay);
 
     // {{if not .RDMode}}
     document.title = `${selectedDictAr}${word ? ": " + word : ""}`;

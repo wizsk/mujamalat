@@ -1,6 +1,6 @@
 {{define "genric-dict"}}
 {{range $i, $v := .}}
-    <hr>
+{{if gt $i 0}}<hr>{{end}}
     <div><span class="word">{{$v.Word}}:</span> {{$v.Meaning}}</div>
 {{else}}
 {{template "no-res"}}
@@ -9,7 +9,7 @@
 
 {{define "eng-dict"}}
 {{range $i, $v := .}}
-    <hr>
+ {{if gt $i 0}}<hr>{{end}}
     <div class="{{if .IsHi}}search-hi{{end}}"><span class="word">{{$v.Word}}:</span> {{$v.Meaning}}</div>
 {{else}}
 {{template "no-res"}}
@@ -18,7 +18,6 @@
 
 {{define "ar_en"}}
 {{if ne (len .) 0}}
-<hr>
 <table>
     <thead>
         <td class="dl w-4">كلمة</td>

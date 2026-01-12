@@ -105,20 +105,12 @@ function openPopup(e) {
 
   openDictBtn.onclick = () => {
     closePopup();
-    openDictionay(onlyAr);
+    openDictionay(onlyAr, e.classList.contains("hi"));
   };
 
   infoBtn.onclick = async () => {
     closePopup();
-    showInfoModal(onlyAr, (rm) => {
-      wordSpans.forEach((e) => {
-        if (rm) {
-          e.classList.remove("hn");
-        } else if (e.dataset.oar == onlyAr) {
-          e.classList.add("hn");
-        }
-      });
-    });
+    showNoteModalReaderPage(onlyAr);
   };
 
   lastClikedWord = e;
@@ -127,6 +119,19 @@ function openPopup(e) {
 
   setPopUpPos();
 }
+
+function showNoteModalReaderPage(word) {
+  showInfoModal(word, (rm) => {
+    wordSpans.forEach((e) => {
+      if (rm) {
+        e.classList.remove("hn");
+      } else if (e.dataset.oar == word) {
+        e.classList.add("hn");
+      }
+    });
+  });
+}
+
 
 function setPopUpPos() {
   if (!lastClikedWord) return;
@@ -164,7 +169,7 @@ function setPopUpPos() {
 }
 
 let dictContainerOpen = false;
-function openDictionay(w) {
+function openDictionay(w, isHi) {
   dictContainerOpen = true;
   readerMode = false;
   querySelector.innerHTML = "";
@@ -182,6 +187,7 @@ function openDictionay(w) {
   }, navSetHeightDelay);
   history.pushState({}, "", window.location.href);
 
+  fetchAndSetDictHighWordState(w, isHi, addOrRmHiClass);
   getResAndShow(w);
 }
 

@@ -324,36 +324,40 @@ function getScrollOnSearchLSN() {
   return "scroll-on-search";
 }
 
-async function fetchAndSetDictHighWordState(word) {
+// called after high or rm high
+let fetchAndSetDictHighWordStateCallBack;
+
+// alhi alredy high
+// alhi and callb is used in the reader page
+async function fetchAndSetDictHighWordState(word, alhi, callb) {
   dictHighContainer.classList.add("hidden");
-  console.log("feeee", word);
+
   let r;
-  try {
-    r = await fetch(`/rd/high_has?w=${word}`, { method: "POST" });
-  } catch (err) {
-    console.error(err);
+  if (alhi == null) {
+    try {
+      r = await fetch(`/rd/high_has?w=${word}`, { method: "POST" });
+    } catch (err) {
+      console.error(err);
+    }
   }
 
-  if (!r) {
+  if (alhi == null && !r) {
     console.log("what is the server running?");
-    dictHighContainer.classList.add("hidden");
-  } else if (r.status == 202) {
-    const w = await r.text();
-    dictHighWord.textContent = w;
-    dictHighHiBtn.dataset.oar = w;
-    dictHighNoteBtn.dataset.oar = w;
-    dictHighHiBtn.dataset.ishi = "true";
-    dictHighContainer.classList.remove("hidden");
-  } else {
-    const w = await r.text();
-    if (w) {
-      dictHighWord.textContent = w;
-      dictHighHiBtn.dataset.oar = w;
-      dictHighNoteBtn.dataset.oar = w;
-      dictHighHiBtn.dataset.ishi = "false";
-      dictHighContainer.classList.remove("hidden");
-    } else dictHighContainer.classList.add("hidden");
+    return;
   }
+
+  const w = alhi != null ? word : r ? await r.text() : "";
+  if (!w) return;
+
+  const isHi = alhi != null ? alhi : r ? r.status == 202 : false;
+
+  dictHighHiBtn.dataset.ishi = isHi ? "true" : "false";
+  dictHighWord.textContent = w;
+  dictHighHiBtn.dataset.oar = w;
+  dictHighNoteBtn.dataset.oar = w;
+  dictHighContainer.classList.remove("hidden");
+
+  fetchAndSetDictHighWordStateCallBack = callb;
 }
 
 dictHighHiBtn.onclick = async () => {
@@ -375,6 +379,8 @@ dictHighHiBtn.onclick = async () => {
 
   if (res && res.status == 202) {
     dictHighHiBtn.dataset.ishi = isHi ? "false" : "true";
+    if (fetchAndSetDictHighWordStateCallBack)
+      fetchAndSetDictHighWordStateCallBack(word, !isHi);
   }
   dictHighHiBtn.disabled = false;
 };

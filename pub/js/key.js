@@ -108,7 +108,7 @@ document.addEventListener("keydown", (e) => {
       querySelectorNextPre(true, "sw-dict-item", "sw-dict-item-selected");
       break;
 
-    case "Semicolon":
+    case "KeyL":
     case "ArrowUp":
       e.preventDefault();
       querySelectorNextPre(false, "sw-dict-item", "sw-dict-item-selected");

@@ -39,17 +39,35 @@ function fontSizeDec() {
 }
 
 function scroolToTop() {
-    if (readerMode) {
-        window.scrollTo({ top: 0, behavior: 'smooth' });
-    } else {
-        // TODO: FIX THIS
-        // // {{if .RDMode}} this is for when just dict mode
-        // window.scrollTo({ top: 0, behavior: 'smooth' });
-        // // {{end}}
-        // dict_container.scrollTo({ top: 0, behavior: 'smooth' });
-        w.focus();
-        w.setSelectionRange(w.value.length, w.value.length);
+  if (readerMode) {
+    window.scrollTo({ top: 0, behavior: 'smooth' });
+  } else {
+    let scrlElm = window;
+
+    // {{if not .RDMode}} this is for when just dict mode
+    window.scrollTo({ top: 0, behavior: 'smooth' });
+    // {{else}}
+    dict_container.scrollTo({ top: 0, behavior: 'smooth' });
+    scrlElm = dict_container;
+    // {{end}}
+
+
+    if (scrlElm.scrollTop != null&& scrlElm.scrollTop === 0 || scrlElm.scrollX === 0) {
+      w.focus();
+      w.setSelectionRange(w.value.length, w.value.length);
     }
+
+    // else {
+    //   scrlElm.addEventListener('scroll', function onScroll() {
+    //     if (scrlElm.scrollTop === 0) {
+    //       // Remove the event listener to avoid multiple triggers
+    //       scrlElm.removeEventListener('scroll', onScroll);
+    //       w.focus();
+    //       w.setSelectionRange(w.value.length, w.value.length);
+    //     }
+    //   }, { passive: true });
+    // }
+  }
 }
 
 function resetFontSize() {

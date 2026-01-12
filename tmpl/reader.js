@@ -132,7 +132,6 @@ function showNoteModalReaderPage(word) {
   });
 }
 
-
 function setPopUpPos() {
   if (!lastClikedWord) return;
   // Wait for popup to render so we can measure width
@@ -368,16 +367,20 @@ if (readerPageR.test(window.location.pathname)) {
 
   // {{if not .RevMode}}
   let saveTimeOutScroll;
-  window.addEventListener("scroll", () => {
-    clearTimeout(saveTimeOutScroll);
-    saveTimeOutScroll = setTimeout(() => {
-      if (window.scrollY === 0) {
-        localStorage.removeItem(getScrollLSN());
-      } else {
-        localStorage.setItem(getScrollLSN(), window.scrollY);
-      }
-    }, 200);
-  });
+  window.addEventListener(
+    "scroll",
+    () => {
+      clearTimeout(saveTimeOutScroll);
+      saveTimeOutScroll = setTimeout(() => {
+        if (window.scrollY === 0) {
+          localStorage.removeItem(getScrollLSN());
+        } else {
+          localStorage.setItem(getScrollLSN(), window.scrollY);
+        }
+      }, 200);
+    },
+    { passive: true },
+  );
 
   window.addEventListener("load", () => {
     const saved = localStorage.getItem(getScrollLSN());

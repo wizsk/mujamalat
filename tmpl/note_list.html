@@ -1,0 +1,90 @@
+<!doctype html>
+<html lang="en">
+    <head>
+        <meta charset="UTF-8" />
+        <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+        <title>Notes</title>
+        {{template "common-css"}}
+
+        <link rel="stylesheet" href="/pub/styles/note.css" />
+        <script src="/pub/js/reader_info.js" defer></script>
+
+        <style>
+            li {
+                margin: 0.5rem 0.2rem;
+            }
+
+            [data-oar] {
+                all: unset;
+                cursor: pointer;
+
+                &:hover {
+                    color: var(--accent);
+                }
+            }
+        </style>
+    </head>
+    <body>
+        <ul id="note-list">
+            {{range .}}
+            <li><button data-oar="{{.}}" type="button">{{.}}</button></li>
+            {{end}}
+        </ul>
+
+        <dialog id="infoDialog">
+            <div>
+                <h3 id="noteWord"></h3>
+                <textarea
+                    dir="auto"
+                    class="input-style"
+                    id="infoTxt"
+                    readonly
+                    placeholder="Write a note in English or Arabic"
+                ></textarea>
+                <form method="dialog">
+                    <button
+                        class="btn btn-eng"
+                        type="button"
+                        style="flex-grow: 2; width: 100%"
+                        id="infoEditBtn"
+                    ></button>
+                    <button
+                        class="btn btn-eng"
+                        type="button"
+                        style="flex-grow: 1; background-color: var(--alert)"
+                        id="noteDelBtn"
+                    >
+                        Delete
+                    </button>
+                    <button
+                        class="btn btn-eng"
+                        type="submit"
+                        style="flex-grow: 1; background-color: var(--muted)"
+                        id="infoCloseBtn"
+                    >
+                        Close
+                    </button>
+                </form>
+            </div>
+        </dialog>
+        <script>
+            document.addEventListener("DOMContentLoaded", () => {
+                window.localStorage.getItem("dark") &&
+                    document.documentElement.classList.add("dark");
+            });
+            const nlc = document.getElementById("note-list");
+            const nl = document.querySelectorAll("[data-oar]");
+            nl.forEach((e) => {
+                e.onclick = () => {
+                    showInfoModal(e.dataset.oar, (del) => {
+                        if (del) {
+                            nlc.removeChild(e.parentElement);
+                            infoModalClose();
+                        }
+                    });
+                    console.log(e);
+                };
+            });
+        </script>
+    </body>
+</html>

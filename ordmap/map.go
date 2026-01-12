@@ -272,6 +272,16 @@ func (om *OrderedMap[K, V]) Keys() []K {
 	return keys
 }
 
+// Keys returns ordered keys.
+func (om *OrderedMap[K, V]) KeysRev() []K {
+	keys := make([]K, len(om.data))
+	for i, j := len(om.data)-1, 0; i > -1; i-- {
+		keys[j] = om.data[i].Key
+		j++
+	}
+	return keys
+}
+
 // Values returns ordered values.
 func (om *OrderedMap[K, V]) Values() []V {
 	vals := make([]V, len(om.data))

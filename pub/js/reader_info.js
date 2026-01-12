@@ -11,7 +11,12 @@ const noteEditBtnTxtWait = "Wait…";
 let infoIsEditing = false;
 let oldNote = "";
 
-/** @param {string} word */
+/**
+ *
+ * @param {string} word
+ * @param {Function} callBack - when calleing it send a bool if del then true
+ * */
+
 async function showInfoModal(word, callBack) {
   // book keeping
   noteWord.textContent = word;
@@ -121,6 +126,10 @@ infoDialog.addEventListener("close", (e) => {
     infoDialog.showModal();
   }
 });
+
+function infoModalClose() {
+  infoDialog.close();
+}
 
 // infoCloseBtn.onclick = () => {
 //   infoDialog.close();

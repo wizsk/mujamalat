@@ -10,6 +10,14 @@ import (
 	"github.com/wizsk/mujamalat/ordmap"
 )
 
+func (rd *readerConf) notesPage(w http.ResponseWriter, r *http.Request) {
+	rd.RLock()
+	n := rd.hwi.KeysRev()
+	rd.RUnlock()
+
+	le(rd.t.ExecuteTemplate(w, "note_list.html", n))
+}
+
 func (rd *readerConf) highInfo(w http.ResponseWriter, r *http.Request) {
 	rd.RLock()
 	defer rd.RUnlock()

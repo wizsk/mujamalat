@@ -11,7 +11,6 @@ const popup = document.getElementById("popup");
 const highlight = document.getElementById("highlight");
 const openDictBtn = document.getElementById("openDictBtn");
 const infoBtn = document.getElementById("infoBtn");
-const infoDialog = document.getElementById("infoDialog");
 const readerMenu = document.getElementById("readerMenu");
 const readerMenuBtn = document.getElementById("readerMenuBtn");
 const wordSpans = document.querySelectorAll(".rWord");

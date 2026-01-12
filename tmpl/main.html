@@ -44,17 +44,6 @@
 </head>
 
 <body>
-    <dialog id="infoDialog">
-        <div>
-            <h3 id="noteWord"></h3>
-            <textarea dir="auto" class="input-style" id="infoTxt" readonly placeholder="Write a note in English or Arabic"></textarea>
-            <form method="dialog">
-                <button class="btn btn-eng" type="button" style="flex-grow: 2; width: 100%;" id="infoEditBtn"></button>
-                <button class="btn btn-eng" type="button" style="flex-grow: 1; background-color: var(--alert);" id="noteDelBtn">Delete</button>
-                <button class="btn btn-eng" type="submit" style="flex-grow: 1; background-color: var(--muted);" id="infoCloseBtn">Close</button>
-            </form>
-        </div>
-    </dialog>
     {{if .RevMode}}
     {{template "rev.html" .}}
     {{end}}
@@ -113,6 +102,18 @@
             </svg>
         </button>
         {{end}}
+
+        <dialog id="infoDialog">
+            <div>
+                <h3 id="noteWord"></h3>
+                <textarea dir="auto" class="input-style" id="infoTxt" readonly placeholder="Write a note in English or Arabic"></textarea>
+                <form method="dialog">
+                    <button class="btn btn-eng" type="button" style="flex-grow: 2; width: 100%;" id="infoEditBtn"></button>
+                    <button class="btn btn-eng" type="button" style="flex-grow: 1; background-color: var(--alert);" id="noteDelBtn">Delete</button>
+                    <button class="btn btn-eng" type="submit" style="flex-grow: 1; background-color: var(--muted);" id="infoCloseBtn">Close</button>
+                </form>
+            </div>
+        </dialog>
     </div>
     <script>
         // {{template "main.js" .}}

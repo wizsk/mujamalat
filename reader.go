@@ -20,9 +20,9 @@ const (
 
 type readerConf struct {
 	sync.RWMutex
+	dictConf
 
 	gc      globalConf
-	t       templateWraper
 	permDir string
 	tlsDir  string
 
@@ -48,7 +48,6 @@ type readerConf struct {
 func newReader(gc globalConf, t templateWraper) *readerConf {
 	rd := readerConf{
 		gc: gc,
-		t:  t,
 	}
 	n := ""
 	var err error

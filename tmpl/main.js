@@ -25,6 +25,11 @@ try {
 let isChangeDictShwoing = false;
 let scrollOnSearch = false;
 
+const dictHighContainer = document.getElementById("highWordContainer");
+const dictHighWord = document.getElementById("highWord");
+const dictHighHiBtn = document.getElementById("highWordHiBtn");
+// const dictHighNoteBtn = document.getElementById("highWordNoteBtn");
+
 let resizeTimoutId;
 window.addEventListener("resize", () => {
   clearInterval(resizeTimoutId);
@@ -200,6 +205,7 @@ w.oninput = () => {
 
     // its async hence non blocking u stupid
     getResAndShow(word);
+    fetchAndSetDictHighWordState(word);
 
     querySelector.innerHTML = "";
     if (queryArr.length > 1) {
@@ -315,3 +321,58 @@ function getScrollOnSearchLSN() {
   // return `${window.location.pathname}-`
   return "scroll-on-search";
 }
+
+async function fetchAndSetDictHighWordState(word) {
+  dictHighContainer.classList.add("hidden");
+  console.log("feeee", word);
+  let r;
+  try {
+    r = await fetch(`/rd/high_has?w=${word}`, { method: "POST" });
+  } catch (err) {
+    console.error(err);
+  }
+
+  if (!r) {
+    console.log("what is the server running?");
+    dictHighContainer.classList.add("hidden");
+  } else if (r.status == 202) {
+    const w = await r.text();
+    dictHighWord.textContent = w;
+    dictHighHiBtn.style.color = "var(--accent)";
+    dictHighHiBtn.dataset.oar = w;
+    dictHighHiBtn.dataset.isHi = "true";
+    dictHighContainer.classList.remove("hidden");
+  } else {
+    const w = await r.text();
+    if (w) {
+      dictHighWord.textContent = w;
+      dictHighHiBtn.dataset.oar = w;
+      dictHighHiBtn.style.color = "#ccc";
+      dictHighHiBtn.dataset.isHi = "false";
+      dictHighContainer.classList.remove("hidden");
+    } else dictHighContainer.classList.add("hidden");
+  }
+}
+
+dictHighHiBtn.onclick = async () => {
+  dictHighHiBtn.disabled = true;
+  const isHi = dictHighHiBtn.dataset.ishi == "true";
+  const word = dictHighHiBtn.dataset.oar;
+
+  let ru = `/rd/high?w=${word}`;
+  ru += isHi ? "&del=true" : "&add=true";
+
+  let res;
+  try {
+    res = await fetch(ru, { method: "POST" });
+  } catch (err) {
+    console.error(err);
+    dictHighHiBtn.disabled = false;
+    return;
+  }
+
+  if (res && res.status == 202) {
+    dictHighHiBtn.dataset.ishi = isHi ? "false" : "true";
+  }
+  dictHighHiBtn.disabled = false;
+};

@@ -174,7 +174,8 @@ func main() {
 
 	mux := http.NewServeMux()
 
-	mux.HandleFunc("/", dc.mainPage)
+	rd.dictConf = dc
+	mux.HandleFunc("/", rd.mainPage)
 	mux.HandleFunc("/content", dc.api)
 
 	mux.HandleFunc("GET /rd/", rd.input)
@@ -189,6 +190,7 @@ func main() {
 	mux.HandleFunc("GET /rd/highlist/{word}", rd.highlightWord)
 	mux.HandleFunc("GET /rd/highlist/", rd.highlightList)
 	mux.HandleFunc("POST /rd/high", rd.highlightPost)
+	mux.HandleFunc("POST /rd/high_has", rd.highlightHasWord)
 	mux.HandleFunc("GET /rd/high_info/{word}", rd.highInfo)
 	mux.HandleFunc("POST /rd/high_info/{word}", rd.highInfoPost)
 

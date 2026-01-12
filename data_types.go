@@ -2,6 +2,7 @@ package main
 
 type TmplData struct {
 	Query             string
+	ReaderWord        ReaderWord
 	Queries           []string
 	Idx               int
 	Curr              string // current dict

@@ -12,7 +12,7 @@ type dictConf struct {
 	arEnDict *Dictionary
 }
 
-func (dc *dictConf) mainPage(w http.ResponseWriter, r *http.Request) {
+func (dc *readerConf) mainPage(w http.ResponseWriter, r *http.Request) {
 	switch r.URL.Path {
 	case "/mujamul_ghoni":
 		q, t := dc.getQueries(w, r, "mujamul_ghoni")

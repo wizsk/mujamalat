@@ -95,5 +95,6 @@ async function changeQueryIdx(el, word, idx) {
 
     el.id = 'querySelector-item-selected';
     currWord = word;
+    fetchAndSetDictHighWordState(word);
     getResAndShow(word);
 }

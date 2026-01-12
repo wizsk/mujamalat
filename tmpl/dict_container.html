@@ -4,6 +4,47 @@
 
 <div id="navSpace" style="transition: height 100ms ease; height: calc(var(--nav-height) + 1rem);"></div>
 
+<!--<div id="highWordContainer" class="hidden">
+    <span id="highWord"></span>
+    <button id="highWordHiBtn" type="button">
+        <svg xmlns="http://www.w3.org/2000/svg" fill="currentColor" viewBox="0 0 16 16" width="16" height="16">
+            <path d="M2 2v13.5a.5.5 0 0 0 .74.439L8 13.069l5.26 2.87A.5.5 0 0 0 14 15.5V2a2 2 0 0 0-2-2H4a2 2 0 0 0-2 2"></path>
+        </svg>
+    </button>
+</div>-->
+<div id="highWordContainer" class="{{if not .ReaderWord.Oar}}hidden{{end}}">
+    <span id="highWord">{{.ReaderWord.Oar}}</span>
+    <button class="svg-btn" id="highWordHiBtn" data-oar="{{.ReaderWord.Oar}}" data-ishi="{{.ReaderWord.IsHi}}" type="button">
+        <svg xmlns="http://www.w3.org/2000/svg" fill="currentColor" viewBox="0 0 16 16" width="inherit" height="inherit">
+            <path d="M2 2v13.5a.5.5 0 0 0 .74.439L8 13.069l5.26 2.87A.5.5 0 0 0 14 15.5V2a2 2 0 0 0-2-2H4a2 2 0 0 0-2 2"></path>
+        </svg>
+    </button>
+</div>
+
+<style>
+#highWordContainer {
+    padding-top: 0.5res;
+    padding-bottom: 0.5rem;
+    button {
+        background: none;
+    }
+}
+
+.dark  #highWordHiBtn {
+    color: #777;
+}
+
+#highWordHiBtn {
+    color: #ccc;
+
+    &[data-ishi="true"] {
+        color: var(--accent);
+    }
+}
+
+
+</style>
+
 <div id="content">
     <!-- <h3 class="eng">Shortcuts</h3> -->
     <!---->

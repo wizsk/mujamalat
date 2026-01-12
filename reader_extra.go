@@ -87,6 +87,22 @@ func (rd *readerConf) highlightWord(w http.ResponseWriter, r *http.Request) {
 	}
 }
 
+func (rd *readerConf) highlightHasWord(w http.ResponseWriter, r *http.Request) {
+	word := keepOnlyArabic(r.URL.Query().Get("w"))
+	if word == "" {
+		return
+	}
+
+	rd.RLock()
+	found := rd.hMap.IsSet(word)
+	rd.RUnlock()
+
+	w.Write([]byte(word))
+	if found {
+		w.WriteHeader(http.StatusAccepted)
+	}
+}
+
 func (rd *readerConf) highlightPost(w http.ResponseWriter, r *http.Request) {
 	word := keepOnlyArabic(r.FormValue("w"))
 	if word == "" {

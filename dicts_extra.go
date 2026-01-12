@@ -7,7 +7,7 @@ import (
 	"strings"
 )
 
-func (s *dictConf) getQueries(w http.ResponseWriter, r *http.Request, curr string) (string, *TmplData) {
+func (s *readerConf) getQueries(w http.ResponseWriter, r *http.Request, curr string) (string, *TmplData) {
 	t := TmplData{Curr: curr, Dicts: dicts, DictsMap: dictsMap}
 
 	in := strings.TrimSpace(r.FormValue("w"))
@@ -43,13 +43,35 @@ func (s *dictConf) getQueries(w http.ResponseWriter, r *http.Request, curr strin
 			} else {
 				// should no happend just in case
 				t.Idx = len(cleanQuries) - 1
+				curQuery = cleanQuries[t.Idx]
 			}
 		} else {
 			t.Idx = len(cleanQuries) - 1
+			curQuery = cleanQuries[t.Idx]
 		}
+	}
+
+	if oar := keepOnlyArabic(curQuery); oar != "" {
+		t.ReaderWord.Oar = oar
+		s.RLock()
+		t.ReaderWord.IsHi = s.hMap.IsSet(oar)
+		s.RUnlock()
 	}
 
 	t.Query = strings.Join(cleanQuries, " ")
 	t.Queries = cleanQuries
 	return strings.ReplaceAll(cleanQuries[t.Idx], "_", " "), &t
 }
+
+// func (rd *readerConf) highlightHasWord(w http.ResponseWriter, r *http.Request) {
+// 	oar := keepOnlyArabic(r.URL.Query().Get("w"))
+// 	if oar == "" {
+// 		return
+// 	}
+//
+// 	rw := ReaderWord{Oar: oar}
+// 	rd.RLock()
+// 	rw.IsHi = rd.hMap.IsSet(oar)
+// 	rd.Unlock()
+// 	le(rd.t.ExecuteTemplate(w, "dictHighWordInfo", &rw))
+// }

@@ -37,21 +37,26 @@
 
 #highWordContainer {
     button {
+        background-color: var(--muted);
         --svg-wh: 2rem;
         @media (width > 768px) {
             --svg-wh: 2.5rem;
         }
+
+        &:hover {
+            background-color: var(--muted-dark);
+        }
     }
 }
 
-.dark  #highWordHiBtn {
-    background-color: #666;
-    color: #eee;
-}
+/* .dark #highWordHiBtn { */
+/*     background-color: #666; */
+/*     color: #eee; */
+/* } */
 
 #highWordHiBtn {
-    background-color: #ccc;
-    color: #888;
+    /* background-color: #ccc; */
+    /* color: #888; */
 
     &[data-ishi="true"] {
         background-color: var(--accent-dark);

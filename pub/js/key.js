@@ -92,6 +92,13 @@ document.addEventListener("keydown", (e) => {
         }
       } catch (e) {}
       break;
+
+    case "KeyY":
+      e.preventDefault();
+      try {
+        dictHighHiBtn.click();
+      } catch (e) {}
+      break;
   }
 
   // ---- nav ----

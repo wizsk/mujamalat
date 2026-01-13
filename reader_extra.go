@@ -75,7 +75,8 @@ func (rd *readerConf) highlightWord(w http.ResponseWriter, r *http.Request) {
 	if hIdx, ok := rd.hIdx.Get(word); ok {
 		readerConf := ReaderData{Title: hIdx.Word}
 
-		tm := TmplData{Curr: "ar_en", Dicts: dicts, DictsMap: dictsMap, RD: readerConf, RDMode: true}
+		tm := TmplData{Curr: "ar_en", Dicts: dicts, DictsMap: dictsMap,
+			RD: readerConf, RDMode: true, IsHiList: true}
 		tm.HiIdx = rd.getHiIdxData(hIdx)
 
 		if err := rd.t.ExecuteTemplate(w, mainTemplateName, &tm); debug && err != nil {

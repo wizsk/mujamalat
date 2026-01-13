@@ -46,15 +46,15 @@ var (
 	timeZone     *time.Location
 
 	dicts = []Dict{
-		{"قاموس مباشر", arEnName},
-		{"معجم الغني", "mujamul_ghoni"},
-		{"هانز وير", hanswehrName},
-		{"لينليكسكون", lanelexconName},
-		{"لسان العرب", lisanularabName},
-		{"المعاصرة", "mujamul_muashiroh"}, // using the shorter name
-		{"معجم الوسيط", "mujamul_wasith"},
-		{"معجم المحيط", "mujamul_muhith"},
-		{"مختار الصحاح", "mujamul_shihah"},
+		{"مباشر", arEnName},               // {"قاموس مباشر", arEnName},
+		{"هانز", hanswehrName},            // {"هانز وير", hanswehrName},
+		{"لين", lanelexconName},           // {"لينليكسكون", lanelexconName},
+		{"الغني", "mujamul_ghoni"},        //
+		{"مختار", "mujamul_shihah"},       // {"مختار الصحاح", "mujamul_shihah"},
+		{"لسان", lisanularabName},         // {"لسان العرب", lisanularabName},
+		{"المعاصرة", "mujamul_muashiroh"}, //
+		{"الوسيط", "mujamul_wasith"},
+		{"المحيط", "mujamul_muhith"},
 	}
 
 	dictsMap map[string]string = func(ds []Dict) map[string]string {

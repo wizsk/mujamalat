@@ -2,6 +2,7 @@ package main
 
 import (
 	"database/sql"
+	"fmt"
 	"net/http"
 	"strings"
 )
@@ -78,7 +79,10 @@ func (dc *readerConf) mainPage(w http.ResponseWriter, r *http.Request) {
 		}
 
 	default:
-		http.Redirect(w, r, "/"+dicts[0].En, http.StatusSeeOther)
+
+		// li := "/" +  + "?" +
+		li := fmt.Sprintf("/%s?%s", dicts[0].En, r.URL.RawQuery)
+		http.Redirect(w, r, li, http.StatusSeeOther)
 		return
 	}
 }

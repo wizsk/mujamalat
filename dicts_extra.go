@@ -18,6 +18,10 @@ func (s *readerConf) getQueries(w http.ResponseWriter, r *http.Request, curr str
 	if err == nil && idx > -1 && idx < len(queries) {
 		t.Idx = idx
 		curQuery = queries[idx]
+	} else if len(queries) > 0 {
+		idx = len(queries) - 1
+		t.Idx = idx
+		curQuery = queries[idx]
 	}
 
 	cleanQuries := []string{}

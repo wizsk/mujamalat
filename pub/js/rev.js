@@ -16,10 +16,19 @@ const ordLSN = () => `${window.location.pathname}-ord`;
 document.addEventListener("DOMContentLoaded", () => {
   const rwh = (url) => window.history.replaceState(null, "", url);
 
+  const curSearch = new URLSearchParams(window.location.search);
+
   const v = window.localStorage.getItem(ordLSN());
   if (!v) {
+    if (curSearch.get("ord"))
+      window.location.replace(window.location.pathname);
+
+    ord.value = ord.options[0].value;
     rwh(`${window.location.pathname}`);
   } else {
+    if (curSearch.get("ord") != v)
+      window.location.replace(`${window.location.pathname}?ord=${v}`);
+
     ord.value = v;
     rwh(`${window.location.pathname}?ord=${v}`);
   }

@@ -109,13 +109,9 @@ func (rd *readerConf) revPage(w http.ResponseWriter, r *http.Request) {
 			break
 		}
 
-		fallthrough
 	case "rand_only":
-		hw, found = rd.hRev.GetMatchOrRand(
-			func(e *HiWord) bool { return false },
-			func(e *HiWord) bool { return e.Past == 0 && e.Future == 0 },
-			func(e *HiWord) bool { return !e.DontShow },
-		)
+		hw, found = rd.hRev.GetRand(
+			func(e *HiWord) bool { return !e.DontShow })
 
 	case "old_only":
 		hw, found = rd.hRev.GetFirstMatch(func(e *HiWord) bool {

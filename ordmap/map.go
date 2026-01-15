@@ -331,43 +331,85 @@ func (om *OrderedMap[K, V]) GetLastMatch(match func(*V) bool) (V, bool) {
 	return v, false
 }
 
-// i need to get the review card 1st
-// if there is no review cards then show a random card
-// I can be sure the card is review if past and future are both != 0
-// and hidden != true
-func (om *OrderedMap[K, V]) GetMatchOrRand(match func(*V) bool,
-	stopMatching func(*V) bool, rMatch func(*V) bool) (V, bool) {
+func (om *OrderedMap[K, V]) GetRand(rMatch func(*V) bool) (V, bool) {
 	if len(om.data) == 0 {
 		var v V
 		return v, false
 	}
 
 	// try to find a match
-	var i int
-	for i = range om.data {
-		if stopMatching(&om.data[i].Value) {
-			break
-		} else if match(&om.data[i].Value) {
-			return om.data[i].Value, true
-		}
-	}
-
-	mp := make(map[int]struct{}, len(om.data)-(i+1))
-	for {
+	seen := make([]bool, len(om.data))
+	seenCount := 0
+	for seenCount < len(om.data) {
 		idx := rand.IntN(len(om.data))
-		if _, ok := mp[idx]; idx < i || ok {
+		if seen[idx] {
 			continue
 		}
-		mp[idx] = struct{}{}
+		seen[idx] = true
+		seenCount++
+
 		if rMatch(&om.data[idx].Value) {
 			return om.data[idx].Value, true
-		}
-		if len(mp) == len(om.data)-(i+1) {
-			break
 		}
 	}
 
 	var v V
+	return v, false
+}
+
+// i need to get the review card 1st
+// if there is no review cards then show a random card
+// I can be sure the card is review if past and future are both != 0
+// and hidden != true
+func (om *OrderedMap[K, V]) GetMatchOrRand(match func(*V) bool,
+	stopMatching func(*V) bool, rMatch func(*V) bool) (V, bool) {
+
+	var v V // zero value
+	if len(om.data) == 0 {
+		return v, false
+	}
+
+	// try to find a match
+	curr := -1
+	for i := range om.data {
+		curr++
+		if stopMatching(&om.data[i].Value) {
+			break
+		} else if match(&om.data[i].Value) {
+			return om.data[i].Value, true
+		} else if curr+1 == len(om.data) {
+			// looked through the intire thing didn't find anything
+			return v, false
+		}
+	}
+
+	diff := len(om.data) - curr // -1 for len being bigger
+	if diff == 1 {
+		if rMatch(&om.data[curr].Value) {
+			return om.data[curr].Value, true
+		}
+	} else if diff > 1 {
+		seen := make([]bool, diff)
+		seenCount := 0
+
+		min := curr
+		for len(om.data) > seenCount+min {
+			add := rand.IntN(diff)
+			idx := min + add
+
+			if seen[add] {
+				continue
+			}
+			seen[add] = true
+			seenCount++
+
+			if rMatch(&om.data[idx].Value) {
+				return om.data[idx].Value, true
+			}
+		}
+
+	}
+
 	return v, false
 }
 

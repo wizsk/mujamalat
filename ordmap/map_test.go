@@ -6,6 +6,29 @@ import (
 	"testing"
 )
 
+func TestGetMatchOrRand(t *testing.T) {
+	m := New[int, string]()
+	for i := range 5 {
+		m.Set(i, "yo")
+	}
+
+	// for i := range 5 {
+	// 	m.Set(i+8, "box")
+	// }
+
+	for i := range 1 {
+		m.Set(i+16, "bo")
+	}
+
+	t.Log(m.GetMatchOrRand(
+		func(s *string) bool { return false },
+		func(s *string) bool { return *s == "bo" },
+		func(s *string) bool { return *s == "bo" }))
+
+	t.Log(m.GetRand(
+		func(s *string) bool { return *s == "bo" }))
+}
+
 func TestJoinStr(t *testing.T) {
 	s := New[string, struct{}]()
 	var a []string

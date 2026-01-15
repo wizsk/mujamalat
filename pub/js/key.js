@@ -99,6 +99,13 @@ document.addEventListener("keydown", (e) => {
         dictHighHiBtn.click();
       } catch (e) {}
       break;
+
+    case "KeyO":
+      e.preventDefault();
+      try {
+        if (!infoDialog.open) dictHighNoteBtn.click();
+      } catch (e) {}
+      break;
   }
 
   // ---- nav ----

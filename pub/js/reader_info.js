@@ -15,8 +15,7 @@ let oldNote = "";
  *
  * @param {string} word
  * @param {Function} callBack - when calleing it send a bool if del then true
- * */
-
+*/
 async function showInfoModal(word, callBack) {
   // book keeping
   noteWord.textContent = word;
@@ -30,7 +29,7 @@ async function showInfoModal(word, callBack) {
   noteTxtAr.readOnly = true;
 
   infoDialog.showModal();
-  noteTxtAr.blur();
+  noteTxtAr.focus();
 
   const res = await fetch(`/rd/high_info/${word}`).catch((err) => {
     console.error(err);
@@ -130,6 +129,24 @@ infoDialog.addEventListener("close", (e) => {
 function infoModalClose() {
   infoDialog.close();
 }
+
+noteTxtAr.addEventListener("keydown", (e) => {
+  if (!e.ctrlKey || e.shiftKey) return;
+
+  switch (e.code) {
+      case "KeyI":
+        e.preventDefault();
+        if (!infoIsEditing) noteEditBtn.click();
+        noteTxtAr.focus();
+        break;
+
+    case "Enter":
+      e.preventDefault();
+      if (infoIsEditing) noteEditBtn.click();
+      break;
+
+  }
+})
 
 // infoCloseBtn.onclick = () => {
 //   infoDialog.close();

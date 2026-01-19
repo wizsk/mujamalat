@@ -48,7 +48,8 @@
 <body>
     <div id="login-container">
         <h2>تسجيل الدخول</h2>
-        <form action="/auth" method="POST">
+        {{if .IsInvalid}}<p style="color: var(--alert);">كلمة مرور خاطئة</p>{{end}}
+        <form action="/auth?next={{.Next}}" method="POST">
             <input id="password" name="password" type="password" class="input-style"
             placeholder="كلمة المرور" required autofocus>
             <button id="submit" type="submit" class="btn">دخول</button>

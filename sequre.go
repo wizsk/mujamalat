@@ -7,6 +7,7 @@ import (
 	"encoding/hex"
 	"fmt"
 	"net/http"
+	"net/url"
 	"os"
 	"path/filepath"
 	"strconv"
@@ -20,6 +21,11 @@ const (
 	sessionFileName = "sessions.txt" // plain text
 	sessionExpiry   = 30 * 24 * time.Hour
 )
+
+type LoginPgData struct {
+	Next      string
+	IsInvalid bool
+}
 
 // ===== GLOBAL STORE =====
 type sequreSession struct {
@@ -185,30 +191,37 @@ func logout(sessionID string) {
 }
 
 func authHandler(w http.ResponseWriter, r *http.Request) {
+	next := r.URL.Query().Get("next")
+	if next == "" {
+		next = "/"
+	}
+
 	if isAuthenticated(r) {
-		http.Redirect(w, r, "/", http.StatusSeeOther)
-	}
-
-	if r.Method == http.MethodGet {
-		if err := sessionStore.t.ExecuteTemplate(w, loginTemplateName, nil); debug && err != nil {
-			lg.Println(err)
-			return
-		}
+		http.Redirect(w, r, next, http.StatusSeeOther)
 		return
 	}
 
-	if r.Method == http.MethodPost {
+	// no need to escape. go template will handle it
+	d := LoginPgData{Next: next}
+
+	switch r.Method {
+	case http.MethodPost:
 		pass := r.FormValue("password")
-		if subtle.ConstantTimeCompare([]byte(pass), []byte(sessionStore.pass)) != 1 {
-			http.Error(w, "Invalid password", http.StatusUnauthorized)
+		if subtle.ConstantTimeCompare([]byte(pass), []byte(sessionStore.pass)) == 1 {
+			setSession(w)
+			http.Redirect(w, r, next, http.StatusSeeOther)
 			return
 		}
-		setSession(w)
-		http.Redirect(w, r, "/", http.StatusSeeOther)
-		return
-	}
 
-	http.Error(w, "Method not allowed", http.StatusMethodNotAllowed)
+		d.IsInvalid = true
+		fallthrough
+	case http.MethodGet:
+		if err := sessionStore.t.ExecuteTemplate(w, loginTemplateName, &d); debug && err != nil {
+			lg.Println(err)
+		}
+	default:
+		http.Error(w, "Method not allowed", http.StatusMethodNotAllowed)
+	}
 }
 
 func logoutHandler(w http.ResponseWriter, r *http.Request) {
@@ -236,7 +249,8 @@ func sequreMiddleware(next http.Handler) http.Handler {
 		if strings.HasPrefix(r.URL.Path, "/pub/") || r.URL.Path == "/auth" || isAuthenticated(r) {
 			next.ServeHTTP(w, r)
 		} else {
-			http.Redirect(w, r, "/auth", http.StatusSeeOther)
+			li := url.QueryEscape(r.URL.RequestURI())
+			http.Redirect(w, r, "/auth?next="+li, http.StatusSeeOther)
 		}
 	})
 }

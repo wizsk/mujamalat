@@ -11,7 +11,7 @@ import (
 	"time"
 )
 
-func main() {
+func installCurr() {
 	buildTime := time.Now().Unix()
 	commitHash := strings.TrimSpace(runCmd("git", "rev-parse", "--short", "HEAD"))
 	commitMsg := strings.TrimSpace(runCmd("git", "log", "-1", "--pretty=%B"))

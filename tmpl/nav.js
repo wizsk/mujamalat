@@ -84,6 +84,9 @@ function setNavHeight() {
  * @param {number} idx
  */
 async function changeQueryIdx(el, word, idx) {
+    fetchAndSetDictHighWordState(word);
+    getResAndShow(word);
+
     queryIdx = idx;
     // {{if not .RDMode}}
     document.title = `${selectedDictAr}: ${word}`;
@@ -95,6 +98,9 @@ async function changeQueryIdx(el, word, idx) {
 
     el.id = 'querySelector-item-selected';
     currWord = word;
-    fetchAndSetDictHighWordState(word);
-    getResAndShow(word);
+    el.scrollIntoView({
+      behavior: 'smooth',    // auto Or 'smooth' if you want animation
+      block: "nearest",
+      inline: "center", // Center the element horizontally
+    });
 }

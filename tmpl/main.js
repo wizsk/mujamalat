@@ -220,6 +220,14 @@ w.oninput = () => {
                 ${v}</button>`;
       }
       querySelector.innerHTML = b;
+      setTimeout(() => {
+        const el = document.getElementById("querySelector-item-selected");
+        if (el) el.scrollIntoView({
+          behavior: 'smooth',    // auto Or 'smooth' if you want animation
+          block: "nearest",
+          inline: "center", // Center the element horizontally
+        });
+      }, 100);
       querySelector.classList.remove("hidden");
     } else {
       querySelector.innerHTML = "";
@@ -384,3 +392,12 @@ dictHighHiBtn.onclick = async () => {
   }
   dictHighHiBtn.disabled = false;
 };
+
+
+function scrollToEl(el) {
+  if (el) el.scrollIntoView({
+    behavior: 'smooth',    // auto Or 'smooth' if you want animation
+    block: "nearest",
+    inline: "center", // Center the element horizontally
+  });
+}

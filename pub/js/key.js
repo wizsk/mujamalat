@@ -119,13 +119,13 @@ document.addEventListener("keydown", (e) => {
     case "KeyH":
     case "ArrowDown":
       e.preventDefault();
-      querySelectorNextPre(true, "sw-dict-item", "sw-dict-item-selected");
+      querySelectorNextPre(true, "sw-dict-item", "sw-dict-item-selected", scrollToEl);
       break;
 
     case "KeyL":
     case "ArrowUp":
       e.preventDefault();
-      querySelectorNextPre(false, "sw-dict-item", "sw-dict-item-selected");
+      querySelectorNextPre(false, "sw-dict-item", "sw-dict-item-selected", scrollToEl);
       break;
 
     case "KeyJ":
@@ -153,7 +153,7 @@ document.addEventListener("keydown", (e) => {
  * @param {string}  className classname for the buttons
  * @param {string}  id is the button wich is selected for now
  */
-function querySelectorNextPre(next, className, id) {
+function querySelectorNextPre(next, className, id, callb) {
   /** @type {NodeListOf<HTMLElement>} */
   const children = document.getElementsByClassName(className);
   if (children.length < 2) return;
@@ -172,4 +172,6 @@ function querySelectorNextPre(next, className, id) {
   else curr = curr - 1 < 0 ? children.length - 1 : curr - 1;
 
   children[curr].click();
+
+  if (callb) callb(children[curr]);
 }

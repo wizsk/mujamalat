@@ -22,6 +22,7 @@ const poemLineNumHide = document.getElementById("hide-line-numbers");
 const fontSelector = document.getElementById("font-selector");
 const scrollOnSearchC = document.getElementById("scroll-on-search");
 const dark = document.getElementById("dark");
+const showDictHighWordCheckBox = document.getElementById("show-dictHighWord");
 
 for (let i = 0; i < wordSpans.length; i++) {
   if (wordSpans[i].dataset.oar !== "")
@@ -333,6 +334,10 @@ document.addEventListener("DOMContentLoaded", () => {
     dark.checked = false;
   }
 
+  showDictHighWordCheckBox.checked = !window.localStorage.getItem(
+    dictHighContainerHideLSN(),
+  );
+
   const font = window.localStorage.getItem(getFontSelectorLSN());
   if (font) {
     reader.style.fontFamily = `'${font}', 'inter'`;
@@ -482,3 +487,9 @@ for (let i = 0; i < readerMenuAnkers.length; i++) {
 dark.onchange = () => {
   changeColor(dark.checked);
 };
+
+showDictHighWordCheckBox.addEventListener("click", () => {
+  if (showDictHighWordCheckBox.checked)
+    window.localStorage.removeItem(dictHighContainerHideLSN());
+  else window.localStorage.setItem(dictHighContainerHideLSN(), "true");
+});

@@ -59,6 +59,12 @@ document.addEventListener("DOMContentLoaded", () => {
     scrollOnSearch = true;
   }
 
+  if (
+    currWord != "" &&
+    !window.localStorage.getItem(dictHighContainerHideLSN())
+  )
+    dictHighContainer.classList.remove("hidden");
+
   // wBtnTgl(); // handeled by the go template
 
   // {{if not .RDMode}}
@@ -222,11 +228,12 @@ w.oninput = () => {
       querySelector.innerHTML = b;
       setTimeout(() => {
         const el = document.getElementById("querySelector-item-selected");
-        if (el) el.scrollIntoView({
-          behavior: 'smooth',    // auto Or 'smooth' if you want animation
-          block: "nearest",
-          inline: "center", // Center the element horizontally
-        });
+        if (el)
+          el.scrollIntoView({
+            behavior: "smooth", // auto Or 'smooth' if you want animation
+            block: "nearest",
+            inline: "center", // Center the element horizontally
+          });
       }, 100);
       querySelector.classList.remove("hidden");
     } else {
@@ -335,10 +342,14 @@ function getScrollOnSearchLSN() {
 // called after high or rm high
 let fetchAndSetDictHighWordStateCallBack;
 
+function dictHighContainerHideLSN() {
+  return "dictHighContainerHIDE";
+}
 // alhi alredy high
 // alhi and callb is used in the reader page
 async function fetchAndSetDictHighWordState(word, alhi, callb) {
   dictHighContainer.classList.add("hidden");
+  if (window.localStorage.getItem(dictHighContainerHideLSN())) return;
 
   let r;
   if (alhi == null) {
@@ -393,11 +404,11 @@ dictHighHiBtn.onclick = async () => {
   dictHighHiBtn.disabled = false;
 };
 
-
 function scrollToEl(el) {
-  if (el) el.scrollIntoView({
-    behavior: 'smooth',    // auto Or 'smooth' if you want animation
-    block: "nearest",
-    inline: "center", // Center the element horizontally
-  });
+  if (el)
+    el.scrollIntoView({
+      behavior: "smooth", // auto Or 'smooth' if you want animation
+      block: "nearest",
+      inline: "center", // Center the element horizontally
+    });
 }

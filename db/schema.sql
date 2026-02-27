@@ -24,6 +24,7 @@ CREATE TABLE IF NOT EXISTS "mujamul_muhith" (
 	"word"	TEXT,
 	"meanings"	TEXT
 );
+
 CREATE TABLE IF NOT EXISTS "mujamul_shihah" (
 	"id"	INTEGER PRIMARY KEY AUTOINCREMENT,
 	"word"	TEXT,
@@ -31,6 +32,18 @@ CREATE TABLE IF NOT EXISTS "mujamul_shihah" (
 );
 
 CREATE TABLE IF NOT EXISTS "lisanularab" (
+	"id"	INTEGER PRIMARY KEY AUTOINCREMENT,
+	"word"	TEXT, -- this is most likely root; with no harakat
+	"meanings"	TEXT
+);
+
+CREATE TABLE IF NOT EXISTS "mufradat_alfajul_quran" (
+	"id"	INTEGER PRIMARY KEY AUTOINCREMENT,
+	"word"	TEXT, -- this is most likely root; with no harakat
+	"meanings"	TEXT
+);
+
+CREATE TABLE IF NOT EXISTS "maqayeesul_luga" (
 	"id"	INTEGER PRIMARY KEY AUTOINCREMENT,
 	"word"	TEXT, -- this is most likely root; with no harakat
 	"meanings"	TEXT

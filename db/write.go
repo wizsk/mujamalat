@@ -2,6 +2,7 @@ package main
 
 import (
 	"database/sql"
+	"encoding/json"
 	"fmt"
 	"log"
 	"os"
@@ -12,7 +13,9 @@ import (
 )
 
 func main() {
-	dir := os.Args[1]
+	table := os.Args[1]
+	dir := os.Args[2]
+
 	db, err := sql.Open("sqlite", "./mujamalat.db")
 	if err != nil {
 		log.Fatal(err)
@@ -32,12 +35,13 @@ func main() {
 	defer tx.Commit() // Commit the transaction when done
 
 	// Prepare the insert statement
-	stmt, err := tx.Prepare(`INSERT INTO lisanularab (word, meanings) VALUES (?, ?)`)
+	stmt, err := tx.Prepare(`INSERT INTO ` + table + ` (word, meanings) VALUES (?, ?)`)
 	if err != nil {
 		log.Fatal(err)
 	}
 	defer stmt.Close()
 
+	m := make(map[string]string)
 	// Iterate over the files
 	for i, file := range files {
 		if file.IsDir() {
@@ -52,10 +56,20 @@ func main() {
 		content, err := os.ReadFile(filePath)
 		if err != nil {
 			log.Fatalf("Error reading file %s: %v", file.Name(), err)
-			continue
+			break
 		}
-		meaning := string(content)
+		clear(m)
+		if err := json.Unmarshal(content, &m); err != nil {
+			log.Fatalf("Error json %s: %v", file.Name(), err)
+			break
+		}
+		meaning := string(m["data"])
 		meaning = strings.ReplaceAll(meaning, "\n", "|")
+
+		word = strings.TrimSpace(strings.Split(word, ".")[0])
+		if word == "" {
+			log.Fatal("word empty", file.Name())
+		}
 
 		// Execute the insert statement for this word
 		_, err = stmt.Exec(word, meaning)

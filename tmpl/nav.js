@@ -70,11 +70,21 @@ function showHideNav(show, force) {
     }
 }
 
+let __lastNavHeight = -1;
 /** Set the div which will take space so, other elements don't do behind the nav */
 function setNavHeight() {
+    const nh = nav.offsetHeight;
+    if (nh == __lastNavHeight) return;
+    //  height: calc(var(--nav-height) + 1rem);
+    navSpace.style.height = `${nh + 16}px`;
     document.documentElement.style.setProperty(
-        "--nav-height", `${nav.offsetHeight}px`);
+        "--nav-height", `${nh}px`);
 }
+
+// this is nesseary :D
+setInterval(() => {
+    setNavHeight();
+}, 500);
 
 /**
  * query means word
@@ -99,8 +109,8 @@ async function changeQueryIdx(el, word, idx) {
     el.id = 'querySelector-item-selected';
     currWord = word;
     el.scrollIntoView({
-      behavior: 'smooth',    // auto Or 'smooth' if you want animation
-      block: "nearest",
-      inline: "center", // Center the element horizontally
+        behavior: 'smooth',    // auto Or 'smooth' if you want animation
+        block: "nearest",
+        inline: "center", // Center the element horizontally
     });
 }
